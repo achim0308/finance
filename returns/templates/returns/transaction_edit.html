@@ -1,0 +1,29 @@
+{% extends 'returns/base.html' %}
+
+{% block header_block%}
+
+{% load staticfiles %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'returns/css/jquery-ui.css' %}"/>
+<script type="text/javascript" src="{% static 'returns/js/jquery-2.2.1.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'returns/js/jquery-ui.min.js' %}"></script>
+
+<script>
+$(document).ready(function() {
+  $( ".datepicker" ).datepicker({
+    changeMonth: true,
+    changeYear: true,
+    numberOfMonths: 1,
+  });
+});
+</script>
+{% endblock header_block %}
+
+{% block body_block %}
+<h1>New transaction</h1>
+<form method="POST" class="post-form">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit" class="save btn btn-default">Save</button>
+</form>
+{% endblock body_block %}

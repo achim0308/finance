@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Investments and investment returns</title>
+    {% load staticfiles %}
+    <link rel="stylesheet" type="text/css" href="{% static 'returns/css/bootstrap.min.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'returns/css/bootstrap-theme.min.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'returns/css/returns.css' %}"/>
+    <script type="text/javascript" src="{% static 'returns/js/jquery-2.2.1.min.js' %}"></script>
+    {% block header_block %}{% endblock %}
+  </head>
+ <body>
+   <div class="container">
+     <div class="page-header">
+       <h1><a href="/">Finance portal</a></h1>
+     </div>
+     <div class="nav-bar">
+       {% if user.is_authenticated %}
+       <a href="{% url 'returns:index' %}">Main</a>
+       &ensp;<a href="{% url 'returns:all_accounts' %}">All accounts</a>
+       &ensp;<a href="{% url 'returns:timeperiod' %}">Restricted period</a>
+       &ensp;<a href="/admin">Admin</a> 
+       &emsp;<a href="{% url 'returns:transaction_new' %}">New transaction</a>
+       &ensp;<a href="{% url 'returns:account_new' %}">New account</a>
+       &ensp;<a href="{% url 'returns:security_new' %}">New security</a>
+       &emsp;<a href="{% url 'django.contrib.auth.views.logout' %}">Log out</a>
+       {% else %}
+       <a href="{% url 'django.contrib.auth.views.login' %}">Log in<span class="glyphicon glyphicon-lock"></span></a>       
+       {% endif %}
+     </div>
+     <div class="content">
+       {% block body_block%}{% endblock %}
+     </div>
+     <div class="footer">
+       <small>&#169; 2016 - A. Wechsung</small>
+     </div>
+   </div>
+ </body>
+</html>

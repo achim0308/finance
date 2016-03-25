@@ -1,0 +1,30 @@
+{% extends 'returns/base.html' %}
+
+{% block body_block %}
+<h1>Transaction {{ transaction.id }}  details</h1>
+
+<p><strong>Date: </strong>{{ transaction.date }}</p>
+<p>
+{% if transaction.kind == "BU" %}
+Buy {{ transaction.num_transacted }}
+{% endif %}
+{% if transaction.kind == "SE" %}
+Sell {{ transaction.num_transacted }}
+{% endif %}
+{% if transaction.kind == "IN" %}
+Interest payment:
+{% endif %}
+{% if transaction.kind == "DI" %}
+Dividend payment:
+{% endif %}
+<a href="{% url 'returns:security' transaction.security.id %}">{{ transaction.security.name }}</a>:
+EUR {{ transaction.cashflow }}
+
+{% if transaction.expenses > 0 %}
+<p><strong>Expenses: </strong>EUR {{ transaction.expenses }}</p>
+{% endif %}
+{% if transaction.tax > 0 %}
+<p><strong>Tax: </strong> EUR{{ transaction.tax }}</p>
+{% endif %}
+
+{% endblock body_block %}

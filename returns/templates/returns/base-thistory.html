@@ -1,0 +1,145 @@
+{% extends 'returns/base.html' %}
+
+{% block header_block%}
+
+{% load staticfiles %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'returns/css/jquery.tablesorter/theme.bootstrap.css'%}">
+
+<script type="text/javascript" src="{% static 'returns/js/jquery.tablesorter.js'%} "></script>
+<script type="text/javascript" src="{% static 'returns/js/jquery.tablesorter.widgets.js'%} "></script>
+<script type="text/javascript" src="{% static 'returns/js/jquery.tablesorter.widgets/widget-alignChar.js'%} "></script>
+
+<script language="javascript">
+$(document).ready(function()
+  {
+    $("#hist_perf").tablesorter(
+      {
+        headerTemplate: '{content} {icon}',
+        widgets: ['zebra', 'uitheme', 'alignChar'],
+        theme: 'bootstrap'
+      });
+    $("#transaction_history").tablesorter(
+      {
+        headerTemplate: '{content} {icon}',
+        dateFormat: 'mmddyyyy',
+        widgets: ['zebra', 'uitheme', 'alignChar'],
+        theme: 'bootstrap'
+      });
+  }
+);
+
+function toggle_visibility(id) {
+  var e = document.getElementById(id);
+  if (e.style.display == "block")
+    e.style.display = "none";
+  else 
+    e.style.display = "block";
+}
+</script>
+
+<style>
+/* CSS needed for this widget */
+.ts-align-wrap {
+  white-space: nowrap;
+  width: 100%;
+  overflow: hidden;
+}
+.ts-align-wrap, .ts-align-left, .ts-align-right {
+  display: inline-block;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+}
+.ts-align-left {
+  text-align:right;
+}
+.ts-align-right {
+  text-align:left;
+}
+</style>
+
+{% block add_header_block %}{% endblock add_header_block%}
+{% endblock header_block%}
+
+{% block body_block%}
+{% block add_body_block%} {% endblock add_body_block%}
+
+<h2>Financial performance</h2>
+{% if errorReturns == '' %}
+<p><strong>Return:</strong> {{ returns }}%</p>
+{% else %}
+<p>ERROR: {{ errorReturns }}</p>
+{% endif %}
+
+<p><strong>Total:</strong> EUR {{ total }}</p>
+
+{% if histPerf %}
+<h2><a href="#" onclick="toggle_visibility('hist_perf_div');">Historical performance</a></h2>
+<div id="hist_perf_div" style="display:block">
+<table id="hist_perf">
+<thead>
+  <tr>
+    <th></th>
+    <th data-align-char="." data-align-adjust="20">Initial value (&euro;)</th>
+    <th data-align-char="." data-align-adjust="50">Annulized return</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td>YTD</td>
+    <td>{{ histPerf.iYTD }}</td>
+    <td>{{ histPerf.rYTD }}%</td>
+  </tr>
+  <tr>
+    <td>Last year</td>
+    <td>{{ histPerf.i1Y }}</td>
+    <td>{{ histPerf.r1Y }}%</td>
+  </tr>
+  <tr>
+    <td>Last 5 years</td>
+    <td>{{ histPerf.i5Y }}</td>
+    <td>{{ histPerf.r5Y }}%</td>
+  </tr>
+  <tr>
+    <td>Overall</td>
+    <td>{{ histPerf.iInfY }}</td>
+    <td>{{ histPerf.rInfY }}%</td>
+  </tr>
+</tbody>
+</table>
+</div>
+{% endif %}
+
+{% if transaction_history %}
+<h2><a href="#" onclick="toggle_visibility('transaction_history_div');">Transaction history</a></h2>
+<div id="transaction_history_div" style="display:block">
+<table id="transaction_history" class="table-sorter">
+<thead>
+  <tr>
+    <th>Date</th>
+    <th>Kind</th>
+    <th>Name</th>
+    <th data-align-char="." data-align-adjust="10">Cashflow (&euro;)</th>
+    <th data-align-char="." data-align-adjust="30">Expenses (&euro;)</th>
+    <th data-align-char="." data-align-adjust="30">Tax (&euro;)</th>
+    <th>Details</th>
+  </tr>
+</thead>
+<tbody>
+  {% for t in transaction_history %}
+  <tr>
+    <td>{{ t.tdate }}</td>
+    <td>{{ t.kind }}</td>    
+    <td><a href="{% url 'returns:security' t.security_id %}">{{ t.security_name }}</a></td>
+    <td>{{ t.cashflow }}</td>
+    <td>{{ t.expense }}</td>
+    <td>{{ t.tax }}</td> 
+    <td><a href="{% url 'returns:transaction' t.id %}"><span class="glyphicon glyphicon-info-sign"></span></a>&ensp;<a href="{% url 'returns:transaction_edit' transaction_id=t.id %}"><span class="glyphicon glyphicon-pencil"></span></a></td>
+  </tr>
+  {% endfor %}
+</tbody>
+</table>
+</div>
+{% endif %}
+{% endblock body_block%}

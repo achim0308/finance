@@ -1,0 +1,51 @@
+<h1>Selected details</h1>
+
+{% if selected_account %}
+<h2>Accounts</h2>
+<ul>
+{% for a in selected_account %}
+<li> {{ a.name }} </li>
+{% endfor %}
+</ul>
+{% else %}
+{% if selected_security %}
+<h2>Securities</h2>
+<ul>
+{% for s in selected_security %}
+<li> {{ s.name }}: {{ s.desrip }} </li>
+{% endfor %}
+</ul>
+{% endif %}
+{% endif %}
+
+{% if errorReturn == '' %}
+<p>Return: {{ returns }}%</p>
+{% else %}
+<p>ERROR: {{ errorReturn }}</p>
+{% endif %}
+
+<p><strong>Total:</strong> EUR {{ total }}</p>
+
+{% if transaction_history %}
+<h2>Transaction history</h2>
+<table>
+  <tr>
+    <th>Date</th>
+    <th>Kind</th>
+    <th>Name</th>
+    <th>Cashflow</th>
+    <th>Expenses</th>
+    <th>Tax</th>
+  </tr>
+  {% for t in transaction_history %}
+  <tr>
+    <td>{{ t.date }}</td>
+    <td>{{ t.kind }}</td>
+    <td>{{ t.security.name }}</td>
+    <td>{{ t.cashflow }}</td>
+    <td>{{ t.expense }}</td>
+    <td>{{ t.tax }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}

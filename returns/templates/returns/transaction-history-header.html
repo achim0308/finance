@@ -1,0 +1,44 @@
+{% load staticfiles %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'returns/css/bootstrap.min.css' %}"/>
+<link rel="stylesheet" type="text/css" href="{% static 'returns/css/jquery.tablesorter/theme.bootstrap.css'%}"></link>
+
+<script type="text/javascript" src="{% static 'returns/js/jquery-2.2.1.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'returns/js/jquery.tablesorter.js'%} "></script>
+<script type="text/javascript" src="{% static 'returns/js/jquery.tablesorter.widgets.js'%} "></script>
+<script type="text/javascript" src="{% static 'returns/js/jquery.tablesorter.widgets/widget-alignChar.js'%} "></script>
+
+<script>
+$(document).ready(function()
+  {
+    $("#transaction_history").tablesorter(
+      {
+        headerTemplate: '{content} {icon}',
+        dateFormat: 'ddmmYYYY',
+        widgets: ['zebra', 'uitheme', 'alignChar'],
+        theme: 'bootstrap'
+      });
+  }
+);
+</script>
+
+<style>
+/* CSS needed for this widget */
+.ts-align-wrap {
+  white-space: nowrap;
+  width: 100%;
+  overflow: hidden;
+}
+.ts-align-wrap, .ts-align-left, .ts-align-right {
+  display: inline-block;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+}
+.ts-align-left {
+  text-align:right;
+}
+.ts-align-right {
+  text-align:left;
+}
+</style>

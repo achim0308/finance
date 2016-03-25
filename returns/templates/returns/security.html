@@ -1,0 +1,19 @@
+{% extends 'returns/base-thistory.html' %}
+
+{% block add_body_block %}
+
+<h1>Security {{ security.id }} details</h1>
+
+<p><strong>Name: </strong>{{ security.name }}<br />
+{{ security.descrip }}
+</p>
+
+{% if security.mark_to_market == True %}
+<p>Priced at market value.</p>
+{% endif %}
+
+{% if security.accumulate_interest == True %}
+<p>Accumulates interest.</p>
+{% endif %}
+
+{% endblock add_body_block%}

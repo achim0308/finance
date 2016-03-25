@@ -1,0 +1,91 @@
+{% extends 'returns/base.html' %}
+
+{% block header_block%}
+
+{% load staticfiles %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'returns/css/jquery-ui.css' %}"/>
+<script type="text/javascript" src="{% static 'returns/js/jquery-2.2.1.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'returns/js/jquery-ui.min.js' %}"></script>
+
+<link rel="stylesheet" type="text/css" href="{% static 'returns/css/select2.min.css' %}"/>
+<script type="text/javascript" src="{% static 'returns/js/select2.min.js' %}"></script>
+
+<script>
+$(document).ready(function() {
+  $( "#from" ).datepicker({
+    defaultDate: "-1y",
+    changeMonth: true,
+    changeYear: true,
+    numberOfMonths: 1,
+    onClose: function( selectedDate ) {
+      $( "#to" ).datepicker( "option", "minDate", selectedDate );
+    }
+  });
+  $( "#to" ).datepicker({
+    defaultDate: "+0w",
+    changeMonth: true,
+    changeYear: true,
+    numberOfMonths: 1,
+    onClose: function( selectedDate ) {
+      $( "#from" ).datepicker( "option", "maxDate", selectedDate );
+    }
+  });
+
+  $( "#from").datepicker("setDate", "-1y");
+  $( "#to").datepicker("setDate", "+0y");
+
+  $(".select-1").select2({
+    placeholder:  "Select kind"
+  });
+  $(".select-2").select2({
+    placeholder:  "Select account"
+  });
+  $(".select-3").select2({
+    placeholder:  "Select security"
+  });
+});
+</script>
+
+{% endblock header_block %}
+
+{% block body_block %}
+
+<h1>Calculate rate of return for a restricted time period</h1>
+
+<form action="{% url 'returns:timeperiod' %}" method="get">
+{% csrf_token %}
+
+<p>
+<label for="from">From</label>
+<input type="text" id="from" name="from">
+<label for="to">to</label>
+<input type="text" id="to" name="to">
+</p>
+<p>
+<select class="select-1" style="width: 50%" multiple="multiple" name="kind">
+  {% for k in kinds %}
+  <option value="{{ k.0 }}">{{ k.1 }}</option>
+  {% endfor %}
+</select>
+</p>
+
+<p>
+<select class="select-2" style="width: 50%" multiple="multiple" name="account">
+  {% for a in accounts %}
+  <option value="{{ a.id }}">{{ a.name }}</option>
+  {% endfor %}
+</select>
+</p>
+
+<p>
+<select class="select-3" style="width: 50%" multiple="multiple" name="security">
+  {% for s in securities %}
+  <option value="{{ s.id }}">{{ s.name }}</option>
+  {% endfor %}
+</select>
+</p>
+<input type="submit" class="save btn btn-default" value="Calculate" />
+</form>
+
+{% endblock body_block %}

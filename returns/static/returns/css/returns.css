@@ -1,0 +1,48 @@
+html,
+body {
+    margin:0;
+    padding:0;
+    height: 100%;
+}
+
+.page-header {
+    background-color: #337AB7;
+    margin: 0 0 0;
+    padding: 20px 20px 20px 40px;
+}
+
+.page-header h1, .page-header h1 a, .page-header h1 a:visited, .page-header h1 a:active {
+    color: #ffffff;
+    font-size: 36pt;
+    text-decoration: none;
+}
+
+.nav-bar {
+    background-color: #e0e0e0;
+    margin-top: 0;
+    padding: 0px 0px 0 40px;
+}
+
+.content {
+    margin-left: 40px;
+    padding: 10px;
+    padding-bottom: 20px;
+}
+
+.container {
+    min-height:100%;
+    position: relative;
+}
+
+.footer {
+    position: absolute;
+    width: 100%;
+    bottom: 0;
+    height: 20px;
+    background-color: #e0e0e0;;
+    text-align: center;
+}
+
+.errorlist {
+    color: #FF0000;
+}
