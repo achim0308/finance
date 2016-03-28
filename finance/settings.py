@@ -24,7 +24,6 @@ config.read(BASE_DIR + '/finance/settings.ini')
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config.get('secrets', 'SECRET_KEY')
-#'w4z(b=1)u$0cclw9gwafauny*$__%aaj5x^usp$nub1ay1a%@r'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -88,10 +87,6 @@ DATABASES = {
         'PASSWORD': config.get('database', 'DATABASE_PASSWORD'),
         'HOST': config.get('database', 'DATABASE_HOST'),
         'PORT': config.get('database', 'DATABASE_PORT'),
-#        'USER': 'finance_site',
-#        'PASSWORD': 'YTX-uWd-Sc3-u45',
-#        'HOST': '127.0.0.1',
-#        'PORT': '3306',
     }
 }
 
