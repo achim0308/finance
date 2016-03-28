@@ -7,7 +7,7 @@ from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 
 from .models import Transaction, Account, Security
-from .processTransaction2 import constructCompleteInfo2, gatherData, addHistoricalPerformance
+from .processTransaction2 import constructCompleteInfo2, gatherData, addHistoricalPerformance, addSegmentPerformance
 from .forms import AccountForm, SecurityForm, TransactionForm, HistValuationForm
 
 @login_required
@@ -29,6 +29,7 @@ def transaction(request, transaction_id):
 def all_accounts(request):
     info = gatherData()
     info['histPerf'] = addHistoricalPerformance()
+    info['segPerf'] = addSegmentPerformance()
     return render(request, 'returns/all_accounts.html', info)
 
 @login_required

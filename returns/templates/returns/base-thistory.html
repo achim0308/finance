@@ -13,6 +13,12 @@
 <script language="javascript">
 $(document).ready(function()
   {
+    $("#seg_perf").tablesorter(
+      {
+        headerTemplate: '{content} {icon}',
+        widgets: ['zebra', 'uitheme', 'alignChar'],
+        theme: 'bootstrap'
+      });
     $("#hist_perf").tablesorter(
       {
         headerTemplate: '{content} {icon}',
@@ -73,6 +79,67 @@ function toggle_visibility(id) {
 {% endif %}
 
 <p><strong>Total:</strong> EUR {{ total }}</p>
+
+{% if segPerf %}
+<h2><a href="#" onclick="toggle_visibility('seg_perf_div');">Segments performance</a></h2>
+<div id="seg_perf_div" style="display:block">
+<table id="seg_perf">
+<thead>
+  <tr>
+    <th></th>
+    <th data-align-char="." data-align-adjust="10">YTD return</th>
+    <th data-align-char="." data-align-adjust="10">Last year return</th>
+    <th data-align-char="." data-align-adjust="10">Overall return</th>
+    <th data-align-char="." data-align-adjust="10">Total value (&euro;)</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td>Tagesgeld</td>
+    <td>{{ segPerf.pTG.rYTD }}%</td>
+    <td>{{ segPerf.pTG.r1Y }}%</td>
+    <td>{{ segPerf.pTG.rInfY }}%</td>
+    <td>{{ segPerf.pTG.tYTD }}</td>
+  </tr>
+  <tr>
+    <td>Aktien</td>
+    <td>{{ segPerf.pAK.rYTD }}%</td>
+    <td>{{ segPerf.pAK.r1Y }}%</td>
+    <td>{{ segPerf.pAK.rInfY }}%</td>
+    <td>{{ segPerf.pAK.tYTD }}</td>
+  </tr>
+  <tr>
+    <td>Aktien-Fonds</td>
+    <td>{{ segPerf.pAF.rYTD }}%</td>
+    <td>{{ segPerf.pAF.r1Y }}%</td>
+    <td>{{ segPerf.pAF.rInfY }}%</td>
+    <td>{{ segPerf.pAF.tYTD }}</td>
+  </tr>
+  <tr>
+    <td>Bonds</td>
+    <td>{{ segPerf.pBD.rYTD }}%</td>
+    <td>{{ segPerf.pBD.r1Y }}%</td>
+    <td>{{ segPerf.pBD.rInfY }}%</td>
+    <td>{{ segPerf.pBD.tYTD }}</td>
+  </tr>
+  <tr>
+    <td>Bonds-Fonds</td>
+    <td>{{ segPerf.pBF.rYTD }}%</td>
+    <td>{{ segPerf.pBF.r1Y }}%</td>
+    <td>{{ segPerf.pBF.rInfY }}%</td>
+    <td>{{ segPerf.pBF.tYTD }}</td>
+  </tr>
+  <tr>
+    <td>Altersvorsorge</td>
+    <td>{{ segPerf.pAV.rYTD }}%</td>
+    <td>{{ segPerf.pAV.r1Y }}%</td>
+    <td>{{ segPerf.pAV.rInfY }}%</td>
+    <td>{{ segPerf.pAV.tYTD }}</td>
+  </tr>
+</tbody>
+</table>
+</div>
+{% endif %}
 
 {% if histPerf %}
 <h2><a href="#" onclick="toggle_visibility('hist_perf_div');">Historical performance</a></h2>

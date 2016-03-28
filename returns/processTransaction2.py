@@ -84,6 +84,11 @@ def constructCompleteInfo2(accounts = None, securities = None, beginDate = None,
     
 def getReturns(accounts = None, securities = None, kind = None, beginDate = None, endDate = None):
 
+    # Workaround for now --- maybe add this as another query
+    if kind:
+        accounts = None
+        securities = [s.id for s in Security.objects.filter(kind__in = kind)]
+
     # construct cash flow list
     cashflowList = Transaction.thobjects.getCashflow(accounts=accounts, securities = securities, beginDate = beginDate, endDate = endDate)        
 
@@ -120,6 +125,7 @@ def gatherData(accounts = None, securities = None, kind = None, beginDate = None
     if kind:
         accounts = None
         securities = [s.id for s in Security.objects.filter(kind__in = kind)]      
+
     # get transaction history
     transaction_history = Transaction.thobjects.getTransactionHistory(accounts=accounts, securities = securities, beginDate = beginDate, endDate = endDate)
 
@@ -134,6 +140,16 @@ def gatherData(accounts = None, securities = None, kind = None, beginDate = None
     
     return {'accounts': accounts, 'securities': securities, 'beginDate': beginDate, 'endDate':endDate, 'cashflowList': performance['cashflowList'], 'total': performance['total'], 'returns': performance['returns'], 'errorReturns': performance['errorReturns'], 'transaction_history': transaction_history}
 
+def addSegmentPerformance():
+    pTG = addHistoricalPerformance(kind=[Security.TAGESGELD])
+    pAK = addHistoricalPerformance(kind=[Security.AKTIE])
+    pAF = addHistoricalPerformance(kind=[Security.AKTIENETF])
+    pBD = addHistoricalPerformance(kind=[Security.BONDS])
+    pBF = addHistoricalPerformance(kind=[Security.BONDSETF])
+    pAV = addHistoricalPerformance(kind=[Security.ALTERSVORSORGE])
+
+    return {'pTG': pTG, 'pAK': pAK, 'pAF': pAF, 'pBD': pBD, 'pBF': pBF, 'pAV': pAV}
+
 def addHistoricalPerformance(accounts = None, securities = None, kind = None):
     today = timezone.now().date()
     thisYear = date(today.year,1,1)
@@ -147,12 +163,16 @@ def addHistoricalPerformance(accounts = None, securities = None, kind = None):
 
     return {'rYTD': performanceYTD['returns'],
             'iYTD': performanceYTD['initial'],
+            'tYTD': performanceYTD['total'],
             'r1Y': performancePrevYear['returns'],
             'i1Y': performancePrevYear['initial'],
+            't1Y': performancePrevYear['total'],
             'r5Y': performanceFiveYear['returns'],
             'i5Y': performanceFiveYear['initial'],
+            't5Y': performanceFiveYear['total'],
             'rInfY': performanceOverall['returns'],
-            'iInfY': performanceOverall['initial']}
+            'iInfY': performanceOverall['initial'],
+            'tInfY': performanceOverall['total']}
 
 def aggregate(transaction_history):
     net = dict()
