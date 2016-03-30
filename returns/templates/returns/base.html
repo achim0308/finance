@@ -23,9 +23,9 @@
        &emsp;<a href="{% url 'returns:transaction_new' %}">New transaction</a>
        &ensp;<a href="{% url 'returns:account_new' %}">New account</a>
        &ensp;<a href="{% url 'returns:security_new' %}">New security</a>
-       &emsp;<a href="{% url 'django.contrib.auth.views.logout' %}">Log out</a>
+       &emsp;<a href="{% url 'logout' %}?next=/">Log out</a>
        {% else %}
-       <a href="{% url 'django.contrib.auth.views.login' %}">Log in<span class="glyphicon glyphicon-lock"></span></a>       
+       <a href="{% url 'login' %}">Log in<span class="glyphicon glyphicon-lock"></span></a>       
        {% endif %}
      </div>
      <div class="content">
