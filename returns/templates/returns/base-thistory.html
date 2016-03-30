@@ -75,7 +75,7 @@ function toggle_visibility(id) {
 {% if errorReturns == '' %}
 <p><strong>Return:</strong> {{ returns }}%</p>
 {% else %}
-<p>ERROR: {{ errorReturns }}</p>
+<p class="errorlist">ERROR: {{ errorReturns }}</p>
 {% endif %}
 
 <p><strong>Total:</strong> EUR {{ total }}</p>
