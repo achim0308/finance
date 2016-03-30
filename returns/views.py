@@ -113,7 +113,7 @@ def account_new(request):
         form = AccountForm(request.POST)
         if form.is_valid():
             account = form.save()
-            return redirect('returns:account', pk=account.id)
+            return redirect('returns:account', account_id=account.id)
     else:
         form = AccountForm()
     return render(request, 'returns/account_edit.html', {'form': form})
@@ -125,7 +125,7 @@ def account_edit(request, account_id):
         form = AccountForm(request.POST, instance=account)
         if form.is_valid():
             account = form.save()
-            return redirect('returns:account', pk=account.id)
+            return redirect('returns:account', account_id=account.id)
     else:
         form = AccountForm(instance=account)
     return render(request, 'returns/account_edit.html', {'form': form})
@@ -136,7 +136,7 @@ def security_new(request):
         form = SecurityForm(request.POST)
         if form.is_valid():
             security = form.save()
-            return redirect('returns:security', pk=security.id)
+            return redirect('returns:security', security_id=security.id)
     else:
         form = SecurityForm()
     return render(request, 'returns/security_edit.html', {'form': form})
@@ -148,7 +148,7 @@ def security_edit(request, security_id):
         form = SecurityForm(request.POST, instance=security)
         if form.is_valid():
             security = form.save()
-            return redirect('returns:security', pk=security.id)
+            return redirect('returns:security', security_id=security.id)
     else:
         form = SecurityForm(instance=security)
     return render(request, 'returns/security_edit.html', {'form': form})
