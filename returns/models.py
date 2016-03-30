@@ -40,6 +40,9 @@ class Security(models.Model):
 
     def __str__(self):
         return "%s (%s)" % (self.name, self.descrip)
+
+    class Meta:
+        ordering = ['name']
         
 @python_2_unicode_compatible
 class Account(models.Model):
@@ -48,6 +51,9 @@ class Account(models.Model):
                             max_length = 40)
     def __str__(self):
         return self.name
+
+    class Meta:
+        ordering = ['name']
 
 class TransactionManager(models.Manager):
     def getTransactionHistory(self, beginDate = None, endDate = None, securities = None, accounts = None):
