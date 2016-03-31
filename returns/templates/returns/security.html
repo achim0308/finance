@@ -2,9 +2,9 @@
 
 {% block add_body_block %}
 
-<h1>Security {{ security.id }} details</h1>
+<h1>Security {{ security.id }} details</h1> 
 
-<p><strong>Name: </strong>{{ security.name }}<br />
+<p><strong>Name: </strong>{{ security.name }}&ensp;<a href="{% url 'returns:security_edit' security_id=security.id %}"><span class="glyphicon glyphicon-pencil"></span></a><br />
 {{ security.descrip }}
 </p>
 
@@ -14,6 +14,9 @@
 
 {% if security.accumulate_interest == True %}
 <p>Accumulates interest.</p>
+{% if security.calc_interest > 0.0 %}
+<p>Fixed interest rate: {{ security.calc_interest }}%</p>
+{% endif %}
 {% endif %}
 
 {% endblock add_body_block%}

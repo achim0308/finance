@@ -37,6 +37,10 @@ class Security(models.Model):
                                          default = False)
     accumulate_interest = models.BooleanField('True if interest accumulates (e.g. savings accounts)',
                                               default = False)
+    calc_interest =  models.DecimalField('Fixed interest rate (%)',
+                                         max_digits = 6,
+                                         decimal_places = 2,
+                                         default = 0)
 
     def __str__(self):
         return "%s (%s)" % (self.name, self.descrip)

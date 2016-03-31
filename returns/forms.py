@@ -12,25 +12,50 @@ class AccountForm(forms.ModelForm):
 class SecurityForm(forms.ModelForm):
 
     def clean(self):
-        if (self.cleaned_data.get('mark_to_market') == True and self.cleaned_data.get('accumulate_interest') == True):
+        #cleaned_data=super(SecurityForm, self).clean()
+        if (self.cleaned_data.get('mark_to_market') == True and 
+            self.cleaned_data.get('accumulate_interest') == True):
             self.add_error('mark_to_market', 
                            ValidationError("Security inconsistently labeled both mark to market and accumulates interest."))
-        elif (self.cleaned_data.get('mark_to_market') == True and self.cleaned_data.get('url') == ''):
+        elif (self.cleaned_data.get('mark_to_market') == True and 
+              self.cleaned_data.get('url') == ''):
             self.add_error('url',
                            ValidationError("Need url for a mark to market security to get current prices."))
-        if (self.cleaned_data.get('kind') == Security.TAGESGELD and self.cleaned_data.get('accumulates_interest') == False):
+
+        if (self.cleaned_data.get('kind') == Security.TAGESGELD and 
+            self.cleaned_data.get('accumulates_interest') == False):
             self.add_error('kind',
                            ValidationError("Inconsistent selection. This security should accumulate interest."))
-        if ((self.cleaned_data.get('kind') == Security.AKTIE or
-             self.cleaned_data.get('kind') == Security.AKTIENETF or
-             self.cleaned_data.get('kind') == Security.BONDS or
+
+        if ((self.cleaned_data.get('kind') == Security.AKTIE or 
+             self.cleaned_data.get('kind') == Security.AKTIENETF or 
+             self.cleaned_data.get('kind') == Security.BONDS or 
              self.cleaned_data.get('kind') == Security.BONDSETF)
              and self.cleaned_data.get('mark_to_market') == False):
             self.add_error('kind',
                            ValidationError("Inconsistent selection. This security should be marked to market."))
+
+        if (self.cleaned_data.get('accumulate_interest') == False and 
+            self.cleaned_data.get('calc_interest') != 0.0):
+            self.add_error('calc_interest', 
+                           ValidationError("Inconsistent. Fixed interest can only be used with a security that accumulates interest."))
+
+        elif (self.cleaned_data.get('accumulate_interest') == True and 
+            self.cleaned_data.get('calc_interest') < 0.0):
+            self.add_error('calc_interest', 
+                           ValidationError("Inconsistent. Fixed interest should be positive."))
+
+        elif (self.cleaned_data.get('accumulate_interest') == True and 
+            self.cleaned_data.get('calc_interest') > 0.0 and 
+            self.cleaned_data.get('kind') != Security.ALTERSVORSORGE):
+            self.add_error('kind', 
+                           ValidationError("Inconsistent. Fixed interest can only be used with Altersvorsorge."))
+
+        return self.cleaned_data
+
     class Meta:
         model = Security
-        fields = ('name', 'descrip', 'url', 'kind', 'mark_to_market', 'accumulate_interest')
+        fields = ('name', 'descrip', 'url', 'kind', 'mark_to_market', 'accumulate_interest', 'calc_interest',)
 
 class TransactionForm(forms.ModelForm):
 
