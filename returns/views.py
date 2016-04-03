@@ -7,8 +7,8 @@ from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 
 from .models import Transaction, Account, Security
-from .processTransaction2 import constructCompleteInfo2, gatherData, addHistoricalPerformance, addSegmentPerformance
-from .forms import AccountForm, SecurityForm, TransactionForm, HistValuationForm
+from .processTransaction2 import constructCompleteInfo2, gatherData, addHistoricalPerformance, addSegmentPerformance, calcInterest
+from .forms import AccountForm, SecurityForm, TransactionForm, HistValuationForm, AddInterestForm
 
 @login_required
 def index(request):
@@ -152,3 +152,24 @@ def security_edit(request, security_id):
     else:
         form = SecurityForm(instance=security)
     return render(request, 'returns/security_edit.html', {'form': form})
+
+@login_required
+def add_interest(request, security_id):
+    security = get_object_or_404(Security, pk=security_id)
+    if request.method == "POST":
+        form = AddInterestForm(request.POST)
+        if form.is_valid():
+            transaction = form.save(commit=False)
+            transaction.kind = Transaction.INTEREST
+            transaction.cashflow = calcInterest(transaction.security.id,transaction.date)
+            transaction.tax = 0.0
+            transaction.expense = 0.0
+            transaction.num_transacted = 0.0
+            transaction.save()
+            return redirect('returns:transaction', transaction_id=transaction.id)
+    else:
+        today = timezone.now().date()
+        Jan1 = date(today.year,1,1)
+    
+        form = AddInterestForm(initial={'security':security_id, 'date': Jan1})
+    return render(request, 'returns/add_interest.html', {'form': form})

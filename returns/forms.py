@@ -12,7 +12,6 @@ class AccountForm(forms.ModelForm):
 class SecurityForm(forms.ModelForm):
 
     def clean(self):
-        #cleaned_data=super(SecurityForm, self).clean()
         if (self.cleaned_data.get('mark_to_market') == True and 
             self.cleaned_data.get('accumulate_interest') == True):
             self.add_error('mark_to_market', 
@@ -99,4 +98,11 @@ class HistValuationForm(forms.ModelForm):
     class Meta:
         model = HistValuation
         fields = ('date','security', 'value',)
+        widgets = {'date': forms.DateInput(attrs={'class':'datepicker'}),}
+
+class AddInterestForm(forms.ModelForm):
+    
+    class Meta:
+        model = Transaction
+        fields = ('date', 'security', 'account',)
         widgets = {'date': forms.DateInput(attrs={'class':'datepicker'}),}

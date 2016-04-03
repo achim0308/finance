@@ -101,6 +101,7 @@ def getReturns(accounts = None, securities = None, kind = None, beginDate = None
             cashflowList = addCashflows
         else:
             cashflowList = cashflowList + addCashflows
+        totalDecimal = Decimal(addCashflows[-1]['cashflow'])
         total = '{:,}'.format(addCashflows[-1]['cashflow'])
         if len(addCashflows) == 2:
             initial = '{:,}'.format(-addCashflows[-2]['cashflow'])
@@ -109,6 +110,7 @@ def getReturns(accounts = None, securities = None, kind = None, beginDate = None
     else:
         total = 0
         initial = 0
+        totalDecimal = 0
     # calculate returns
     try:
         returns = callSolver2(cashflowList)
@@ -117,7 +119,7 @@ def getReturns(accounts = None, securities = None, kind = None, beginDate = None
         errorReturns = "Error: {0}".format(e)
         returns = ''
 
-    return  {'cashflowList': cashflowList, 'total': total, 'initial': initial, 'returns': returns, 'errorReturns': errorReturns}
+    return  {'cashflowList': cashflowList, 'total': total, 'totalDecimal': totalDecimal, 'initial': initial, 'returns': returns, 'errorReturns': errorReturns}
 
 def gatherData(accounts = None, securities = None, kind = None, beginDate = None, endDate = None):
 
@@ -173,6 +175,14 @@ def addHistoricalPerformance(accounts = None, securities = None, kind = None):
             'rInfY': performanceOverall['returns'],
             'iInfY': performanceOverall['initial'],
             'tInfY': performanceOverall['total']}
+
+def calcInterest(security, date):
+    performance = getReturns(securities=[security], endDate = date)
+    total = performance['totalDecimal']
+    s = Security.objects.get(pk=security)
+    # calculate interest payment (calc_interest is in %!)
+    interest = total * s.calc_interest / Decimal(100.0)
+    return interest
 
 def aggregate(transaction_history):
     net = dict()

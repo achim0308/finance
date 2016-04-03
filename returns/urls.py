@@ -15,5 +15,6 @@ urlpatterns = [
     url(r'^security/(?P<security_id>[0-9]+)/$', views.security, name='security'),
     url(r'^security/new/$', views.security_new, name='security_new'),
     url(r'^security/(?P<security_id>[0-9]+)/edit$', views.security_edit, name='security_edit'), 
-   url(r'^timeperiod/$', views.timeperiod, name='timeperiod'),
+    url(r'^timeperiod/$', views.timeperiod, name='timeperiod'),
+    url(r'^add_interest/(?P<security_id>[0-9]+)$', views.add_interest, name='add_interest'), 
 ]
