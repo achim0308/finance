@@ -28,7 +28,7 @@ class SecurityForm(forms.ModelForm):
 
         if ((self.cleaned_data.get('kind') == Security.AKTIE or 
              self.cleaned_data.get('kind') == Security.AKTIENETF or 
-             self.cleaned_data.get('kind') == Security.BONDS or 
+#             self.cleaned_data.get('kind') == Security.BONDS or 
              self.cleaned_data.get('kind') == Security.BONDSETF)
              and self.cleaned_data.get('mark_to_market') == False):
             self.add_error('kind',
