@@ -19,11 +19,16 @@ $(document).ready(function() {
 </script>
 {% endblock header_block %}
 
+<h1>New / edit transaction</h1>
 {% block body_block %}
-<h1>New transaction</h1>
 <form method="POST" class="post-form">
   {% csrf_token %}
   {{ form.as_p }}
+  <p><label for="id_match">Company matches:</label> <select id="id_match" name="match">
+    <option value="0">0&#37;</option>
+    <option value="50">50&#37;</option>
+    <option value="100">100&#37;</option>
+  </select></p>
   <button type="submit" class="save btn btn-default">Save</button>
 </form>
 {% endblock body_block %}

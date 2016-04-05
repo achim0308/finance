@@ -184,6 +184,14 @@ def calcInterest(security, date):
     interest = total * s.calc_interest / Decimal(100.0)
     return interest
 
+def match(transaction, percentage):
+    # Copy transaction and adjust
+    transaction.pk = None
+    transaction.kind = Transaction.INTEREST
+    transaction.cashflow = + Decimal(percentage) / Decimal(100.0) * abs(transaction.cashflow)
+
+    return transaction
+
 def aggregate(transaction_history):
     net = dict()
     buy = dict()

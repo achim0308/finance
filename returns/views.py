@@ -7,7 +7,7 @@ from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 
 from .models import Transaction, Account, Security
-from .processTransaction2 import constructCompleteInfo2, gatherData, addHistoricalPerformance, addSegmentPerformance, calcInterest
+from .processTransaction2 import constructCompleteInfo2, gatherData, addHistoricalPerformance, addSegmentPerformance, calcInterest, match
 from .forms import AccountForm, SecurityForm, TransactionForm, HistValuationForm, AddInterestForm
 
 @login_required
@@ -85,7 +85,11 @@ def transaction_new(request):
         if form.is_valid():
             transaction = form.save(commit=False)
             transaction.save()
-            print(transaction.id)
+
+            if float(request.POST['match']) > 0:
+                matched_transaction = match(transaction, request.POST['match'])
+                print(matched_transaction)
+                matched_transaction.save()
             # return redirect('returns:transaction', transaction_id=transaction.id)
             return redirect('returns:transaction_new')
     else:

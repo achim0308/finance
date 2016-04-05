@@ -1,7 +1,7 @@
 {% extends 'returns/base.html' %}
 
 {% block body_block %}
-<h1>New security</h1>
+<h1>New / edit security</h1>
 <form method="POST" class="post-form">
   {% csrf_token %}
   {{ form.as_p }}
