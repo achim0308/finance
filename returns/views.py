@@ -88,7 +88,6 @@ def transaction_new(request):
 
             if float(request.POST['match']) > 0:
                 matched_transaction = match(transaction, request.POST['match'])
-                print(matched_transaction)
                 matched_transaction.save()
             # return redirect('returns:transaction', transaction_id=transaction.id)
             return redirect('returns:transaction_new')

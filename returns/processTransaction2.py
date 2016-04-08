@@ -176,8 +176,8 @@ def addHistoricalPerformance(accounts = None, securities = None, kind = None):
             'iInfY': performanceOverall['initial'],
             'tInfY': performanceOverall['total']}
 
-def calcInterest(security, date):
-    performance = getReturns(securities=[security], endDate = date)
+def calcInterest(security, date2):
+    performance = getReturns(securities=[security], endDate = date2)
     total = performance['totalDecimal']
     s = Security.objects.get(pk=security)
     # calculate interest payment (calc_interest is in %!)

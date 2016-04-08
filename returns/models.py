@@ -79,6 +79,10 @@ class TransactionManager(models.Manager):
         if beginDate != None and endDate != None:
             sql = sql + """ AND date BETWEEN CAST(%s AS DATE) AND CAST(%s AS DATE)"""
             arg =  arg + (beginDate.strftime('%Y-%m-%d'), endDate.strftime('%Y-%m-%d'))
+        elif endDate != None:
+            sql = sql + """ AND date BETWEEN CAST(%s AS DATE) AND CAST(%s AS DATE)"""
+            arg = arg + ('1900-01-01', endDate.strftime('%Y-%m-%d'))
+
         
         sql = sql + """ ORDER BY date"""
         arg = None if arg == () else arg
@@ -105,6 +109,10 @@ class TransactionManager(models.Manager):
         if beginDate != None and endDate != None:
             sql = sql + """ AND date BETWEEN CAST(%s AS DATE) AND CAST(%s AS DATE)"""
             arg =  arg + (beginDate.strftime('%Y-%m-%d'), endDate.strftime('%Y-%m-%d'))
+        elif endDate != None:
+            sql = sql + """ AND date BETWEEN CAST(%s AS DATE) AND CAST(%s AS DATE)"""
+            arg = arg + ('1900-01-01', endDate.strftime('%Y-%m-%d'))
+
         
         sql = sql + """ GROUP BY date ORDER BY date"""
         arg = None if arg == "" else arg
@@ -132,6 +140,10 @@ class TransactionManager(models.Manager):
         if beginDate != None and endDate != None:
             sql = sql + """ AND date BETWEEN CAST(%s AS DATE) AND CAST(%s AS DATE)"""
             arg =  arg + (beginDate.strftime('%Y-%m-%d'), endDate.strftime('%Y-%m-%d'))
+        elif endDate != None:
+            sql = sql + """ AND date BETWEEN CAST(%s AS DATE) AND CAST(%s AS DATE)"""
+            arg = arg + ('1900-01-01', endDate.strftime('%Y-%m-%d'))
+
         
         sql = sql + """ GROUP BY security_id ORDER BY security_id"""
         arg = None if arg == () else arg
@@ -151,6 +163,9 @@ class TransactionManager(models.Manager):
         if beginDate != None and endDate != None:
             sql = sql + """ AND date BETWEEN CAST(%s AS DATE) AND CAST(%s AS DATE)"""
             arg = (beginDate.strftime('%Y-%m-%d'), endDate.strftime('%Y-%m-%d'))
+        elif endDate != None:
+            sql = sql + """ AND date BETWEEN CAST(%s AS DATE) AND CAST(%s AS DATE)"""
+            arg = ('1900-01-01', endDate.strftime('%Y-%m-%d'))
         if securities != None or accounts != None:
             if securities == None:
                 format_string = ','.join(['%s'] * len(accounts))
