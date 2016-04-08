@@ -102,14 +102,14 @@ def getReturns(accounts = None, securities = None, kind = None, beginDate = None
         else:
             cashflowList = cashflowList + addCashflows
         totalDecimal = Decimal(addCashflows[-1]['cashflow'])
-        total = '{:,}'.format(addCashflows[-1]['cashflow'])
+        total = '{:,.2f}'.format(addCashflows[-1]['cashflow'])
         if len(addCashflows) == 2:
-            initial = '{:,}'.format(-addCashflows[-2]['cashflow'])
+            initial = '{:,.2f}'.format(-addCashflows[-2]['cashflow'])
         else:
-            initial = 0
+            initial = '{:,.2f}'.format(0)
     else:
-        total = 0
-        initial = 0
+        total = '{:,.2f}'.format(0)
+        initial = '{:,.2f}'.format(0)
         totalDecimal = 0
     # calculate returns
     try:
