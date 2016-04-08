@@ -8,7 +8,7 @@ from bokeh.charts import Bar, vplot, output_file, show
 from bokeh.charts.attributes import cat
 from bokeh.charts.operations import blend
 from .models import Security, Transaction, Account, HistValuation
-from .calc import callSolver, callSolver2
+from .calc import callSolver2
     
 def markToMarket(security):
 # screen scraping based on onvista website
