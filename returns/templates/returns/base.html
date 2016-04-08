@@ -8,6 +8,17 @@
     <link rel="stylesheet" type="text/css" href="{% static 'returns/css/returns.css' %}"/>
     <script type="text/javascript" src="{% static 'returns/js/jquery-2.2.1.min.js' %}"></script>
     {% block header_block %}{% endblock %}
+
+    <script language="javascript">
+
+      function toggle_visibility(id) {
+      var e = document.getElementById(id);
+      if (e.style.display == "block")
+      e.style.display = "none";
+      else 
+      e.style.display = "block";
+      }
+    </script>
   </head>
  <body>
    <div class="container">

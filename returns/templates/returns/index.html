@@ -3,30 +3,35 @@
 {% block body_block %}
 <h1>Overview</h1>
 {% if account_list %}
-<h2>Accounts</h2>
+<h2><a href="#" onclick="toggle_visibility('seg_account');">Accounts</a></h2>
+<div id="seg_account" style="display:block">
   <ul>
     {% for account in account_list %}
     <li><a href="{% url 'returns:account' account.id %}">{{ account.name }}</a></li>
     {% endfor %}
   </ul>
+</div>
 {% endif %}
 
 {% if security_list %}
-<h2>Investments</h2>
+<h2><a href="#" onclick="toggle_visibility('seg_investments');">Investments</a></h2>
+<div id="seg_investments" style="display:block">
   <ul>
     {% for security in security_list %}
     <li><a href="{% url 'returns:security' security.id %}">{{ security.name }}</a>: {{ security.descrip }}</li>
     {% endfor %}
   </ul>
+</div>
 {% endif %}
 
 {% if latest_transaction_list %}
-<h2>Recent transactions</h2>
-  <ul>
+<h2><a href="#" onclick="toggle_visibility('seg_transactions');">Recent Transactions</a></h2>
+<div id="seg_transactions" style="display:block">  <ul>
     {% for transaction in latest_transaction_list %}
     <li><a href="{% url 'returns:transaction' transaction.id %}">{{ transaction }}</a></li>
     {% endfor %}
   </ul>
+</div>
 {% else %}
   <p>No transactions available.</p>
 {% endif %}
