@@ -7,7 +7,7 @@ from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 
 from .models import Transaction, Account, Security
-from .processTransaction2 import constructCompleteInfo2, gatherData, addHistoricalPerformance, addSegmentPerformance, calcInterest, match
+from .processTransaction2 import addNewMarkToMarketData, constructCompleteInfo2, gatherData, addHistoricalPerformance, addSegmentPerformance, calcInterest, match
 from .forms import AccountForm, SecurityForm, TransactionForm, HistValuationForm, AddInterestForm
 
 @login_required
@@ -176,3 +176,7 @@ def add_interest(request, security_id):
     
         form = AddInterestForm(initial={'security':security_id, 'date': Jan1})
     return render(request, 'returns/add_interest.html', {'form': form})
+
+def add_hist_data(request):
+    addNewMarkToMarketData()
+    return redirect('returns:index')

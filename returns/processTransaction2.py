@@ -35,6 +35,19 @@ def markToMarketHistorical(security, date):
     else:
         return h[0].value
 
+def addNewMarkToMarketData():
+    markToMarketSecurities = Security.objects.filter(mark_to_market=True)
+    today = timezone.now().date()
+    
+    for s in markToMarketSecurities:
+        if HistValuation.objects.filter(security=s.id,date=today).exists() == False:
+            try:
+                value = markToMarket(s)
+                newH = HistValuation(date=today, security=s, value=value)
+                newH.save()
+            except :
+                pass
+
 def constructCompleteInfo2(accounts = None, securities = None, beginDate = None, endDate = None):
 
     cashflowList = []

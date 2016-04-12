@@ -28,9 +28,10 @@
      <div class="nav-bar">
        {% if user.is_authenticated %}
        <a href="{% url 'returns:index' %}">Main</a>
-       &ensp;<a href="{% url 'returns:all_accounts' %}">All accounts</a>
-       &ensp;<a href="{% url 'returns:timeperiod' %}">Restricted period</a>
+       &ensp;<a href="{% url 'returns:all_accounts' %}">All</a>
+       &ensp;<a href="{% url 'returns:timeperiod' %}">Restr. period</a>
        &ensp;<a href="/admin">Admin</a> 
+       &emsp;<a href="{% url 'returns:add_hist_data' %}">New market</a>
        &emsp;<a href="{% url 'returns:transaction_new' %}">New transaction</a>
        &ensp;<a href="{% url 'returns:account_new' %}">New account</a>
        &ensp;<a href="{% url 'returns:security_new' %}">New security</a>
