@@ -1,4 +1,7 @@
 from datetime import datetime, date
+import moneyed
+from djmoney.models.fields import MoneyField, CurrencyField
+from djmoney.forms.widgets import CURRENCY_CHOICES
 
 from django.db import connection, models
 from django.utils import timezone
@@ -41,6 +44,10 @@ class Security(models.Model):
                                          max_digits = 6,
                                          decimal_places = 2,
                                          default = 0)
+    currency = models.CharField('Currency',
+                                max_length = 3,
+                                choices = CURRENCY_CHOICES,
+                                default = 'EUR')
 
     def __str__(self):
         return "%s (%s)" % (self.name, self.descrip)
@@ -216,17 +223,20 @@ class Transaction(models.Model):
                             default = SELL)
     security = models.ForeignKey(Security,
                                  on_delete = models.PROTECT)
-    expense = models.DecimalField('expenses allocated to transaction',
+    expense = MoneyField('expenses allocated to transaction',
                                   max_digits = 10,
                                   decimal_places = 2,
-                                  default = 0)
-    tax = models.DecimalField('taxes allocated to transaction',
+                                  default = 0,
+                          default_currency='EUR')
+    tax = MoneyField('taxes allocated to transaction',
                               max_digits = 10,
                               decimal_places = 2,
-                              default = 0)
-    cashflow = models.DecimalField('cashflow during transaction (Neg.=Outgoing)',
-                                   max_digits = 10,
-                                   decimal_places = 2)
+                              default = 0,
+                          default_currency='EUR')
+    cashflow = MoneyField('cashflow during transaction (Neg.=Outgoing)',
+                          max_digits = 10,
+                          decimal_places = 2,
+                          default_currency='EUR')
     account = models.ForeignKey(Account,
                                 on_delete = models.PROTECT)
     num_transacted = models.DecimalField('number of securities exchanged (Neg.=Sold)',
@@ -249,9 +259,10 @@ class HistValuation(models.Model):
     date = models.DateField('Valuation date')
     security = models.ForeignKey(Security,
                                  on_delete = models.PROTECT)
-    value = models.DecimalField('Valuation',
-                                   max_digits = 10,
-                                   decimal_places = 2)
+    value = MoneyField('Valuation',
+                              max_digits = 10,
+                              decimal_places = 2,
+                              default_currency='EUR')
 
     def __str__(self):
         return "%s (%s): EUR %10.2f" % (self.security.name, self.date, self.value)
