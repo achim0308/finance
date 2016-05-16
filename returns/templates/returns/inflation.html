@@ -1,0 +1,10 @@
+{% extends 'returns/base.html' %}
+
+{% block body_block %}
+<h1>Inflation {{ inflation.id }}  details</h1>
+
+<p><strong>Date: </strong>{{ inflation.date }}&ensp;<a href="{% url 'returns:inflation_edit' inflation_id=inflation.id %}"><span class="glyphicon glyphicon-pencil"></span></a></p>
+<p><strong>Index: </strong> {{ inflation.inflationIndex }}</p>
+<p><strong>Country: </strong> {{ inflation.country }}</p>
+
+{% endblock body_block %}

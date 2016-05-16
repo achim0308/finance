@@ -2,6 +2,7 @@ from datetime import datetime, date
 import moneyed
 from djmoney.models.fields import MoneyField, CurrencyField
 from djmoney.forms.widgets import CURRENCY_CHOICES
+from django_countries.fields import CountryField
 
 from django.db import connection, models
 from django.utils import timezone
@@ -266,6 +267,17 @@ class HistValuation(models.Model):
 
     def __str__(self):
         return "%s (%s): EUR %10.2f" % (self.security.name, self.date, self.value)
+
+class Inflation(models.Model):
+    # models inflation data
+    date = models.DateField('Inflation date')
+    inflationIndex = models.DecimalField('Inflation index',
+                                         max_digits = 5,
+                                         decimal_places = 2)
+    country = CountryField()
+
+    def __str__(self):
+        return "%s: %4.1f" % (self.date, self.inflationIndex)
 
 def dict_cursor(cursor):
     description = cursor.description

@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'import_export',
     'djmoney',
+    'django_countries',
 ]
 
 MIDDLEWARE_CLASSES = [

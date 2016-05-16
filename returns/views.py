@@ -6,9 +6,9 @@ from django.utils import timezone
 
 from django.contrib.auth.decorators import login_required
 
-from .models import Transaction, Account, Security
+from .models import Transaction, Account, Security, Inflation
 from .processTransaction2 import addNewMarkToMarketData, constructCompleteInfo2, gatherData, addHistoricalPerformance, addSegmentPerformance, calcInterest, match
-from .forms import AccountForm, SecurityForm, TransactionForm, HistValuationForm, AddInterestForm
+from .forms import AccountForm, SecurityForm, TransactionForm, HistValuationForm, AddInterestForm, InflationForm
 
 @login_required
 def index(request):
@@ -180,3 +180,31 @@ def add_interest(request, security_id):
 def add_hist_data(request):
     addNewMarkToMarketData()
     return redirect('returns:index')
+
+@login_required
+def inflation(request, inflation_id):
+    inflation = get_object_or_404(Inflation, pk=inflation_id)
+    return render(request, 'returns/inflation.html', {'inflation': inflation})
+
+@login_required
+def inflation_new(request):
+    if request.method == "POST":
+        form = InflationForm(request.POST)
+        if form.is_valid():
+            inflation = form.save()
+            return redirect('returns:inflation', inflation_id=inflation.id)
+    else:
+        form = InflationForm()
+    return render(request, 'returns/inflation_edit.html', {'form': form})
+
+@login_required
+def inflation_edit(request, inflation_id):
+    security = get_object_or_404(Inflation, pk=inflation_id)
+    if request.method == "POST":
+        form = InflationForm(request.POST, instance=inflation)
+        if form.is_valid():
+            inflation = form.save()
+            return redirect('returns:security', inflation_id=inflation.id)
+    else:
+        form = InflationForm(instance=inflation)
+    return render(request, 'returns/inflation_edit.html', {'form': form})

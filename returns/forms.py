@@ -1,7 +1,8 @@
 from django import forms
 from django.core.exceptions import ValidationError
+from django_countries.widgets import CountrySelectWidget
 
-from .models import Account, Security, Transaction, HistValuation
+from .models import Account, Security, Transaction, HistValuation, Inflation
 
 class AccountForm(forms.ModelForm):
 
@@ -106,3 +107,11 @@ class AddInterestForm(forms.ModelForm):
         model = Transaction
         fields = ('date', 'security', 'account',)
         widgets = {'date': forms.DateInput(attrs={'class':'datepicker'}),}
+
+class InflationForm(forms.ModelForm):
+    
+    class Meta:
+        model = Inflation
+        fields = ('date', 'inflationIndex', 'country',)
+        widgets = {'date': forms.DateInput(attrs={'class':'datepicker'}),
+                   'country': CountrySelectWidget()}
