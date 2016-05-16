@@ -75,7 +75,7 @@ def timeperiod(request):
         begin_date = datetime.strptime(begin_date, "%m/%d/%Y").date()
         end_date = datetime.strptime(end_date, "%m/%d/%Y").date()
         info = gatherData(accounts=selected_account, securities=selected_security, kind=selected_kind, beginDate = begin_date, endDate = end_date)
-
+        
         return render(request, 'returns/select2.html', info)
 
 @login_required

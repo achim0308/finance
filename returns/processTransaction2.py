@@ -28,7 +28,7 @@ def markToMarket(security):
     return price
 
 def markToMarketHistorical(security, date):
-    h = HistValuation.objects.filter(security=security.id,date__lte=date).order_by('-date')
+    h = HistValuation.objects.filter(security=security.id,date__lte=date).order_by('-date')[:1]
 
     if not h:
         return Decimal("0.0")
@@ -214,13 +214,13 @@ def match(transaction, percentage):
 def calcInflation(beginDate, endDate):
     # Obtains inflation
     if beginDate == None: 
-        inflation1 = Inflation.objects.order_by('date')
+        inflation1 = Inflation.objects.order_by('date')[:1]
     else:
-        inflation1 = Inflation.objects.filter(date__lte=beginDate).order_by('-date')
+        inflation1 = Inflation.objects.filter(date__lte=beginDate).order_by('-date')[:1]
     if endDate == None:
-        inflation2 = Inflation.objects.order_by('-date')
+        inflation2 = Inflation.objects.order_by('-date')[:1]
     else:
-        inflation2 = Inflation.objects.filter(date__lte=endDate).order_by('-date')
+        inflation2 = Inflation.objects.filter(date__lte=endDate).order_by('-date')[:1]
 
     cashflowList = []
 

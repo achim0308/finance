@@ -217,7 +217,8 @@ class Transaction(models.Model):
         (DIVIDEND, 'DI'),
     )
 
-    date = models.DateField('transaction date')
+    date = models.DateField('transaction date',
+                            db_index=True)
     kind = models.CharField('kind of transaction',
                             max_length = 2,
                             choices = TRANSACT_KIND_CHOICES,
@@ -257,9 +258,11 @@ class Transaction(models.Model):
 @python_2_unicode_compatible
 class HistValuation(models.Model):
     # models a security at a date
-    date = models.DateField('Valuation date')
+    date = models.DateField('Valuation date',
+                            db_index=True)
     security = models.ForeignKey(Security,
-                                 on_delete = models.PROTECT)
+                                 on_delete = models.PROTECT,
+                                 db_index=True)
     value = MoneyField('Valuation',
                               max_digits = 10,
                               decimal_places = 2,
