@@ -7,7 +7,7 @@ import pandas as pd
 from bokeh.charts import Bar, vplot, output_file, show
 from bokeh.charts.attributes import cat
 from bokeh.charts.operations import blend
-from .models import Security, Transaction, Account, HistValuation
+from .models import Security, Transaction, Account, HistValuation, Inflation
 from .calc import callSolver2
     
 def markToMarket(security):
@@ -64,7 +64,7 @@ def constructCompleteInfo2(accounts = None, securities = None, beginDate = None,
             for n in beginNum:
                 if n['num_transacted'] != 0.0: 
                     price = markToMarketHistorical(Security.objects.get(pk=n['security_id']), beginDate + timedelta(days=-1))
-                    cf = cf - Decimal('%.2f' % (Decimal(price)*n['num_transacted']))
+                    cf = cf - Decimal('%.2f' % (price*n['num_transacted']))
         if cf != 0:
             cashflowList.append({'cashflow': cf, 'date': beginDate + timedelta(days=-1)})
     
@@ -86,7 +86,7 @@ def constructCompleteInfo2(accounts = None, securities = None, beginDate = None,
             for n in endNum:
                 if n['num_transacted'] != 0.0: 
                     price = markToMarketHistorical(Security.objects.get(pk=n['security_id']), endDate)
-                    cf = cf + Decimal('%.2f' % (Decimal(price)*n['num_transacted']))
+                    cf = cf + Decimal('%.2f' % (price*n['num_transacted']))
     if cf != 0:
         if not endDate:
             cashflowList.append({'cashflow': cf, 'date': timezone.now().date()})
@@ -132,7 +132,9 @@ def getReturns(accounts = None, securities = None, kind = None, beginDate = None
         errorReturns = "Error: {0}".format(e)
         returns = ''
 
-    return  {'cashflowList': cashflowList, 'total': total, 'totalDecimal': totalDecimal, 'initial': initial, 'returns': returns, 'errorReturns': errorReturns}
+    inflation = calcInflation(beginDate, endDate)
+
+    return  {'cashflowList': cashflowList, 'total': total, 'totalDecimal': totalDecimal, 'initial': initial, 'returns': returns, 'errorReturns': errorReturns, 'inflation': inflation['inflation'], 'errorInflation': inflation['errorInflation']}
 
 def gatherData(accounts = None, securities = None, kind = None, beginDate = None, endDate = None):
 
@@ -153,7 +155,7 @@ def gatherData(accounts = None, securities = None, kind = None, beginDate = None
     if securities:
         securities = Security.objects.filter(pk__in=securities)
     
-    return {'accounts': accounts, 'securities': securities, 'beginDate': beginDate, 'endDate':endDate, 'cashflowList': performance['cashflowList'], 'total': performance['total'], 'returns': performance['returns'], 'errorReturns': performance['errorReturns'], 'transaction_history': transaction_history}
+    return {'accounts': accounts, 'securities': securities, 'beginDate': beginDate, 'endDate':endDate, 'cashflowList': performance['cashflowList'], 'total': performance['total'], 'returns': performance['returns'], 'errorReturns': performance['errorReturns'], 'inflation': performance['inflation'], 'errorInflation': performance['errorInflation'], 'transaction_history': transaction_history}
 
 def addSegmentPerformance():
     pTG = addHistoricalPerformance(kind=[Security.TAGESGELD])
@@ -178,15 +180,19 @@ def addHistoricalPerformance(accounts = None, securities = None, kind = None):
 
     return {'rYTD': performanceYTD['returns'],
             'iYTD': performanceYTD['initial'],
+            'inYTD': performanceYTD['inflation'], 
             'tYTD': performanceYTD['total'],
             'r1Y': performancePrevYear['returns'],
             'i1Y': performancePrevYear['initial'],
+            'in1Y': performancePrevYear['inflation'], 
             't1Y': performancePrevYear['total'],
             'r5Y': performanceFiveYear['returns'],
             'i5Y': performanceFiveYear['initial'],
+            'in5Y': performanceFiveYear['inflation'], 
             't5Y': performanceFiveYear['total'],
             'rInfY': performanceOverall['returns'],
             'iInfY': performanceOverall['initial'],
+            'inInfY': performanceOverall['inflation'], 
             'tInfY': performanceOverall['total']}
 
 def calcInterest(security, date2):
@@ -204,6 +210,38 @@ def match(transaction, percentage):
     transaction.cashflow = + Decimal(percentage) / Decimal(100.0) * abs(transaction.cashflow)
 
     return transaction
+
+def calcInflation(beginDate, endDate):
+    # Obtains inflation
+    if beginDate == None: 
+        inflation1 = Inflation.objects.order_by('date')
+    else:
+        inflation1 = Inflation.objects.filter(date__lte=beginDate).order_by('-date')
+    if endDate == None:
+        inflation2 = Inflation.objects.order_by('-date')
+    else:
+        inflation2 = Inflation.objects.filter(date__lte=endDate).order_by('-date')
+
+    cashflowList = []
+
+    if not inflation1 or not inflation2:
+        errorInflation = "Error: No data"
+        inflation = ''
+    else:
+        i1 = inflation1[0]
+        i2 = inflation2[0]
+        cashflowList.append({'cashflow': i1.inflationIndex, 'date': i1.date})
+        cashflowList.append({'cashflow': -i2.inflationIndex, 'date': i2.date})
+        callSolver2(cashflowList)
+
+        try:
+            inflation = callSolver2(cashflowList)
+            errorInflation = ''
+        except RuntimeError as e:
+            errorInflation = "Error: {0}".format(e)
+            inflation = ''
+    return {'inflation':inflation,'errorInflation':errorInflation}
+
 
 def aggregate(transaction_history):
     net = dict()

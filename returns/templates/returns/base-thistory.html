@@ -67,7 +67,7 @@ $(document).ready(function()
 
 <h2>Financial performance</h2>
 {% if errorReturns == '' %}
-<p><strong>Return:</strong> {{ returns }}%</p>
+<p><strong>Return:</strong> {{ returns }}%  {% if errorInflation == '' %} (Inflation: {{ inflation }}%) {% endif %}</p>
 {% else %}
 <p class="errorlist">ERROR: {{ errorReturns }}</p>
 {% endif %}
@@ -144,6 +144,7 @@ $(document).ready(function()
     <th></th>
     <th data-align-char="." data-align-adjust="20">Initial value (&euro;)</th>
     <th data-align-char="." data-align-adjust="50">Annualized return</th>
+    <th data-align-char="." data-align-adjust="20">Inflation</th>
   </tr>
 </thead>
 <tbody>
@@ -151,21 +152,25 @@ $(document).ready(function()
     <td>YTD</td>
     <td>{{ histPerf.iYTD }}</td>
     <td>{{ histPerf.rYTD }}%</td>
+    <td>{{ histPerf.inYTD }}%</td>
   </tr>
   <tr>
     <td>Last year</td>
     <td>{{ histPerf.i1Y }}</td>
     <td>{{ histPerf.r1Y }}%</td>
+    <td>{{ histPerf.in1Y }}%</td>
   </tr>
   <tr>
     <td>Last 5 years</td>
     <td>{{ histPerf.i5Y }}</td>
     <td>{{ histPerf.r5Y }}%</td>
+    <td>{{ histPerf.in5Y }}%</td>
   </tr>
   <tr>
     <td>Overall</td>
     <td>{{ histPerf.iInfY }}</td>
     <td>{{ histPerf.rInfY }}%</td>
+    <td>{{ histPerf.inInfY }}%</td>
   </tr>
 </tbody>
 </table>
