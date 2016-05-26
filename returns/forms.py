@@ -61,14 +61,14 @@ class TransactionForm(forms.ModelForm):
 
     def clean(self):
         if (self.cleaned_data.get('kind') == Transaction.BUY):
-            if self.cleaned_data.get('cashflow') > 0.0:
+            if self.cleaned_data.get('cashflow').amount > 0.0:
                 self.add_error('cashflow',
                                ValidationError("Cashflow must be negative."))
             if self.cleaned_data.get('num_transacted') < 0.0:
                 self.add_error('num_transacted',
                                ValidationError("Number of exchanged securities must be positive."))
         elif (self.cleaned_data.get('kind') == Transaction.SELL):
-            if self.cleaned_data.get('cashflow') < 0.0:
+            if self.cleaned_data.get('cashflow').amount < 0.0:
                 self.add_error('cashflow',
                                ValidationError("Cashflow must be positive."))
             if self.cleaned_data.get('num_transacted') > 0.0:
@@ -76,14 +76,14 @@ class TransactionForm(forms.ModelForm):
                                ValidationError("Number of exchanged securities must be negative."))
         elif (self.cleaned_data.get('kind') == Transaction.INTEREST or 
               self.cleaned_data.get('kind') == Transaction.DIVIDEND):
-            if self.cleaned_data.get('cashflow') < 0.0:
+            if self.cleaned_data.get('cashflow').amount < 0.0:
                 self.add_error('cashflow', ValidationError("Cashflow must be positive."))
             if self.cleaned_data.get('num_transacted') != 0.0:
                 self.add_error('num_transacted', ValidationError("Number of exchanged securities must be zero."))
-        if (self.cleaned_data.get('expense') > 0.0):
+        if (self.cleaned_data.get('expense').amount > 0.0):
             self.add_error('expense',
                            ValidationError("Expenses must be non-positive."))
-        if (self.cleaned_data.get('tax') > 0.0):
+        if (self.cleaned_data.get('tax').amount > 0.0):
             self.add_error('tax', 
                            ValidationError("Taxes must be non-positive."))
 

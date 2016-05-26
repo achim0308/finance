@@ -25,17 +25,33 @@
      <div class="page-header">
        <h1><a href="/">Finance portal</a></h1>
      </div>
-     <div class="nav-bar">
+     <div id="nav-bar">
        {% if user.is_authenticated %}
-       <a href="{% url 'returns:index' %}">Main</a>
-       &ensp;<a href="{% url 'returns:all_accounts' %}">All</a>
-       &ensp;<a href="{% url 'returns:timeperiod' %}">Restr. period</a>
-       &ensp;<a href="/admin">Admin</a> 
-       &emsp;<a href="{% url 'returns:add_hist_data' %}">New market</a>
-       &emsp;<a href="{% url 'returns:transaction_new' %}">New transaction</a>
-       &ensp;<a href="{% url 'returns:account_new' %}">New account</a>
-       &ensp;<a href="{% url 'returns:security_new' %}">New security</a>
-       &emsp;<a href="{% url 'logout' %}?next=/">Log out</a>
+       <ul>
+	 <li class="topmenu">
+	   <a href="{% url 'returns:index' %}">Main</a>
+	 </li>
+	 <li class="topmenu">
+	   <a href="">Analyse</a>
+	   <ul>
+	     <li class="submenu"><a href="{% url 'returns:all_accounts' %}">All</a></li>
+	     <li class="submenu"><a href="{% url 'returns:timeperiod' %}">Restricted</a></li>
+	   </ul>
+	 </li>
+	 <li class="topmenu">
+	   <a href="">Data entry</a>
+	   <ul>
+	     <li class="submenu"><a href="{% url 'returns:add_hist_data' %}">Add market data</a></li>
+	     <li class="submenu"><a href="{% url 'returns:transaction_new' %}">Add transaction</a></li>
+	     <li class="submenu"><a href="{% url 'returns:security_new' %}">Add security</a></li>
+	     <li class="submenu"><a href="{% url 'returns:account_new' %}">Add account</a></li>
+	     <li class="submenu"><a href="{% url 'returns:inflation_new' %}">Add inflation data</a></li>
+	   </ul>
+	 </li>
+	 <li class="topmenu">
+	   <a href="{% url 'logout' %}?next=/">Log out</a>
+	 </li>
+       </ul>
        {% else %}
        <a href="{% url 'login' %}">Log in<span class="glyphicon glyphicon-lock"></span></a>       
        {% endif %}
