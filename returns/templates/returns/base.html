@@ -29,17 +29,10 @@
        {% if user.is_authenticated %}
        <ul>
 	 <li class="topmenu">
-	   <a href="{% url 'returns:index' %}">Main</a>
+	   <a href="{% url 'returns:index' %}" style="width: 40px;"><span class="glyphicon glyphicon-home"></span></a>
 	 </li>
 	 <li class="topmenu">
-	   <a href="">Analyse</a>
-	   <ul>
-	     <li class="submenu"><a href="{% url 'returns:all_accounts' %}">All</a></li>
-	     <li class="submenu"><a href="{% url 'returns:timeperiod' %}">Restricted</a></li>
-	   </ul>
-	 </li>
-	 <li class="topmenu">
-	   <a href="">Data entry</a>
+	   <a href=""><span class="glyphicon glyphicon-plus-sign"></span></a>
 	   <ul>
 	     <li class="submenu"><a href="{% url 'returns:add_hist_data' %}">Add market data</a></li>
 	     <li class="submenu"><a href="{% url 'returns:transaction_new' %}">Add transaction</a></li>
@@ -49,11 +42,18 @@
 	   </ul>
 	 </li>
 	 <li class="topmenu">
-	   <a href="{% url 'logout' %}?next=/">Log out</a>
+	   <a href=""><span class="glyphicon glyphicon-stats"></span></a>
+	   <ul>
+	     <li class="submenu"><a href="{% url 'returns:all_accounts' %}">All</a></li>
+	     <li class="submenu"><a href="{% url 'returns:timeperiod' %}">Restricted</a></li>
+	   </ul>
+	 </li>
+	 <li class="topmenu">
+	   <a href="{% url 'logout' %}?next=/" style="width: 40px;"><span class="glyphicon glyphicon-log-out"></span></a>
 	 </li>
        </ul>
        {% else %}
-       <a href="{% url 'login' %}">Log in<span class="glyphicon glyphicon-lock"></span></a>       
+       <a href="{% url 'login' %}"><span class="glyphicon glyphicon-log-in"></span></a>       
        {% endif %}
      </div>
      <div class="content">
