@@ -4,6 +4,7 @@ from djmoney.models.fields import MoneyField, CurrencyField
 from djmoney.forms.widgets import CURRENCY_CHOICES
 from django_countries.fields import CountryField
 
+from django.conf import settings
 from django.db import connection, models
 from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
@@ -49,7 +50,6 @@ class Security(models.Model):
                                 max_length = 3,
                                 choices = CURRENCY_CHOICES,
                                 default = 'EUR')
-
     def __str__(self):
         return "%s (%s)" % (self.name, self.descrip)
 
@@ -245,6 +245,9 @@ class Transaction(models.Model):
                                          max_digits = 13,
                                          decimal_places = 5,
                                          default = 0)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL,
+#                              on_delete=models.CASCADE)
+)
 
     thobjects = TransactionManager()
     objects = models.Manager()
@@ -286,3 +289,12 @@ def dict_cursor(cursor):
     description = cursor.description
     return [dict(zip([col[0] for col in description], row))
             for row in cursor.fetchall()]
+
+class ExchangeToEUR(models.Model):
+    # models currency exchange rate data
+    date = models.DateField('Exchange date')
+    USDperEUR = models.DecimalField('Exchange rate (USD/EUR)',
+                                    max_digits = 7,
+                                    decimal_places = 5)
+    def __str__(self):
+        return "%s: %2.5f" % (self.date, self.USDperEUR)

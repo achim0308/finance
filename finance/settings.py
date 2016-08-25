@@ -134,3 +134,5 @@ STATIC_URL = '/static/'
 ## Redirect URL after login
 
 LOGIN_REDIRECT_URL = '/'
+
+CURRENCIES = ('USD', 'EUR')
