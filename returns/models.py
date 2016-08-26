@@ -68,12 +68,14 @@ class Account(models.Model):
         ordering = ['name']
 
 class TransactionManager(models.Manager):
-    def getTransactionHistory(self, beginDate = None, endDate = None, securities = None, accounts = None):
+    def getTransactionHistory(self, beginDate = None, endDate = None, securities = None, accounts = None, owner = None):
 
         cursor = connection.cursor()
         if securities == None and accounts == None:
             sql = """SELECT T1.id, DATE_FORMAT(date,'%m/%d/%Y') tdate, T1.kind, security_id, name AS security_name, expense, tax, cashflow, account_id, num_transacted FROM returns_transaction T1 INNER JOIN returns_security T2 ON T1.security_id = T2.id"""
             arg = ()
+            if owner != None:
+                sql = sql + """ WHERE T1.owner_id = """ + str(owner)
         else:
             sql = """SELECT T1.id, DATE_FORMAT(date,'%%m/%%d/%%Y') tdate, T1.kind, security_id, name AS security_name, expense, tax, cashflow, account_id, num_transacted FROM returns_transaction T1 INNER JOIN returns_security T2 ON T1.security_id = T2.id"""
             if securities == None:
@@ -84,6 +86,8 @@ class TransactionManager(models.Manager):
                 format_string = ','.join(['%s'] * len(securities))
                 sql = sql + """ WHERE security_id IN (%s)""" % (format_string)
                 arg = tuple(securities)
+            if owner != None:
+                sql = sql + """ AND T1.owner_id = """ + str(owner)
         if beginDate != None and endDate != None:
             sql = sql + """ AND date BETWEEN CAST(%s AS DATE) AND CAST(%s AS DATE)"""
             arg =  arg + (beginDate.strftime('%Y-%m-%d'), endDate.strftime('%Y-%m-%d'))
@@ -91,7 +95,6 @@ class TransactionManager(models.Manager):
             sql = sql + """ AND date BETWEEN CAST(%s AS DATE) AND CAST(%s AS DATE)"""
             arg = arg + ('1900-01-01', endDate.strftime('%Y-%m-%d'))
 
-        
         sql = sql + """ ORDER BY date"""
         arg = None if arg == () else arg
 
@@ -99,7 +102,7 @@ class TransactionManager(models.Manager):
         
         return dict_cursor(cursor)
 
-    def getCashflow(self, beginDate = None, endDate = None, securities = None, accounts = None):
+    def getCashflow(self, beginDate = None, endDate = None, securities = None, accounts = None, owner= None):
 
         cursor = connection.cursor()
         sql = """SELECT date, SUM(cashflow) AS cashflow FROM returns_transaction T1 INNER JOIN returns_security T2 ON T1.security_id = T2.id WHERE NOT(T2.accumulate_interest = 1 AND T1.kind = '%s')""" % (Transaction.INTEREST)
@@ -114,13 +117,15 @@ class TransactionManager(models.Manager):
                 format_string = ','.join(['%s'] * len(securities))
                 sql = sql + """ AND security_id IN (%s)""" % (format_string)
                 arg = tuple(securities)
+                
+        if owner != None:
+            sql = sql + """ AND owner_id = """ + str(owner)
         if beginDate != None and endDate != None:
             sql = sql + """ AND date BETWEEN CAST(%s AS DATE) AND CAST(%s AS DATE)"""
             arg =  arg + (beginDate.strftime('%Y-%m-%d'), endDate.strftime('%Y-%m-%d'))
         elif endDate != None:
             sql = sql + """ AND date BETWEEN CAST(%s AS DATE) AND CAST(%s AS DATE)"""
             arg = arg + ('1900-01-01', endDate.strftime('%Y-%m-%d'))
-
         
         sql = sql + """ GROUP BY date ORDER BY date"""
         arg = None if arg == "" else arg
@@ -131,7 +136,7 @@ class TransactionManager(models.Manager):
         else:
             return dict_cursor(cursor)
 
-    def getNum(self, beginDate = None, endDate = None, securities = None, accounts = None):
+    def getNum(self, beginDate = None, endDate = None, securities = None, accounts = None, owner = None):
         cursor = connection.cursor()
         sql = """SELECT security_id, SUM(num_transacted) AS num_transacted FROM returns_transaction T1 INNER JOIN returns_security T2 ON T1.security_id = T2.id WHERE T2.mark_to_market"""
         if securities == None and accounts == None:
@@ -145,6 +150,9 @@ class TransactionManager(models.Manager):
                 format_string = ','.join(['%s'] * len(securities))
                 sql = sql + """ AND security_id IN (%s)""" % (format_string)
                 arg = tuple(securities)
+        
+        if owner != None:
+            sql = sql + """ AND owner_id = """ + str(owner)
         if beginDate != None and endDate != None:
             sql = sql + """ AND date BETWEEN CAST(%s AS DATE) AND CAST(%s AS DATE)"""
             arg =  arg + (beginDate.strftime('%Y-%m-%d'), endDate.strftime('%Y-%m-%d'))
@@ -162,12 +170,15 @@ class TransactionManager(models.Manager):
         else:
             return dict_cursor(cursor)
 
-    def getValue(self, beginDate = None, endDate = None, securities = None, accounts = None):
+    def getValue(self, beginDate = None, endDate = None, securities = None, accounts = None, owner= None):
         cursor = connection.cursor()
         sql1 = """SELECT security_id, -cashflow AS cashflow FROM returns_transaction T1 INNER JOIN returns_security T2 ON T1.security_id = T2.id WHERE (T2.accumulate_interest AND T1.Kind = '%s')""" % (Transaction.INTEREST)
         sql2 = """SELECT security_id, cashflow AS cashflow FROM returns_transaction T3 INNER JOIN returns_security T4 ON T3.security_id = T4.id WHERE (NOT T4.mark_to_market AND NOT T3.Kind = '%s')""" % (Transaction.INTEREST)
         sql = ""
         arg = ()
+        
+        if owner != None:
+            sql = sql + """ AND owner_id = """ + str(owner)
         if beginDate != None and endDate != None:
             sql = sql + """ AND date BETWEEN CAST(%s AS DATE) AND CAST(%s AS DATE)"""
             arg = (beginDate.strftime('%Y-%m-%d'), endDate.strftime('%Y-%m-%d'))
@@ -246,6 +257,7 @@ class Transaction(models.Model):
                                          decimal_places = 5,
                                          default = 0)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,
+                              default=2,
 #                              on_delete=models.CASCADE)
 )
 

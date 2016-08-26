@@ -48,7 +48,7 @@ def addNewMarkToMarketData():
             except :
                 pass
 
-def constructCompleteInfo2(accounts = None, securities = None, beginDate = None, endDate = None):
+def constructCompleteInfo2(accounts = None, securities = None, beginDate = None, endDate = None, owner = None):
 
     cashflowList = []
     ## add cashflow at beginning of period
@@ -69,8 +69,8 @@ def constructCompleteInfo2(accounts = None, securities = None, beginDate = None,
             cashflowList.append({'cashflow': cf, 'date': beginDate + timedelta(days=-1)})
     
     ## add cashflow at end of period
-    endNum = Transaction.thobjects.getNum(accounts = accounts, securities = securities, beginDate = None, endDate = endDate)
-    endValue = Transaction.thobjects.getValue(accounts = accounts, securities = securities, beginDate = None, endDate = endDate)
+    endNum = Transaction.thobjects.getNum(accounts = accounts, securities = securities, beginDate = None, endDate = endDate, owner = owner)
+    endValue = Transaction.thobjects.getValue(accounts = accounts, securities = securities, beginDate = None, endDate = endDate, owner = owner)
 
     cf = 0
     if endValue and endValue != [] and endValue[0]['cashflow'] != None:
@@ -95,7 +95,7 @@ def constructCompleteInfo2(accounts = None, securities = None, beginDate = None,
                     
     return cashflowList
     
-def getReturns(accounts = None, securities = None, kind = None, beginDate = None, endDate = None):
+def getReturns(accounts = None, securities = None, kind = None, beginDate = None, endDate = None, owner = None):
 
     # Workaround for now --- maybe add this as another query
     if kind:
@@ -103,10 +103,10 @@ def getReturns(accounts = None, securities = None, kind = None, beginDate = None
         securities = [s.id for s in Security.objects.filter(kind__in = kind)]
 
     # construct cash flow list
-    cashflowList = Transaction.thobjects.getCashflow(accounts=accounts, securities = securities, beginDate = beginDate, endDate = endDate)        
+    cashflowList = Transaction.thobjects.getCashflow(accounts=accounts, securities = securities, beginDate = beginDate, endDate = endDate, owner = owner)        
 
     # add current/historical values
-    addCashflows = constructCompleteInfo2(accounts=accounts, securities = securities, beginDate = beginDate, endDate = endDate)
+    addCashflows = constructCompleteInfo2(accounts=accounts, securities = securities, beginDate = beginDate, endDate = endDate, owner = owner)
 
     # add additional cashflow information
     if addCashflows:
@@ -136,7 +136,7 @@ def getReturns(accounts = None, securities = None, kind = None, beginDate = None
 
     return  {'cashflowList': cashflowList, 'total': total, 'totalDecimal': totalDecimal, 'initial': initial, 'returns': returns, 'errorReturns': errorReturns, 'inflation': inflation['inflation'], 'errorInflation': inflation['errorInflation']}
 
-def gatherData(accounts = None, securities = None, kind = None, beginDate = None, endDate = None):
+def gatherData(accounts = None, securities = None, kind = None, beginDate = None, endDate = None, owner = None):
 
     # Workaround for now --- maybe add this as another query
     if kind:
@@ -144,10 +144,10 @@ def gatherData(accounts = None, securities = None, kind = None, beginDate = None
         securities = [s.id for s in Security.objects.filter(kind__in = kind)]      
 
     # get transaction history
-    transaction_history = Transaction.thobjects.getTransactionHistory(accounts=accounts, securities = securities, beginDate = beginDate, endDate = endDate)
+    transaction_history = Transaction.thobjects.getTransactionHistory(accounts=accounts, securities = securities, beginDate = beginDate, endDate = endDate, owner = owner)
 
     # get financial performance info
-    performance = getReturns(accounts=accounts, securities = securities, beginDate = beginDate, endDate = endDate)
+    performance = getReturns(accounts=accounts, securities = securities, beginDate = beginDate, endDate = endDate, owner = owner)
 
     # Make list of accounts/securities
     if accounts:
@@ -157,26 +157,26 @@ def gatherData(accounts = None, securities = None, kind = None, beginDate = None
     
     return {'accounts': accounts, 'securities': securities, 'beginDate': beginDate, 'endDate':endDate, 'cashflowList': performance['cashflowList'], 'total': performance['total'], 'returns': performance['returns'], 'errorReturns': performance['errorReturns'], 'inflation': performance['inflation'], 'errorInflation': performance['errorInflation'], 'transaction_history': transaction_history}
 
-def addSegmentPerformance():
-    pTG = addHistoricalPerformance(kind=[Security.TAGESGELD])
-    pAK = addHistoricalPerformance(kind=[Security.AKTIE])
-    pAF = addHistoricalPerformance(kind=[Security.AKTIENETF])
-    pBD = addHistoricalPerformance(kind=[Security.BONDS])
-    pBF = addHistoricalPerformance(kind=[Security.BONDSETF])
-    pAV = addHistoricalPerformance(kind=[Security.ALTERSVORSORGE])
+def addSegmentPerformance(owner = None):
+    pTG = addHistoricalPerformance(kind=[Security.TAGESGELD], owner = owner)
+    pAK = addHistoricalPerformance(kind=[Security.AKTIE], owner = owner)
+    pAF = addHistoricalPerformance(kind=[Security.AKTIENETF], owner = owner)
+    pBD = addHistoricalPerformance(kind=[Security.BONDS], owner = owner)
+    pBF = addHistoricalPerformance(kind=[Security.BONDSETF], owner = owner)
+    pAV = addHistoricalPerformance(kind=[Security.ALTERSVORSORGE], owner = owner)
 
     return {'pTG': pTG, 'pAK': pAK, 'pAF': pAF, 'pBD': pBD, 'pBF': pBF, 'pAV': pAV}
 
-def addHistoricalPerformance(accounts = None, securities = None, kind = None):
+def addHistoricalPerformance(accounts = None, securities = None, kind = None, owner = None):
     today = timezone.now().date()
     thisYear = date(today.year,1,1)
     prevYear = yearsago(1)
     fiveYear = yearsago(5)
 
-    performanceYTD = getReturns(accounts=accounts, securities = securities, kind = kind, beginDate = thisYear, endDate = today)
-    performancePrevYear = getReturns(accounts=accounts, securities = securities, kind = kind, beginDate = prevYear, endDate = today)
-    performanceFiveYear = getReturns(accounts=accounts, securities = securities, kind = kind, beginDate = fiveYear, endDate = today)
-    performanceOverall = getReturns(accounts=accounts, securities = securities, kind = kind)
+    performanceYTD = getReturns(accounts=accounts, securities = securities, kind = kind, beginDate = thisYear, endDate = today, owner = owner)
+    performancePrevYear = getReturns(accounts=accounts, securities = securities, kind = kind, beginDate = prevYear, endDate = today, owner = owner)
+    performanceFiveYear = getReturns(accounts=accounts, securities = securities, kind = kind, beginDate = fiveYear, endDate = today, owner = owner)
+    performanceOverall = getReturns(accounts=accounts, securities = securities, kind = kind, owner = owner)
 
     return {'rYTD': performanceYTD['returns'],
             'iYTD': performanceYTD['initial'],

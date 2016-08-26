@@ -93,6 +93,12 @@ class TransactionForm(forms.ModelForm):
         model = Transaction
         fields = ('date', 'kind', 'security', 'cashflow', 'expense', 'tax', 'account', 'num_transacted',)
         widgets = {'date': forms.DateInput(attrs={'class':'datepicker'}),}
+
+class TransactionFormForSuperuser(TransactionForm):
+    class Meta:
+        model = Transaction
+        fields = ('date', 'kind', 'security', 'cashflow', 'expense', 'tax', 'account', 'num_transacted', 'owner',)
+        widgets = {'date': forms.DateInput(attrs={'class':'datepicker'}),}
         
 class HistValuationForm(forms.ModelForm):
 
@@ -106,6 +112,13 @@ class AddInterestForm(forms.ModelForm):
     class Meta:
         model = Transaction
         fields = ('date', 'security', 'account',)
+        widgets = {'date': forms.DateInput(attrs={'class':'datepicker'}),}
+
+class AddInterestFormForSuperuser(forms.ModelForm):
+    
+    class Meta:
+        model = Transaction
+        fields = ('date', 'security', 'account', 'owner',)
         widgets = {'date': forms.DateInput(attrs={'class':'datepicker'}),}
 
 class InflationForm(forms.ModelForm):
