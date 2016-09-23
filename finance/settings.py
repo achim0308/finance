@@ -26,7 +26,8 @@ config.read(BASE_DIR + '/finance/settings.ini')
 SECRET_KEY = config.get('secrets', 'SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+#DEBUG = True
+DEBUG = config.get('debug', 'DEBUG_FLAG')
 
 ALLOWED_HOSTS = []
 
