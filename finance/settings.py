@@ -85,7 +85,7 @@ WSGI_APPLICATION = 'finance.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'finance',
+        'NAME': config.get('database', 'DATABASE_NAME'),
         'USER': config.get('database', 'DATABASE_USER'),
         'PASSWORD': config.get('database', 'DATABASE_PASSWORD'),
         'HOST': config.get('database', 'DATABASE_HOST'),
@@ -129,6 +129,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
+STATIC_ROOT = os.path.join(BASE_DIR, "static") 
 STATIC_URL = '/static/'
 
 ## Redirect URL after login
