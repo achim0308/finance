@@ -29,7 +29,7 @@ SECRET_KEY = config.get('secrets', 'SECRET_KEY')
 #DEBUG = True
 DEBUG = config.getboolean('debug', 'DEBUG_FLAG')
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['awechsun.pythonanywhere.com']
 
 SECURE_SSL_REDIRECT = True
 

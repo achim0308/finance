@@ -239,12 +239,12 @@ class Transaction(models.Model):
     expense = MoneyField('expenses allocated to transaction',
                                   max_digits = 10,
                                   decimal_places = 2,
-                                  default = 0,
+                                  default = '0 EUR',
                           default_currency='EUR')
     tax = MoneyField('taxes allocated to transaction',
                               max_digits = 10,
                               decimal_places = 2,
-                              default = 0,
+                              default = '0 EUR',
                           default_currency='EUR')
     cashflow = MoneyField('cashflow during transaction (Neg.=Outgoing)',
                           max_digits = 10,
