@@ -27,10 +27,11 @@ SECRET_KEY = config.get('secrets', 'SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 #DEBUG = True
-DEBUG = config.get('debug', 'DEBUG_FLAG')
+DEBUG = config.getboolean('debug', 'DEBUG_FLAG')
 
 ALLOWED_HOSTS = []
 
+SECURE_SSL_REDIRECT = True
 
 # Application definition
 
@@ -122,7 +123,8 @@ TIME_ZONE = 'Europe/Berlin'
 
 USE_I18N = True
 
-USE_L10N = True
+#USE_L10N = True
+USE_L10N = False
 
 USE_TZ = True
 

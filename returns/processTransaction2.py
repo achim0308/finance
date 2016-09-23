@@ -3,6 +3,7 @@ from django.utils import timezone
 from datetime import datetime, timedelta, date
 from lxml import html
 import requests 
+import csv
 import pandas as pd
 from bokeh.charts import Bar, vplot, output_file, show
 from bokeh.charts.attributes import cat
@@ -12,20 +13,29 @@ from .calc import callSolver2
     
 def markToMarket(security):
 # screen scraping based on onvista website
-    try:
-        page = requests.get(security.url)
-    except requests.exeptions.RequestException:
-        raise RuntimeError('Unknown URL')
 
-    tree = html.fromstring(page.content)
-        
-    priceInfo = tree.xpath('//span[@itemprop="price"]/text()')
-    
     try:
-        price = float(priceInfo.pop().replace("'","").replace(",","."))
+        data = requests.get(security.url)
+        price = float(data.content)
     except:
-        raise RuntimeError('Empty list')
+        raise RuntimeError('Trouble getting data')
     return price
+
+#    try:
+#        page = requests.get(security.url)
+#    except requests.exeptions.RequestException:
+#        raise RuntimeError('Unknown URL')
+
+#    tree = html.fromstring(page.content)
+
+    #priceInfo = tree.xpath('//span[@itemprop="price"]/text()')
+#    priceInfo = tree.xpath('//*[@id="table1"]/tbody/tr[1]/td/text()')
+
+#    try:
+#        price = float(priceInfo.pop().replace("'","").replace(",","."))
+#    except:
+#        raise RuntimeError('Empty list')
+#    return price
 
 def markToMarketHistorical(security, date):
     h = HistValuation.objects.filter(security=security.id,date__lte=date).order_by('-date')[:1]
