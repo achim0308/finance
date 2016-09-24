@@ -67,7 +67,7 @@ $(document).ready(function()
 
 <h2>Financial performance</h2>
 {% if errorReturns == '' %}
-<p><strong>Return:</strong> {{ returns }}%  {% if errorInflation == '' %} (Inflation: {{ inflation }}%) {% endif %}</p>
+<p><strong>Return:</strong> {{ returns }}%  {% if errorInflation == '' %} (<a href="{% url 'returns:inflation_latest' %}">Inflation</a>: {{ inflation }}%) {% endif %}</p>
 {% else %}
 <p class="errorlist">ERROR: {{ errorReturns }}</p>
 {% endif %}

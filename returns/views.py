@@ -255,6 +255,10 @@ def inflation(request, inflation_id):
     return render(request, 'returns/inflation.html', {'inflation': inflation})
 
 @login_required
+def inflation_latest(request):
+    return inflation(request, Inflation.objects.order_by('-id')[:1])
+
+@login_required
 def inflation_new(request):
     if request.method == "POST":
         form = InflationForm(request.POST)
