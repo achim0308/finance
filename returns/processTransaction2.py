@@ -63,8 +63,8 @@ def constructCompleteInfo2(accounts = None, securities = None, beginDate = None,
     cashflowList = []
     ## add cashflow at beginning of period
     if beginDate:
-        beginNum = Transaction.thobjects.getNum(accounts = accounts, securities = securities, beginDate = date(1900,1,1), endDate = beginDate + timedelta(days=-1))
-        beginValue = Transaction.thobjects.getValue(accounts = accounts, securities = securities, beginDate = date(1900,1,1), endDate = beginDate + timedelta(days=-1))
+        beginNum = Transaction.thobjects.getNum(accounts = accounts, securities = securities, beginDate = date(1900,1,1), endDate = beginDate + timedelta(days=-1), owner = owner)
+        beginValue = Transaction.thobjects.getValue(accounts = accounts, securities = securities, beginDate = date(1900,1,1), endDate = beginDate + timedelta(days=-1), owner = owner)
     
         cf = 0
         if beginValue and beginValue != [] and beginValue[0]['cashflow'] != None:
