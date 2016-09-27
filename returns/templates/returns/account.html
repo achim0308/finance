@@ -1,4 +1,5 @@
 {% extends 'returns/base-thistory.html' %}
+{% block title_block %} {{ account.name }} (#{{ account.id }}){% endblock title_block %}
 {% block add_body_block %}
 <h1>Account {{ account.id }} details</h1>
 

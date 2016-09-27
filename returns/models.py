@@ -222,10 +222,10 @@ class Transaction(models.Model):
     CURRENT = 'CU'
     HISTORICAL = 'HI'
     TRANSACT_KIND_CHOICES = (
-        (SELL, 'SE'),
-        (BUY, 'BU'),
-        (INTEREST, 'IN'),
-        (DIVIDEND, 'DI'),
+        (SELL, 'Sell'),
+        (BUY, 'Buy'),
+        (INTEREST, 'Interest'),
+        (DIVIDEND, 'Dividend'),
     )
 
     date = models.DateField('transaction date',

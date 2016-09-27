@@ -1,5 +1,5 @@
 {% extends 'returns/base.html' %}
-
+{% block title_block %} Transaction #{{ transaction.id }}{% endblock title_block %}
 {% block body_block %}
 <h1>Transaction {{ transaction.id }}  details</h1>
 

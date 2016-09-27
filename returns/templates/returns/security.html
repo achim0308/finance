@@ -1,5 +1,5 @@
 {% extends 'returns/base-thistory.html' %}
-
+{% block title_block %} {{ security.name }} (#{{ security.id }}){% endblock title_block %}
 {% block add_body_block %}
 
 <h1>Security {{ security.id }} details</h1> 

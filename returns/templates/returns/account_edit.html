@@ -1,5 +1,5 @@
 {% extends 'returns/base.html' %}
-
+{% block title_block %} Edit {{ account.name }} (#{{ account.id }}){% endblock title_block %}
 {% block body_block %}
 <h1>New / edit account</h1>
 <form method="POST" class="post-form">
