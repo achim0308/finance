@@ -128,6 +128,8 @@ def getReturns(accounts = None, securities = None, kind = None, beginDate = None
         total = '{:,.2f}'.format(addCashflows[-1]['cashflow'])
         if len(addCashflows) == 2:
             initial = '{:,.2f}'.format(-addCashflows[-2]['cashflow'])
+        elif len(addCashflows) == 1: # addresses data where current value = 0
+            initial = '{:,.2f}'.format(-addCashflows[-1]['cashflow'])
         else:
             initial = '{:,.2f}'.format(0)
     else:
