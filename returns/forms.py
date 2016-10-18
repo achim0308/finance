@@ -75,7 +75,8 @@ class TransactionForm(forms.ModelForm):
                 self.add_error('num_transacted',
                                ValidationError("Number of exchanged securities must be negative."))
         elif (self.cleaned_data.get('kind') == Transaction.INTEREST or 
-              self.cleaned_data.get('kind') == Transaction.DIVIDEND):
+              self.cleaned_data.get('kind') == Transaction.DIVIDEND or
+              self.cleaned_data.get('kind') == Traansaction.MATCH):
             if self.cleaned_data.get('cashflow').amount < 0.0:
                 self.add_error('cashflow', ValidationError("Cashflow must be positive."))
             if self.cleaned_data.get('num_transacted') != 0.0:

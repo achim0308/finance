@@ -61,6 +61,8 @@ def addNewMarkToMarketData():
 def constructCompleteInfo2(accounts = None, securities = None, beginDate = None, endDate = None, owner = None):
 
     cashflowList = []
+    initialValue = 0.0
+    finalValue = 0.0
     ## add cashflow at beginning of period
     if beginDate:
         beginNum = Transaction.thobjects.getNum(accounts = accounts, securities = securities, beginDate = date(1900,1,1), endDate = beginDate + timedelta(days=-1), owner = owner)
@@ -77,6 +79,9 @@ def constructCompleteInfo2(accounts = None, securities = None, beginDate = None,
                     cf = cf - Decimal('%.2f' % (price*n['num_transacted']))
         if cf != 0:
             cashflowList.append({'cashflow': cf, 'date': beginDate + timedelta(days=-1)})
+            initialValue = -cf
+        else:
+            initialValue = 0.0
     
     ## add cashflow at end of period
     endNum = Transaction.thobjects.getNum(accounts = accounts, securities = securities, beginDate = None, endDate = endDate, owner = owner)
@@ -102,8 +107,11 @@ def constructCompleteInfo2(accounts = None, securities = None, beginDate = None,
             cashflowList.append({'cashflow': cf, 'date': timezone.now().date()})
         else:
             cashflowList.append({'cashflow': cf, 'date': endDate})
+        finalValue = cf
+    else:
+        finalValue = 0.0
                     
-    return cashflowList
+    return {'cashflows': cashflowList, 'initialValue': initialValue, 'finalValue': finalValue}
     
 def getReturns(accounts = None, securities = None, kind = None, beginDate = None, endDate = None, owner = None):
 
@@ -119,19 +127,14 @@ def getReturns(accounts = None, securities = None, kind = None, beginDate = None
     addCashflows = constructCompleteInfo2(accounts=accounts, securities = securities, beginDate = beginDate, endDate = endDate, owner = owner)
 
     # add additional cashflow information
-    if addCashflows:
+    if addCashflows['cashflows']:
         if cashflowList is None:
-            cashflowList = addCashflows
+            cashflowList = addCashflows['cashflows']
         else:
-            cashflowList = cashflowList + addCashflows
-        totalDecimal = Decimal(addCashflows[-1]['cashflow'])
-        total = '{:,.2f}'.format(addCashflows[-1]['cashflow'])
-        if len(addCashflows) == 2:
-            initial = '{:,.2f}'.format(-addCashflows[-2]['cashflow'])
-        elif len(addCashflows) == 1: # addresses data where current value = 0
-            initial = '{:,.2f}'.format(-addCashflows[-1]['cashflow'])
-        else:
-            initial = '{:,.2f}'.format(0)
+            cashflowList = cashflowList + addCashflows['cashflows']
+        totalDecimal = Decimal(addCashflows['finalValue'])
+        total = '{:,.2f}'.format(addCashflows['finalValue'])
+        initial = '{:,.2f}'.format(addCashflows['initialValue'])
     else:
         total = '{:,.2f}'.format(0)
         initial = '{:,.2f}'.format(0)
@@ -218,7 +221,7 @@ def calcInterest(security, date2):
 def match(transaction, percentage):
     # Copy transaction and adjust
     transaction.pk = None
-    transaction.kind = Transaction.INTEREST
+    transaction.kind = Transaction.MATCH
     transaction.cashflow = + Decimal(percentage) / Decimal(100.0) * abs(transaction.cashflow)
 
     return transaction
