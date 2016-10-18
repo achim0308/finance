@@ -232,7 +232,7 @@ def add_interest(request, security_id):
             transaction.expense = 0.0
             transaction.num_transacted = 0.0
             if not request.user.is_superuser:
-                transaction.owner = request.user.id
+                transaction.owner = request.user
             transaction.save()
             return redirect('returns:transaction', transaction_id=transaction.id)
     else:
