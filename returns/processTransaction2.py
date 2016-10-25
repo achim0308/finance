@@ -180,6 +180,17 @@ def addSegmentPerformance(owner = None):
     pBF = addHistoricalPerformance(kind=[Security.BONDSETF], owner = owner)
     pAV = addHistoricalPerformance(kind=[Security.ALTERSVORSORGE], owner = owner)
 
+    # Calculate fraction of each asset class
+    #total = float(pTG['tYTD']) + float(pAK['tYTD']) + float(pAF['tYTD']) + float(pBD['tYTD']) + float(pBF['tYTD']) + float(pAV['tYTD'])
+    total = pTG['totalDecimal'] + pAK['totalDecimal'] + pAF['totalDecimal'] + pBD['totalDecimal'] + pBF['totalDecimal'] + pAV['totalDecimal']
+
+    pTG['frac'] = '{:,.2f}'.format(pTG['totalDecimal'] / total * 100)
+    pAK['frac'] = '{:,.2f}'.format(pAK['totalDecimal'] / total * 100)
+    pAF['frac'] = '{:,.2f}'.format(pAF['totalDecimal'] / total * 100)
+    pBD['frac'] = '{:,.2f}'.format(pBD['totalDecimal'] / total * 100)
+    pBF['frac'] = '{:,.2f}'.format(pBF['totalDecimal'] / total * 100)
+    pAV['frac'] = '{:,.2f}'.format(pAV['totalDecimal'] / total * 100)
+
     return {'pTG': pTG, 'pAK': pAK, 'pAF': pAF, 'pBD': pBD, 'pBF': pBF, 'pAV': pAV}
 
 def addHistoricalPerformance(accounts = None, securities = None, kind = None, owner = None):
@@ -197,6 +208,7 @@ def addHistoricalPerformance(accounts = None, securities = None, kind = None, ow
             'iYTD': performanceYTD['initial'],
             'inYTD': performanceYTD['inflation'], 
             'tYTD': performanceYTD['total'],
+            'totalDecimal': performanceYTD['totalDecimal'],
             'r1Y': performancePrevYear['returns'],
             'i1Y': performancePrevYear['initial'],
             'in1Y': performancePrevYear['inflation'], 

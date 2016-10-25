@@ -85,6 +85,7 @@ $(document).ready(function()
     <th data-align-char="." data-align-adjust="10">Last year return</th>
     <th data-align-char="." data-align-adjust="10">Overall return</th>
     <th data-align-char="." data-align-adjust="10">Total value (&euro;)</th>
+    <th data-align-char="." data-align-adjust="10">Total value (&#37;)</th>
   </tr>
 </thead>
 <tbody>
@@ -94,6 +95,7 @@ $(document).ready(function()
     <td>{{ segPerf.pTG.r1Y }}%</td>
     <td>{{ segPerf.pTG.rInfY }}%</td>
     <td>{{ segPerf.pTG.tYTD }}</td>
+    <td>{{ segPerf.pTG.frac }}%</td>
   </tr>
   <tr>
     <td>Aktien</td>
@@ -101,6 +103,7 @@ $(document).ready(function()
     <td>{{ segPerf.pAK.r1Y }}%</td>
     <td>{{ segPerf.pAK.rInfY }}%</td>
     <td>{{ segPerf.pAK.tYTD }}</td>
+    <td>{{ segPerf.pAK.frac }}%</td>
   </tr>
   <tr>
     <td>Aktien-Fonds</td>
@@ -108,6 +111,7 @@ $(document).ready(function()
     <td>{{ segPerf.pAF.r1Y }}%</td>
     <td>{{ segPerf.pAF.rInfY }}%</td>
     <td>{{ segPerf.pAF.tYTD }}</td>
+    <td>{{ segPerf.pAF.frac }}%</td>
   </tr>
   <tr>
     <td>Bonds</td>
@@ -115,6 +119,7 @@ $(document).ready(function()
     <td>{{ segPerf.pBD.r1Y }}%</td>
     <td>{{ segPerf.pBD.rInfY }}%</td>
     <td>{{ segPerf.pBD.tYTD }}</td>
+    <td>{{ segPerf.pBD.frac }}%</td>
   </tr>
   <tr>
     <td>Bonds-Fonds</td>
@@ -122,6 +127,7 @@ $(document).ready(function()
     <td>{{ segPerf.pBF.r1Y }}%</td>
     <td>{{ segPerf.pBF.rInfY }}%</td>
     <td>{{ segPerf.pBF.tYTD }}</td>
+    <td>{{ segPerf.pBF.frac }}%</td>
   </tr>
   <tr>
     <td>Altersvorsorge</td>
@@ -129,6 +135,7 @@ $(document).ready(function()
     <td>{{ segPerf.pAV.r1Y }}%</td>
     <td>{{ segPerf.pAV.rInfY }}%</td>
     <td>{{ segPerf.pAV.tYTD }}</td>
+    <td>{{ segPerf.pAV.frac }}%</td>
   </tr>
 </tbody>
 </table>
