@@ -259,7 +259,6 @@ def calcInflation(beginDate, endDate):
         i2 = inflation2[0]
         cashflowList.append({'cashflow': i1.inflationIndex, 'date': i1.date})
         cashflowList.append({'cashflow': -i2.inflationIndex, 'date': i2.date})
-        callSolver2(cashflowList)
 
         try:
             inflation = callSolver2(cashflowList)

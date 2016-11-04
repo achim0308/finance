@@ -38,4 +38,4 @@ def callSolver2(cashflowList):
     except StopIteration:
         raise RuntimeError('Iteration limit exceeded')
         
-    return "%.2f" % (float(r)*100.0)
+    return float(r)*100.0

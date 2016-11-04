@@ -53,18 +53,14 @@ def all_accounts(request):
         info['histPerf'] = addHistoricalPerformance(owner = cur_user)
         info['segPerf'] = addSegmentPerformance(owner = cur_user)
 
-    xdata = ["Tagesgeld", "Bond", "Bond-Fonds", "Aktien", "Aktien-Fond", "Altersvorsorge"]
-    ydata = [float(info['segPerf']['pTG']['totalDecimal']),
-             float(info['segPerf']['pBD']['totalDecimal']),
-             float(info['segPerf']['pBF']['totalDecimal']),
-             float(info['segPerf']['pAK']['totalDecimal']),
-             float(info['segPerf']['pAF']['totalDecimal']),
-             float(info['segPerf']['pAV']['totalDecimal'])]
+    # Prepare data for pie chart
+    listOfAssets = ['pTG', 'pBD', 'pBF', 'pAK', 'pAF', 'pAV']
+    xdata = ["Tagesgeld", "Bonds", "Bonds-Fonds", "Aktien", "Aktien-Fonds", "Altersvorsorge"]
+    ydata = [float(info['segPerf'][s]['totalDecimal']) for s in listOfAssets]
     
     chartdata = {'x': xdata, 'y1': ydata}
     charttype = 'pieChart'
     chartcontainer = 'asset_allocation'
-    
 
     data = {
         'charttype': charttype,
@@ -80,6 +76,37 @@ def all_accounts(request):
     }
 
     info['chart_asset_alloc'] = data
+
+    # prepare data for bar chart
+    xdata = ["Tagesgeld", "Bonds", "Bonds-Fonds", "Aktien", "Aktien-Fonds", "Altersvorsorge"]
+    y1data = [info['segPerf'][s]['rYTD'] for s in listOfAssets]
+    y2data = [info['segPerf'][s]['r1Y'] for s in listOfAssets]
+    y3data = [info['segPerf'][s]['r5Y'] for s in listOfAssets]
+    y4data = [info['segPerf'][s]['rInfY'] for s in listOfAssets]
+
+    chartdata = {
+        'x': xdata,
+        'name1': 'YTD', 'y1': y1data,
+        'name2': 'Last year', 'y2': y2data,
+        'name3': 'Five years', 'y3': y3data,
+        'name4': 'Overall', 'y4': y4data, 
+    }
+
+    charttype = 'multiBarHorizontalChart'
+    chartcontainer = 'asset_performance'
+    data = {
+        'charttype': charttype,
+        'chartdata': chartdata,
+        'chartcontainer': chartcontainer,
+        'extra': {
+            'x_is_date': False,
+            'x_axis_format': '',
+            'tag_script_js': True,
+            'jquery_on_ready': False,
+        }
+    }
+
+    info['chart_asset_perf'] = data
 
     return render(request, 'returns/all_accounts.html', info)
 

@@ -22,6 +22,7 @@
 <script type="text/javascript" src="{% static 'returns/js/nv.d3.min.js'%} "></script>
 
 {% load_chart chart_asset_alloc.charttype chart_asset_alloc.chartdata chart_asset_alloc.chartcontainer chart_asset_alloc.extra %}
+{% load_chart chart_asset_perf.charttype chart_asset_perf.chartdata chart_asset_perf.chartcontainer chart_asset_perf.extra %}
 
 {% endif %}
 
@@ -82,7 +83,7 @@ $(document).ready(function()
 
 <h2>Financial performance</h2>
 {% if errorReturns == '' %}
-<p><strong>Return:</strong> {{ returns }}%  {% if errorInflation == '' %} (<a href="{% url 'returns:inflation_latest' %}">Inflation</a>: {{ inflation }}%) {% endif %}</p>
+<p><strong>Return:</strong> {{ returns|floatformat:2 }}%  {% if errorInflation == '' %} (<a href="{% url 'returns:inflation_latest' %}">Inflation</a>: {{ inflation|floatformat:2 }}%) {% endif %}</p>
 {% else %}
 <p class="errorlist">ERROR: {{ errorReturns }}</p>
 {% endif %}
@@ -106,58 +107,58 @@ $(document).ready(function()
 <tbody>
   <tr>
     <td>Tagesgeld</td>
-    <td>{{ segPerf.pTG.rYTD }}%</td>
-    <td>{{ segPerf.pTG.r1Y }}%</td>
-    <td>{{ segPerf.pTG.rInfY }}%</td>
+    <td>{{ segPerf.pTG.rYTD|floatformat:2 }}%</td>
+    <td>{{ segPerf.pTG.r1Y|floatformat:2 }}%</td>
+    <td>{{ segPerf.pTG.rInfY|floatformat:2 }}%</td>
     <td>{{ segPerf.pTG.tYTD }}</td>
-    <td>{{ segPerf.pTG.frac }}%</td>
+    <td>{{ segPerf.pTG.frac|floatformat:2 }}%</td>
   </tr>
   <tr>
     <td>Aktien</td>
-    <td>{{ segPerf.pAK.rYTD }}%</td>
-    <td>{{ segPerf.pAK.r1Y }}%</td>
-    <td>{{ segPerf.pAK.rInfY }}%</td>
+    <td>{{ segPerf.pAK.rYTD|floatformat:2 }}%</td>
+    <td>{{ segPerf.pAK.r1Y|floatformat:2 }}%</td>
+    <td>{{ segPerf.pAK.rInfY|floatformat:2 }}%</td>
     <td>{{ segPerf.pAK.tYTD }}</td>
-    <td>{{ segPerf.pAK.frac }}%</td>
+    <td>{{ segPerf.pAK.frac|floatformat:2 }}%</td>
   </tr>
   <tr>
     <td>Aktien-Fonds</td>
-    <td>{{ segPerf.pAF.rYTD }}%</td>
-    <td>{{ segPerf.pAF.r1Y }}%</td>
-    <td>{{ segPerf.pAF.rInfY }}%</td>
+    <td>{{ segPerf.pAF.rYTD|floatformat:2 }}%</td>
+    <td>{{ segPerf.pAF.r1Y|floatformat:2 }}%</td>
+    <td>{{ segPerf.pAF.rInfY|floatformat:2 }}%</td>
     <td>{{ segPerf.pAF.tYTD }}</td>
-    <td>{{ segPerf.pAF.frac }}%</td>
+    <td>{{ segPerf.pAF.frac|floatformat:2 }}%</td>
   </tr>
   <tr>
     <td>Bonds</td>
-    <td>{{ segPerf.pBD.rYTD }}%</td>
-    <td>{{ segPerf.pBD.r1Y }}%</td>
-    <td>{{ segPerf.pBD.rInfY }}%</td>
+    <td>{{ segPerf.pBD.rYTD|floatformat:2 }}%</td>
+    <td>{{ segPerf.pBD.r1Y|floatformat:2 }}%</td>
+    <td>{{ segPerf.pBD.rInfY|floatformat:2 }}%</td>
     <td>{{ segPerf.pBD.tYTD }}</td>
-    <td>{{ segPerf.pBD.frac }}%</td>
+    <td>{{ segPerf.pBD.frac|floatformat:2 }}%</td>
   </tr>
   <tr>
     <td>Bonds-Fonds</td>
-    <td>{{ segPerf.pBF.rYTD }}%</td>
-    <td>{{ segPerf.pBF.r1Y }}%</td>
-    <td>{{ segPerf.pBF.rInfY }}%</td>
+    <td>{{ segPerf.pBF.rYTD|floatformat:2 }}%</td>
+    <td>{{ segPerf.pBF.r1Y|floatformat:2 }}%</td>
+    <td>{{ segPerf.pBF.rInfY|floatformat:2 }}%</td>
     <td>{{ segPerf.pBF.tYTD }}</td>
-    <td>{{ segPerf.pBF.frac }}%</td>
+    <td>{{ segPerf.pBF.frac|floatformat:2 }}%</td>
   </tr>
   <tr>
     <td>Altersvorsorge</td>
-    <td>{{ segPerf.pAV.rYTD }}%</td>
-    <td>{{ segPerf.pAV.r1Y }}%</td>
-    <td>{{ segPerf.pAV.rInfY }}%</td>
+    <td>{{ segPerf.pAV.rYTD|floatformat:2 }}%</td>
+    <td>{{ segPerf.pAV.r1Y|floatformat:2 }}%</td>
+    <td>{{ segPerf.pAV.rInfY|floatformat:2 }}%</td>
     <td>{{ segPerf.pAV.tYTD }}</td>
-    <td>{{ segPerf.pAV.frac }}%</td>
+    <td>{{ segPerf.pAV.frac|floatformat:2 }}%</td>
   </tr>
 </tbody>
 </table>
 </div>
 
-{% include_container chart_asset_alloc.chartcontainer 400 600 %}
-
+{% include_container chart_asset_perf.chartcontainer 450 600 %}
+{% include_container chart_asset_alloc.chartcontainer 450 450 %}
 {% endif %}
 
 {% if histPerf %}
@@ -176,26 +177,26 @@ $(document).ready(function()
   <tr>
     <td>YTD</td>
     <td>{{ histPerf.iYTD }}</td>
-    <td>{{ histPerf.rYTD }}%</td>
-    <td>{{ histPerf.inYTD }}%</td>
+    <td>{{ histPerf.rYTD|floatformat:2 }}%</td>
+    <td>{{ histPerf.inYTD|floatformat:2 }}%</td>
   </tr>
   <tr>
     <td>Last year</td>
     <td>{{ histPerf.i1Y }}</td>
-    <td>{{ histPerf.r1Y }}%</td>
-    <td>{{ histPerf.in1Y }}%</td>
+    <td>{{ histPerf.r1Y|floatformat:2 }}%</td>
+    <td>{{ histPerf.in1Y|floatformat:2 }}%</td>
   </tr>
   <tr>
     <td>Last 5 years</td>
     <td>{{ histPerf.i5Y }}</td>
-    <td>{{ histPerf.r5Y }}%</td>
-    <td>{{ histPerf.in5Y }}%</td>
+    <td>{{ histPerf.r5Y|floatformat:2 }}%</td>
+    <td>{{ histPerf.in5Y|floatformat:2 }}%</td>
   </tr>
   <tr>
     <td>Overall</td>
     <td>{{ histPerf.iInfY }}</td>
-    <td>{{ histPerf.rInfY }}%</td>
-    <td>{{ histPerf.inInfY }}%</td>
+    <td>{{ histPerf.rInfY|floatformat:2 }}%</td>
+    <td>{{ histPerf.inInfY|floatformat:2 }}%</td>
   </tr>
 </tbody>
 </table>
