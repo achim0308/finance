@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'djmoney',
     'django_countries', 
 #    'debug_toolbar',
+    'django_nvd3',
 ]
 
 MIDDLEWARE_CLASSES = [

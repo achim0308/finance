@@ -63,8 +63,7 @@ def all_accounts(request):
     
     chartdata = {'x': xdata, 'y1': ydata}
     charttype = 'pieChart'
-    chartcontainer = 'asset_allocation'
-    
+    chartcontainer = 'asset_allocation'    
 
     data = {
         'charttype': charttype,
