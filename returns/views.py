@@ -78,18 +78,22 @@ def all_accounts(request):
     info['chart_asset_alloc'] = data
 
     # prepare data for bar chart
-    xdata = ["Tagesgeld", "Bonds", "Bonds-Fonds", "Aktien", "Aktien-Fonds", "Altersvorsorge"]
-    y1data = [info['segPerf'][s]['rYTD'] for s in listOfAssets]
-    y2data = [info['segPerf'][s]['r1Y'] for s in listOfAssets]
-    y3data = [info['segPerf'][s]['r5Y'] for s in listOfAssets]
-    y4data = [info['segPerf'][s]['rInfY'] for s in listOfAssets]
+    catdata = ["Tagesgeld", "Bonds", "Bonds-Fonds", "Aktien", "Aktien-Fonds", "Altersvorsorge"]
+    xdata = ["YTD", "1 Yr", "5 Yrs", "Overall"]
+    listOfTimes = ["rYTD", "r1Y", "r5Y", "rInfY"]
+    
+    ydata = {}
+    for s in listOfAssets:
+        ydata[s] = [info['segPerf'][s][t] for t in listOfTimes]
 
     chartdata = {
         'x': xdata,
-        'name1': 'YTD', 'y1': y1data,
-        'name2': 'Last year', 'y2': y2data,
-        'name3': 'Five years', 'y3': y3data,
-        'name4': 'Overall', 'y4': y4data, 
+        'name1': catdata[0], 'y1': ydata[listOfAssets[0]],
+        'name2': catdata[1], 'y2': ydata[listOfAssets[1]],
+        'name3': catdata[2], 'y3': ydata[listOfAssets[2]],
+        'name4': catdata[3], 'y4': ydata[listOfAssets[3]],
+        'name5': catdata[4], 'y5': ydata[listOfAssets[4]],
+        'name6': catdata[5], 'y6': ydata[listOfAssets[5]],
     }
 
     charttype = 'multiBarHorizontalChart'
