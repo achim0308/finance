@@ -12,7 +12,7 @@ from .models import Security, Transaction, Account, HistValuation, Inflation
 from .calc import callSolver2
     
 def markToMarket(security):
-# screen scraping based on onvista website
+# screen scraping based on yahoo website
 
     try:
         data = requests.get(security.url)
