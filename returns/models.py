@@ -286,7 +286,7 @@ class HistValuation(models.Model):
                               default_currency='EUR')
 
     def __str__(self):
-        return "%s (%s): EUR %10.2f" % (self.security.name, self.date, self.value)
+        return "%s (%s): %s" % (self.security.name, self.date, self.value)
 
 class Inflation(models.Model):
     # models inflation data
