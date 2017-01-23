@@ -267,7 +267,7 @@ class Transaction(models.Model):
     objects = models.Manager()
 
     def __str__(self):
-        return "%s: (%s) %s (%s) EUR %10.2f" % (self.date, self.kind, self.security.name, self.security.descrip, self.cashflow)
+        return "%s: (%s) %s (%s) %s" % (self.date, self.kind, self.security.name, self.security.descrip, self.cashflow)
 
     def is_recent_transaction(self):
         return timezone.now() >= self.date >= timezone.now() - datetime.timedelta(months=3)
