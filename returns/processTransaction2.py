@@ -53,7 +53,7 @@ def addNewMarkToMarketData():
         if HistValuation.objects.filter(security=s.id,date=today).exists() == False:
             try:
                 value = markToMarket(s)
-                newH = HistValuation(date=today, security=s, value=value, value_currency=s.currency)
+                newH = HistValuation(date=today, security=s, value=Money(value,s.currency))
                 newH.save()
             except :
                 pass
