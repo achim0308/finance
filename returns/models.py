@@ -173,7 +173,7 @@ class TransactionManager(models.Manager):
     def getValue(self, beginDate = None, endDate = None, securities = None, accounts = None, owner= None):
         cursor = connection.cursor()
         sql1 = """SELECT security_id, -cashflow AS cashflow FROM returns_transaction T1 INNER JOIN returns_security T2 ON T1.security_id = T2.id WHERE (T2.accumulate_interest AND (T1.kind = '%s' OR T1.kind = '%s'))""" % (Transaction.INTEREST, Transaction.MATCH)
-        sql2 = """SELECT security_id, cashflow AS cashflow FROM returns_transaction T3 INNER JOIN returns_security T4 ON T3.security_id = T4.id WHERE (NOT T4.mark_to_market AND (NOT T3.kind = '%s' AND NOT T3.kind = '%s'))""" % (Transaction.INTEREST, Transaction.MATCH)
+        sql2 = """SELECT security_id, cashflow-tax-expense AS cashflow FROM returns_transaction T3 INNER JOIN returns_security T4 ON T3.security_id = T4.id WHERE (NOT T4.mark_to_market AND (NOT T3.kind = '%s' AND NOT T3.kind = '%s'))""" % (Transaction.INTEREST, Transaction.MATCH)
         sql = ""
         arg = ()
         
