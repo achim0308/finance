@@ -138,13 +138,13 @@ def security(request, security_id):
         info = gatherData(securities = [security_id])
         info['histPerf'] = addHistoricalPerformance(securities = [security_id])
         num = Transaction.thobjects.getNum(securities = [security_id])
-        info['cur_num'] = num[0]['num_transacted'].strip("0")
+        info['cur_num'] = num[0]['num_transacted'].normalize
     else:
         cur_user = request.user.id
         info = gatherData(securities = [security_id], owner = cur_user)
         info['histPerf'] = addHistoricalPerformance(securities = [security_id], owner = cur_user)
         num = Transaction.thobjects.getNum(securities = [security_id], owner = cur_user)
-        info['cur_num'] = num[0]['num_transacted'].strip("0")
+        info['cur_num'] = num[0]['num_transacted'].normalize
     info['security'] = security
 
     return render(request, 'returns/security.html', info)
