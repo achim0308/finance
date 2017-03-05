@@ -99,6 +99,9 @@ class TransactionForm(forms.ModelForm):
         widgets = {'date': forms.DateInput(attrs={'class':'datepicker'}),}
 
 class TransactionFormForSuperuser(TransactionForm):
+    def __init__(self,*args,**kwargs):
+        super (TransactionForm,self ).__init__(*args,**kwargs) # populates the form
+
     class Meta:
         model = Transaction
         fields = ('date', 'kind', 'security', 'cashflow', 'expense', 'tax', 'account', 'num_transacted', 'owner',)
