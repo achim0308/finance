@@ -61,6 +61,11 @@ class Account(models.Model):
     # models an account
     name = models.CharField('name of account',
                             max_length = 40)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL,
+                              default=2,
+#                              on_delete=models.CASCADE)
+	)
+	
     def __str__(self):
         return self.name
 

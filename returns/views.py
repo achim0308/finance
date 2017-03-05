@@ -1,6 +1,7 @@
 from datetime import datetime, date, timedelta
 
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render, get_object_or_404, redirect, render_to_response
+from django.template import RequestContext
 #from django.http import HttpResponse, Http404
 from django.utils import timezone
 
@@ -196,7 +197,7 @@ def transaction_new(request):
         if request.user.is_superuser:
             form = TransactionFormForSuperuser(request.POST)
         else:
-            form = TransactionForm(request.POST)
+            form = TransactionForm(request.user,request.POST)
         if form.is_valid():
             transaction = form.save(commit=False)
             if not request.user.is_superuser:
@@ -212,7 +213,7 @@ def transaction_new(request):
         if request.user.is_superuser:
             form = TransactionFormForSuperuser()
         else:
-            form = TransactionForm()
+            form = TransactionForm(request.user)
 
     return render(request, 'returns/transaction_edit.html', {'form': form})
 
@@ -223,7 +224,7 @@ def transaction_edit(request, transaction_id):
         if request.user.is_superuser:
             form = TransactionFormTransactionFormForSuperuser(request.POST, instance=transaction)
         else:
-            form = TransactionForm(request.POST, instance=transaction)
+            form = TransactionForm(request.user, request.POST, instance=transaction)
         if form.is_valid():
             transaction = form.save(commit=False)
             if not request.user.is_superuser:
@@ -231,7 +232,7 @@ def transaction_edit(request, transaction_id):
             transaction.save()
             return redirect('returns:transaction', transaction_id=transaction.id)
     else:
-        form = TransactionForm(instance=transaction)
+        form = TransactionForm(request.user, instance=transaction)
     return render(request, 'returns/transaction_edit.html', {'form': form})
 
 @login_required

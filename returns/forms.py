@@ -58,7 +58,10 @@ class SecurityForm(forms.ModelForm):
         fields = ('name', 'descrip', 'url', 'kind', 'mark_to_market', 'accumulate_interest', 'calc_interest', 'currency',)
 
 class TransactionForm(forms.ModelForm):
-
+    def __init__(self,owner,*args,**kwargs):
+        super (TransactionForm,self ).__init__(*args,**kwargs) # populates the form
+        self.fields['account'].queryset = Account.objects.filter(owner=owner)
+        
     def clean(self):
         if (self.cleaned_data.get('kind') == Transaction.BUY):
             if self.cleaned_data.get('cashflow').amount > 0.0:
