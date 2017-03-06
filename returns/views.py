@@ -146,7 +146,7 @@ def security(request, security_id):
         info = gatherData(securities = [security_id], owner = cur_user)
         info['histPerf'] = addHistoricalPerformance(securities = [security_id], owner = cur_user)
         num = Transaction.thobjects.getNum(securities = [security_id], owner = cur_user)
-		if not num:
+        if not num:
             info['cur_num'] = num[0]['num_transacted'].normalize
     info['security'] = security
 
