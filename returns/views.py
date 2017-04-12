@@ -197,9 +197,9 @@ def timeperiod(request):
 def transaction_new(request):
     if request.method == "POST":
         if request.user.is_superuser:
-            form = TransactionFormForSuperuser(request.POST)
+            form = TransactionFormForSuperuser(request.POST, initial={'expense':0,'tax':0})
         else:
-            form = TransactionForm(request.user,request.POST)
+            form = TransactionForm(request.user,request.POST, initial={'expense':0,'tax':0})
         if form.is_valid():
             transaction = form.save(commit=False)
             if not request.user.is_superuser:
