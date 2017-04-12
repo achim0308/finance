@@ -309,6 +309,25 @@ def dict_cursor(cursor):
     return [dict(zip([col[0] for col in description], row))
             for row in cursor.fetchall()]
 
+@python_2_unicode_compatible
+class AccountValuation(models.Model):
+    # models the current valuation and the base value (in-outflow excluding interest or dividends) of an account for a given date 
+    date = models.DateField('Valuation date',
+                            db_index=True)
+    account = models.ForeignKey(Account,
+                                on_delete = models.PROTECT,
+								db_index=True)
+    cur_value = MoneyField('Current value',
+                           max_digits = 10,
+						   decimal_places = 2,
+                           default_currency='EUR')
+    base_value = MoneyField('Base value based on in- and outflows',
+                            max_digits = 10,
+						    decimal_places = 2,
+                            default_currency='EUR')
+    def __str__(self):
+        return "%s (%s): %s (%s)" % (self.account.name, self.date, self.cur_value, self.bas_value)
+			
 class ExchangeToEUR(models.Model):
     # models currency exchange rate data
     date = models.DateField('Exchange date')
