@@ -266,9 +266,9 @@ class Transaction(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,
                               default=2,
 #                              on_delete=models.CASCADE)
-    modifiedDate = models.DateField('last modified date',
-                                    db_index=True) 
 )
+    modifiedDate = models.DateField('last modified date',
+                                    db_index=True)
 
     thobjects = TransactionManager()
     objects = models.Manager()
