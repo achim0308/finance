@@ -244,15 +244,15 @@ class Transaction(models.Model):
     security = models.ForeignKey(Security,
                                  on_delete = models.PROTECT)
     expense = MoneyField('expenses allocated to transaction',
-                                  max_digits = 10,
-                                  decimal_places = 2,
-                                  default = '0 EUR',
-                          default_currency='EUR')
+                         max_digits = 10,
+                         decimal_places = 2,
+                         default = '0 EUR',
+                         default_currency='EUR')
     tax = MoneyField('taxes allocated to transaction',
-                              max_digits = 10,
-                              decimal_places = 2,
-                              default = '0 EUR',
-                          default_currency='EUR')
+                     max_digits = 10,
+                     decimal_places = 2,
+                     default = '0 EUR',
+                     default_currency='EUR')
     cashflow = MoneyField('cashflow during transaction (Neg.=Outgoing)',
                           max_digits = 10,
                           decimal_places = 2,
@@ -266,6 +266,8 @@ class Transaction(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,
                               default=2,
 #                              on_delete=models.CASCADE)
+     modifiedDate = models.DateField('last modified date',
+                                    db_index=True) 
 )
 
     thobjects = TransactionManager()

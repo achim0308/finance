@@ -204,6 +204,7 @@ def transaction_new(request):
             transaction = form.save(commit=False)
             if not request.user.is_superuser:
                 transaction.owner = request.user
+            transaction.modifiedDate = timezone.now()
             transaction.save()
 
             if float(request.POST['match']) > 0:
@@ -231,6 +232,7 @@ def transaction_edit(request, transaction_id):
             transaction = form.save(commit=False)
             if not request.user.is_superuser:
                 transaction.owner = request.user
+            transaction.modifiedDate = timezone.now()
             transaction.save()
             return redirect('returns:transaction', transaction_id=transaction.id)
     else:
