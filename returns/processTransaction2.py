@@ -5,10 +5,6 @@ from lxml import html
 from moneyed import Money, get_currency
 import requests 
 import csv
-import pandas as pd
-from bokeh.charts import Bar, vplot, output_file, show
-from bokeh.charts.attributes import cat
-from bokeh.charts.operations import blend
 from .models import Security, Transaction, Account, HistValuation, Inflation
 from .calc import callSolver2
     
@@ -268,76 +264,6 @@ def calcInflation(beginDate, endDate):
             errorInflation = "Error: {0}".format(e)
             inflation = ''
     return {'inflation':inflation,'errorInflation':errorInflation}
-
-
-def aggregate(transaction_history):
-    net = dict()
-    buy = dict()
-    sell = dict()
-    interest = dict()
-    dividend = dict()
-    historical = dict()
-    
-    for t in transaction_history:
-        quarter = "%s-Q%i" % (t.date.year, (t.date.month-1)//3+1)
-        net[quarter] = float(handleNull(net.get(quarter))) + float(t.cashflow)
-        if t.kind == Transaction.BUY:
-            buy[quarter] = float(handleNull(buy.get(quarter))) + float(t.cashflow)
-        elif t.kind == Transaction.SELL:
-            sell[quarter] = float(handleNull(sell.get(quarter))) + float(t.cashflow)
-        elif t.kind == Transaction.INTEREST:
-            interest[quarter] = float(handleNull(interest.get(quarter))) + float(t.cashflow)
-        elif t.kind == Transaction.DIVIDEND:
-            dividend[quarter] = float(handleNull(dividend.get(quarter))) + float(t.cashflow)
-        elif t.kind == Transaction.HISTORICAL or t.kind == Transaction.CURRENT:
-            historical[quarter] = float(handleNull(historical.get(quarter))) + float(t.cashflow)
-
-    net = addMissingQuarters(net)
-    buy = addMissingQuarters(buy)
-    sell = addMissingQuarters(sell)
-    interest = addMissingQuarters(interest)
-    dividend = addMissingQuarters(dividend)
-    historical = addMissingQuarters(historical)
-
-    d = {'net': pd.Series(net),
-         'buy': pd.Series(buy), 
-         'sell': pd.Series(sell),
-         'interest':pd.Series(interest),
-         'dividend':pd.Series(dividend),
-         'historical':pd.Series(historical)}
-
-    df = pd.DataFrame(d)
-    df['label']=df.index
-    p1 = Bar(df, 
-            values = blend('buy','sell','interest','dividend','historical',name='cashflow', labels_name='cf'),
-            label=cat(columns='label',sort=False),
-            stack=cat(columns='cf',sort=False))
-
-    p2 = Bar(df,
-             values = blend('net'),
-             label='label')
-
-    output_file("test.html")
-    
-    show(vplot(p1, p2))
-            
-def handleNull(s):
-    if s is None:
-        return 0.0
-    else:
-        return s
-
-def addMissingQuarters(d):
-    quarter = sorted(d)
-    quarterFirst = quarter[0]
-    quarterLast = quarter[-1]
-            
-    for y in range(int(quarterFirst[:4]), int(quarterLast[:4])+1):
-        for q in range(1,5):
-            s = "%s-Q%i" % (y, q)
-            d[s] = float(handleNull(d.get(s)))
-
-    return d
 
 def yearsago(years, from_date=None):
     if from_date is None:
