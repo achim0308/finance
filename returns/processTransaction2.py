@@ -314,7 +314,7 @@ def updateSecurityValuation(owner):
                 break
             
             # check if transaction occurred in currently considered month
-            if t.date > currentDate
+            if t.date > currentDate:
                 break
             # process current transaction record
             tSecurityId = t.security.id
