@@ -290,7 +290,7 @@ def updateSecurityValuation(owner):
     
     # set up data structure
     transactionList = Transaction.objects.filter(owner=owner).order_by('date')
-    if transactionList is None:
+    if not transactionList.exists():
         return # nothing to do here 
     
     numSecurityObjects = Security.objects.last().id
@@ -300,7 +300,6 @@ def updateSecurityValuation(owner):
     curValueSecurity = [0.0 for i in range(1,numSecurityObjects)]
     baseValueSecurity = [0.0 for i in range(1,numSecurityObjects)]
     
-    f = transactionList.first()
     currentDate = last_day_of_month(f.date)
     today = datetime.today()
     
