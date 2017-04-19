@@ -290,12 +290,12 @@ def updateSecurityValuation(owner):
     
     # set up data structure
     transactionList = Transaction.objects.filter(owner=owner).order_by('date')
-    numSecurityObjects = Security.objects.count()
-    securityActive = [False for i in range(1:numSecurityObjects)]
-    securityMtM = [False for i in range(1:numSecurityObjects)]
-    numSecurity = [0.0 for i in range(1:numSecurityObjects)]
-    curValueSecurity = [0.0 for i in range(1:numSecurityObjects)]
-    baseValueSecurity = [0.0 for i in range(1:numSecurityObjects)]
+    numSecurityObjects = Security.objects.order_by('-id')[:1].id
+    securityActive = [False for i in range(1,numSecurityObjects)]
+    securityMtM = [False for i in range(1,numSecurityObjects)]
+    numSecurity = [0.0 for i in range(1,numSecurityObjects)]
+    curValueSecurity = [0.0 for i in range(1,numSecurityObjects)]
+    baseValueSecurity = [0.0 for i in range(1,numSecurityObjects)]
     
     transactionIterator = transactionList.iterator()
     endOfTransactionList = False
