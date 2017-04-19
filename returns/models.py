@@ -318,18 +318,21 @@ class AccountValuation(models.Model):
                             db_index=True)
     account = models.ForeignKey(Account,
                                 on_delete = models.PROTECT,
-								db_index=True)
+                                db_index=True)
     cur_value = MoneyField('Current value',
                            max_digits = 10,
-						   decimal_places = 2,
+                           decimal_places = 2,
                            default_currency='EUR')
     base_value = MoneyField('Base value based on in- and outflows',
                             max_digits = 10,
-						    decimal_places = 2,
+                            decimal_places = 2,
                             default_currency='EUR')
+    modifiedDate = models.DateField('Last modification',
+                                    db_index=True)
+
     def __str__(self):
         return "%s (%s): %s (%s)" % (self.account.name, self.date, self.cur_value, self.bas_value)
-			
+
 class ExchangeToEUR(models.Model):
     # models currency exchange rate data
     date = models.DateField('Exchange date')

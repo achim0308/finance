@@ -34,8 +34,8 @@ def markToMarket(security):
 #        raise RuntimeError('Empty list')
 #    return price
 
-def markToMarketHistorical(security, date):
-    h = HistValuation.objects.filter(security=security.id,date__lte=date).order_by('-date')[:1]
+def markToMarketHistorical(securityID, date):
+    h = HistValuation.objects.filter(security=securityID,date__lte=date).order_by('-date')[:1]
 
     if not h:
         return Decimal("0.0")
@@ -72,7 +72,7 @@ def constructCompleteInfo2(accounts = None, securities = None, beginDate = None,
         if beginNum:
             for n in beginNum:
                 if n['num_transacted'] != 0.0: 
-                    price = markToMarketHistorical(Security.objects.get(pk=n['security_id']), beginDate + timedelta(days=-1))
+                    price = markToMarketHistorical(n['security_id'], beginDate + timedelta(days=-1))
                     cf = cf - Decimal('%.2f' % (price*n['num_transacted']))
         if cf != 0:
             cashflowList.append({'cashflow': cf, 'date': beginDate + timedelta(days=-1)})
@@ -97,7 +97,7 @@ def constructCompleteInfo2(accounts = None, securities = None, beginDate = None,
         else:
             for n in endNum:
                 if n['num_transacted'] != 0.0: 
-                    price = markToMarketHistorical(Security.objects.get(pk=n['security_id']), endDate)
+                    price = markToMarketHistorical(n['security_id'], endDate)
                     cf = cf + Decimal('%.2f' % (price*n['num_transacted']))
     if cf != 0:
         if not endDate:
@@ -273,3 +273,91 @@ def yearsago(years, from_date=None):
     except ValueError:
         # Must be 2/29
         return from_date.replace(month=2, day=28,year=from_date.year-years)
+
+def last_day_of_month(any_day):
+    next_month = any_day.replace(day=28) + datetime.timedelta(days=4)  # this will never fail
+    return next_month - datetime.timedelta(days=next_month.day)
+
+def updateSecurityValuation(owner):
+    # get date of last update of security valuations
+#    try:
+#        lastUpdate = SecurityValuation.object.filter(owner=owner).order_by('-modifiedDate')[:1]
+#    except:
+#         lastUpdate = date(1900,1,1)
+    # find transactions that have been added since
+#    newTransaction = Transaction.objects.filter(owner=owner, modificationDate__gte=lastUpdate).
+    
+    
+    # set up data structure
+    transactionList = Transaction.objects.filter(owner=owner).order_by('date')
+    numSecurityObjects = Security.objects.count()
+    securityActive = [False for i in range(1:numSecurityObjects)]
+    securityMtM = [False for i in range(1:numSecurityObjects)]
+    numSecurity = [0.0 for i in range(1:numSecurityObjects)]
+    curValueSecurity = [0.0 for i in range(1:numSecurityObjects)]
+    baseValueSecurity = [0.0 for i in range(1:numSecurityObjects)]
+    
+    transactionIterator = transactionList.iterator()
+    endOfTransactionList = False
+    
+    currentDate = last_day_of_month(transactionList[:1].values_list('date', flat=True)[1])
+    today = datetime.today()
+    
+    while currentDate <= today:
+        
+        while not endOfTransactionList: 
+            # advance iterator
+            try:
+                t = transactionIterator.next()
+            except StopIteration:
+                endOfTransactionList = True
+                break
+            
+            # check if transaction occurred in currently considered month
+            if t.date > currentDate
+                break
+            # process current transaction record
+            tSecurityId = t.security.id
+            securityActive[tSecurityId] = True
+            
+            # update base value
+            # treat accumulated interest or matched contributions separately
+            # -cashflow b/c sign convention for cashflows
+            if not (t.security.accumulate_interest and (t.kind = Transaction.INTEREST or t.kind = Transaction.MATCH)):
+                baseValueSecurity[tSecurityId] = baseValueSecurity[tSecurityId] - t.cashflow
+            
+            # update number of securities
+            if t.security.mark_to_market:
+                numSecurity[tSecurityId] = numSecurity[tSecurityId] + t.num_transacted
+                securityMtM[tSecurityId] = True
+            # update current value
+            # treat accumulated interest or matched contributions separate
+            # -cashflow b/c sign convention for cashflows
+            elif t.security.accumulate_interest and (t.kind = Transaction.INTEREST or t.kind = Transaction.MATCH):
+                curValueSecurity[tSecurityId] = curValueSecurity[tSecurityId] - t.cashflow
+            elif not (t.kind = Transaction.INTEREST or t.kind = Transaction.MATCH):
+                curValueSecurity[tSecurityId] = curValueSecurity[tSecurityId] + t.cashflow - t.tax - t.expense
+            
+        # update all securities with
+        
+        # store information 
+        for securityID in range(1:numSecurityObjects):
+            if securityActive[securityId] == True:
+                # update security value with market data if applicable
+                if securityMtM[securityId] == True:
+                    curValueSecurity[securityId] = numSecurity[securityId] * markToMarketHistorical(securityId, currentDate)
+                
+                # store information, update record if possible
+                s, created = SecurityValuations.objects.update_or_create(
+                    date = currentDate,
+                    security__id = securityID,
+                    owner = owner,
+                    defaults = {
+                        cur_value = curValueSecurity[securityId]
+                        base_value = baseValueSecurity[securityId]
+                        modifiedDate = today
+                    },
+                )
+        
+        # go to end of next month
+        currentDate = last_day_of_month(currentDate + datetime.timedelta(days=1))
