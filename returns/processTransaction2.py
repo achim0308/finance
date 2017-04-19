@@ -301,7 +301,7 @@ def updateSecurityValuation(owner):
     baseValueSecurity = [0.0 for i in range(1,numSecurityObjects)]
     
     currentDate = last_day_of_month(transactionList.first().date)
-    today = datetime.today()
+    today = date.today()
     
     transactionIterator = transactionList.iterator()
     endOfTransactionList = False
