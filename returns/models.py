@@ -312,6 +312,30 @@ def dict_cursor(cursor):
             for row in cursor.fetchall()]
 
 @python_2_unicode_compatible
+class SecurityValuation(models.Model):
+    # models the current valuation and the base value (in-outflow excluding interest or dividends) of a security of a given owner for a given date 
+    date = models.DateField('Valuation date',
+                            db_index=True)
+    security = models.ForeignKey(Security,
+                                 on_delete = models.PROTECT,
+                                 db_index=True)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL,
+                              default=2)
+    cur_value = MoneyField('Current value',
+                           max_digits = 10,
+                           decimal_places = 2,
+                           default_currency='EUR')
+    base_value = MoneyField('Base value based on in- and outflows',
+                            max_digits = 10,
+                            decimal_places = 2,
+                            default_currency='EUR')
+    modifiedDate = models.DateField('Last modification',
+                                    db_index=True)
+
+    def __str__(self):
+        return "%s (%s): %s (%s)" % (self.account.name, self.date, self.cur_value, self.bas_value)
+
+@python_2_unicode_compatible
 class AccountValuation(models.Model):
     # models the current valuation and the base value (in-outflow excluding interest or dividends) of an account for a given date 
     date = models.DateField('Valuation date',
