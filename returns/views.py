@@ -6,6 +6,7 @@ from django.template import RequestContext
 from django.utils import timezone
 
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 
 from .models import Transaction, Account, Security, Inflation
 from .processTransaction2 import addNewMarkToMarketData, constructCompleteInfo2, gatherData, addHistoricalPerformance, addSegmentPerformance, calcInterest, match
@@ -316,6 +317,8 @@ def add_interest(request, security_id):
 
 def add_hist_data(request):
     addNewMarkToMarketData()
+    for u in User.object.all() 
+		updateSecurityValuation(u)
     return redirect('returns:index')
 
 @login_required
