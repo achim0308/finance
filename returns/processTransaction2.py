@@ -300,7 +300,7 @@ def updateSecurityValuation(owner):
     transactionIterator = transactionList.iterator()
     endOfTransactionList = False
     
-    currentDate = last_day_of_month(transactionList[:1].values_list('date', flat=True)[1])
+    currentDate = last_day_of_month(transactionList.first().date)
     today = datetime.today()
     
     while currentDate <= today:
