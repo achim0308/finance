@@ -275,8 +275,8 @@ def yearsago(years, from_date=None):
         return from_date.replace(month=2, day=28,year=from_date.year-years)
 
 def last_day_of_month(any_day):
-    next_month = any_day.replace(day=28) + datetime.timedelta(days=4)  # this will never fail
-    return next_month - datetime.timedelta(days=next_month.day)
+    next_month = any_day.replace(day=28) + timedelta(days=4)  # this will never fail
+    return next_month - timedelta(days=next_month.day)
 
 def updateSecurityValuation(owner):
     # get date of last update of security valuations
@@ -363,4 +363,4 @@ def updateSecurityValuation(owner):
                 )
         
         # go to end of next month
-        currentDate = last_day_of_month(currentDate + datetime.timedelta(days=1))
+        currentDate = last_day_of_month(currentDate + timedelta(days=1))
