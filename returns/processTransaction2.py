@@ -293,18 +293,18 @@ def updateSecurityValuation(owner):
     if transactionList is None:
         return # nothing to do here 
     
-    numSecurityObjects = Security.objects.order_by('-id').first().id
+    numSecurityObjects = Security.objects.last().id
     securityActive = [False for i in range(1,numSecurityObjects)]
     securityMtM = [False for i in range(1,numSecurityObjects)]
     numSecurity = [0.0 for i in range(1,numSecurityObjects)]
     curValueSecurity = [0.0 for i in range(1,numSecurityObjects)]
     baseValueSecurity = [0.0 for i in range(1,numSecurityObjects)]
     
+    currentDate = last_day_of_month(transactionList[0].date)
+    today = datetime.today()
+    
     transactionIterator = transactionList.iterator()
     endOfTransactionList = False
-    
-    currentDate = last_day_of_month(transactionList.first().date)
-    today = datetime.today()
     
     while currentDate <= today:
         
