@@ -9,7 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 
 from .models import Transaction, Account, Security, Inflation
-from .processTransaction2 import addNewMarkToMarketData, constructCompleteInfo2, gatherData, addHistoricalPerformance, addSegmentPerformance, calcInterest, match
+from .processTransaction2 import addNewMarkToMarketData, constructCompleteInfo2, gatherData, addHistoricalPerformance, addSegmentPerformance, calcInterest, match, updateSecurityValuation
 from .forms import AccountForm, SecurityForm, TransactionForm, TransactionFormForSuperuser, HistValuationForm, AddInterestForm, AddInterestFormForSuperuser, InflationForm
 
 @login_required
