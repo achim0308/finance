@@ -353,9 +353,9 @@ def updateSecurityValuation(owner):
                     security__id = securityID,
                     owner = owner,
                     defaults = {
-                        cur_value = curValueSecurity[securityId]
-                        base_value = baseValueSecurity[securityId]
-                        modifiedDate = today
+                        'cur_value': curValueSecurity[securityId],
+                        'base_value': baseValueSecurity[securityId],
+                        'modifiedDate': today
                     },
                 )
         
