@@ -290,7 +290,7 @@ def updateSecurityValuation(owner):
     
     # set up data structure
     transactionList = Transaction.objects.filter(owner=owner).order_by('date')
-    numSecurityObjects = Security.objects.order_by('-id')[:1].id
+    numSecurityObjects = Security.objects.order_by('-id').first().id
     securityActive = [False for i in range(1,numSecurityObjects)]
     securityMtM = [False for i in range(1,numSecurityObjects)]
     numSecurity = [0.0 for i in range(1,numSecurityObjects)]
