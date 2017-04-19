@@ -317,7 +317,7 @@ def add_interest(request, security_id):
 
 def add_hist_data(request):
     addNewMarkToMarketData()
-    for u in User.object.all():
+    for u in User.objects.all():
         updateSecurityValuation(u)
     return redirect('returns:index')
 
