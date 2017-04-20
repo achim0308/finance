@@ -328,24 +328,21 @@ def updateSecurityValuation(owner):
             # treat accumulated interest or matched contributions separately
             # -cashflow b/c sign convention for cashflows
             if not (t.security.accumulate_interest and (t.kind == Transaction.INTEREST or t.kind == Transaction.MATCH)):
-                print(baseValueSecurity[tSecurityId])
                 baseValueSecurity[tSecurityId] = baseValueSecurity[tSecurityId] - t.cashflow.amount
-                print(t.cashflow)
-                print(baseValueSecurity[tSecurityId])
             
             # update number of securities
             if t.security.mark_to_market:
                 numSecurity[tSecurityId] = numSecurity[tSecurityId] + t.num_transacted
                 securityMtM[tSecurityId] = True
             # update current value
-            # treat accumulated interest or matched contributions separate
-            # -cashflow b/c sign convention for cashflows
-            elif t.security.accumulate_interest and (t.kind == Transaction.INTEREST or t.kind == Transaction.MATCH):
-                curValueSecurity[tSecurityId] = curValueSecurity[tSecurityId] - t.cashflow.amount
-            elif not (t.kind == Transaction.INTEREST or t.kind == Transaction.MATCH):
-                curValueSecurity[tSecurityId] = curValueSecurity[tSecurityId] - (t.cashflow.amount - t.tax.amount - t.expense.amount)
-            
-        # update all securities with
+            else:
+                # treat accumulated interest or matched contributions separate
+                # cashflow b/c sign convention for cashflows (always >0 for these)
+                if t.security.accumulate_interest and (t.kind == Transaction.INTEREST or t.kind == Transaction.MATCH):
+                    curValueSecurity[tSecurityId] = curValueSecurity[tSecurityId] + t.cashflow.amount
+                # -cashflow b/c sign convention for cashflows
+                elif not (t.kind == Transaction.INTEREST or t.kind == Transaction.MATCH):
+                    curValueSecurity[tSecurityId] = curValueSecurity[tSecurityId] - (t.cashflow.amount - t.tax.amount - t.expense.amount)
         
         # store information 
         for securityId in range(1,numSecurityObjects+1):
