@@ -344,7 +344,7 @@ def updateSecurityValuation(owner):
         # update all securities with
         
         # store information 
-        for securityID in range(1,numSecurityObjects):
+        for securityId in range(1,numSecurityObjects):
             if securityActive[securityId] == True:
                 # update security value with market data if applicable
                 if securityMtM[securityId] == True:
