@@ -343,7 +343,7 @@ def updateSecurityValuation(owner):
             elif t.security.accumulate_interest and (t.kind == Transaction.INTEREST or t.kind == Transaction.MATCH):
                 curValueSecurity[tSecurityId] = curValueSecurity[tSecurityId] - t.cashflow.amount
             elif not (t.kind == Transaction.INTEREST or t.kind == Transaction.MATCH):
-                curValueSecurity[tSecurityId] = curValueSecurity[tSecurityId] + t.cashflow.amount - t.tax.amount - t.expense.amount
+                curValueSecurity[tSecurityId] = curValueSecurity[tSecurityId] - (t.cashflow.amount - t.tax.amount - t.expense.amount)
             
         # update all securities with
         
