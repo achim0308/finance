@@ -294,11 +294,11 @@ def updateSecurityValuation(owner):
         return # nothing to do here 
     
     numSecurityObjects = Security.objects.last().id
-    securityActive = [False for i in range(1,numSecurityObjects+1)]
-    securityMtM = [False for i in range(1,numSecurityObjects+1)]
-    numSecurity = [Decimal(0.0) for i in range(1,numSecurityObjects+1)]
-    curValueSecurity = [0.0 for i in range(1,numSecurityObjects+1)]
-    baseValueSecurity = [0.0 for i in range(1,numSecurityObjects+1)]
+    securityActive = [False for i in range(numSecurityObjects+1)]
+    securityMtM = [False for i in range(numSecurityObjects+1)]
+    numSecurity = [Decimal(0.0) for i in range(numSecurityObjects+1)]
+    curValueSecurity = [0.0 for i in range(numSecurityObjects+1)]
+    baseValueSecurity = [0.0 for i in range(numSecurityObjects+1)]
     
     currentDate = last_day_of_month(transactionList.first().date)
     today = date.today()
@@ -327,7 +327,10 @@ def updateSecurityValuation(owner):
             # treat accumulated interest or matched contributions separately
             # -cashflow b/c sign convention for cashflows
             if not (t.security.accumulate_interest and (t.kind == Transaction.INTEREST or t.kind == Transaction.MATCH)):
+                print(baseValueSecurity[tSecurityId])
                 baseValueSecurity[tSecurityId] = baseValueSecurity[tSecurityId] - t.cashflow
+                print(t.cashflow)
+                print(baseValueSecurity[tSecurityId])
             
             # update number of securities
             if t.security.mark_to_market:
