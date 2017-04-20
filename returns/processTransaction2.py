@@ -351,7 +351,7 @@ def updateSecurityValuation(owner):
                     curValueSecurity[securityId] = numSecurity[securityId] * markToMarketHistorical(securityId, currentDate)
                 
                 # store information, update record if possible
-                s, created = SecurityValuations.objects.update_or_create(
+                s, created = SecurityValuation.objects.update_or_create(
                     date = currentDate,
                     security__id = securityID,
                     owner = owner,
