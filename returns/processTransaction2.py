@@ -5,7 +5,7 @@ from lxml import html
 from moneyed import Money, get_currency
 import requests 
 import csv
-from .models import Security, Transaction, Account, HistValuation, Inflation
+from .models import Security, Transaction, Account, HistValuation, Inflation, SecurityValuation
 from .calc import callSolver2
     
 def markToMarket(security):
