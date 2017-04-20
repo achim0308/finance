@@ -353,7 +353,7 @@ def updateSecurityValuation(owner):
                 # store information, update record if possible
                 s, created = SecurityValuation.objects.update_or_create(
                     date = currentDate,
-                    security__id = securityId,
+                    security_id = securityId,
                     owner = owner,
                     defaults = {
                         'cur_value': curValueSecurity[securityId],
