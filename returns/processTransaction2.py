@@ -311,7 +311,7 @@ def updateSecurityValuation(owner):
         while not endOfTransactionList: 
             # advance iterator
             try:
-                t = transactionIterator.next()
+                t = next(transactionIterator)
             except StopIteration:
                 endOfTransactionList = True
                 break
