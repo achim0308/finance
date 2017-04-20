@@ -297,8 +297,8 @@ def updateSecurityValuation(owner):
     securityActive = [False for i in range(numSecurityObjects+1)]
     securityMtM = [False for i in range(numSecurityObjects+1)]
     numSecurity = [Decimal(0.0) for i in range(numSecurityObjects+1)]
-    curValueSecurity = [0.0 for i in range(numSecurityObjects+1)]
-    baseValueSecurity = [0.0 for i in range(numSecurityObjects+1)]
+    curValueSecurity = [Decimal(0.0) for i in range(numSecurityObjects+1)]
+    baseValueSecurity = [Decimal(0.0) for i in range(numSecurityObjects+1)]
     
     currentDate = last_day_of_month(transactionList.first().date)
     today = date.today()
