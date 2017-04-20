@@ -333,7 +333,7 @@ class SecurityValuation(models.Model):
                                     db_index=True)
 
     def __str__(self):
-        return "%s (%s): %s (%s)" % (self.security.name, self.date, self.cur_value, self.bas_value)
+        return "%s (%s): %s (%s)" % (self.security.name, self.date, self.cur_value, self.base_value)
 
 @python_2_unicode_compatible
 class AccountValuation(models.Model):
@@ -355,7 +355,7 @@ class AccountValuation(models.Model):
                                     db_index=True)
 
     def __str__(self):
-        return "%s (%s): %s (%s)" % (self.account.name, self.date, self.cur_value, self.bas_value)
+        return "%s (%s): %s (%s)" % (self.account.name, self.date, self.cur_value, self.base_value)
 
 class ExchangeToEUR(models.Model):
     # models currency exchange rate data
