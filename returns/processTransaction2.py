@@ -294,11 +294,11 @@ def updateSecurityValuation(owner):
         return # nothing to do here 
     
     numSecurityObjects = Security.objects.last().id
-    securityActive = [False for i in range(1,numSecurityObjects)]
-    securityMtM = [False for i in range(1,numSecurityObjects)]
-    numSecurity = [Decimal(0.0) for i in range(1,numSecurityObjects)]
-    curValueSecurity = [0.0 for i in range(1,numSecurityObjects)]
-    baseValueSecurity = [0.0 for i in range(1,numSecurityObjects)]
+    securityActive = [False for i in range(1,numSecurityObjects+1)]
+    securityMtM = [False for i in range(1,numSecurityObjects+1)]
+    numSecurity = [Decimal(0.0) for i in range(1,numSecurityObjects+1)]
+    curValueSecurity = [0.0 for i in range(1,numSecurityObjects+1)]
+    baseValueSecurity = [0.0 for i in range(1,numSecurityObjects+1)]
     
     currentDate = last_day_of_month(transactionList.first().date)
     today = date.today()
@@ -344,7 +344,7 @@ def updateSecurityValuation(owner):
         # update all securities with
         
         # store information 
-        for securityId in range(1,numSecurityObjects):
+        for securityId in range(1,numSecurityObjects+1):
             if securityActive[securityId] == True:
                 # update security value with market data if applicable
                 if securityMtM[securityId] == True:
