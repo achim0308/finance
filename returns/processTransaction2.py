@@ -38,6 +38,7 @@ def markToMarketHistorical(securityID, date):
     h = HistValuation.objects.filter(security=securityID,date__lte=date).order_by('-date')[:1]
 
     if not h:
+        print("Failed in mtmHist", securityID, date)
         return Decimal("0.0")
     else:
         return h[0].value
