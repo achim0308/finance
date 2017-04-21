@@ -295,8 +295,8 @@ def updateSecurityValuation(owner):
     securityActive = [False for i in range(numSecurityObjects+1)]
     securityMtM = [False for i in range(numSecurityObjects+1)]
     numSecurity = [Decimal(0.0) for i in range(numSecurityObjects+1)]
-    curValueSecurity = [0 for i in range(numSecurityObjects+1)]
-    baseValueSecurity = [0 for i in range(numSecurityObjects+1)]
+    curValueSecurity = [Decimal(0.0) for i in range(numSecurityObjects+1)]
+    baseValueSecurity = [Decimal(0.0) for i in range(numSecurityObjects+1)]
     
     currentDate = last_day_of_month(transactionList.first().date)
     today = date.today()
@@ -330,7 +330,7 @@ def updateSecurityValuation(owner):
             # treat accumulated interest or matched contributions separately
             # -cashflow b/c sign convention for cashflows
             if not (t.security.accumulate_interest and (t.kind == Transaction.INTEREST or t.kind == Transaction.MATCH)):
-                baseValueSecurity[tSecurityId] = baseValueSecurity[tSecurityId] - t.cashflow
+                baseValueSecurity[tSecurityId] = baseValueSecurity[tSecurityId] - t.cashflow.amount
             
             # update number of securities
             if t.security.mark_to_market:
@@ -341,10 +341,10 @@ def updateSecurityValuation(owner):
                 # treat accumulated interest or matched contributions separate
                 # cashflow b/c sign convention for cashflows (always >0 for these)
                 if t.security.accumulate_interest and (t.kind == Transaction.INTEREST or t.kind == Transaction.MATCH):
-                    curValueSecurity[tSecurityId] = curValueSecurity[tSecurityId] + t.cashflow
+                    curValueSecurity[tSecurityId] = curValueSecurity[tSecurityId] + t.cashflow.amount
                 # -cashflow b/c sign convention for cashflows
                 elif not (t.kind == Transaction.INTEREST or t.kind == Transaction.MATCH):
-                    curValueSecurity[tSecurityId] = curValueSecurity[tSecurityId] - (t.cashflow - t.tax - t.expense)
+                    curValueSecurity[tSecurityId] = curValueSecurity[tSecurityId] - (t.cashflow.amount - t.tax.amount - t.expense.amount)
         
         # store information 
         for securityId in range(1,numSecurityObjects+1):
@@ -353,14 +353,16 @@ def updateSecurityValuation(owner):
                 if securityMtM[securityId] == True:
                     curValueSecurity[securityId] = numSecurity[securityId] * markToMarketHistorical(securityId, currentDate)
                 
+                currency = Security.objects.get(pk=securityId).currency
+                
                 # store information, update record if possible
                 s, created = SecurityValuation.objects.update_or_create(
                     date = currentDate,
                     security_id = securityId,
                     owner = owner,
                     defaults = {
-                        'cur_value': curValueSecurity[securityId],
-                        'base_value': baseValueSecurity[securityId],
+                        'cur_value': Money(amount=curValueSecurity[securityId], code=currency),
+                        'base_value': Money(amount=baseValueSecurity[securityId], code=currency),
                         'modifiedDate': today
                     },
                 )
