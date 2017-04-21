@@ -326,7 +326,7 @@ def updateSecurityValuation(owner):
                 break
             # process current transaction record
             tSecurityId = t.security.id
-            print(tSecurityId)
+            print(numSecurityObjects,tSecurityId)
             securityActive[tSecurityId] = True
             
             # update base value
