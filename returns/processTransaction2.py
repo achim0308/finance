@@ -305,19 +305,24 @@ def updateSecurityValuation(owner):
     
     transactionIterator = transactionList.iterator()
     endOfTransactionList = False
+    previousTransactionNotProcessed = False
     
     while currentDate <= today:
         
         while not endOfTransactionList: 
-            # advance iterator
-            try:
-                t = next(transactionIterator)
-            except StopIteration:
-                endOfTransactionList = True
-                break
-            print(t)
+            # advance iterator unless previous transaction was not processed
+            if not previousTransactionNotProcessed:
+                try:
+                    t = next(transactionIterator)
+                except StopIteration:
+                    endOfTransactionList = True
+                    break
+            else:
+                previousTransactionNotProcessed = False
+            
             # check if transaction occurred in currently considered month
             if t.date > currentDate:
+                previousTransactionNotProcessed = True
                 break
             # process current transaction record
             tSecurityId = t.security.id
