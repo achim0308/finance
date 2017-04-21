@@ -351,7 +351,7 @@ def updateSecurityValuation(owner):
             if securityActive[securityId] == True:
                 # update security value with market data if applicable
                 if securityMtM[securityId] == True:
-                    curValueSecurity[securityId] = numSecurity[securityId] * markToMarketHistorical(securityId, currentDate)
+                    curValueSecurity[securityId] = numSecurity[securityId] * markToMarketHistorical(securityId, currentDate).amount
                 
                 currency = Security.objects.get(pk=securityId).currency
                 
