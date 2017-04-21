@@ -330,6 +330,7 @@ def updateSecurityValuation(owner):
             # treat accumulated interest or matched contributions separately
             # -cashflow b/c sign convention for cashflows
             if not (t.security.accumulate_interest and (t.kind == Transaction.INTEREST or t.kind == Transaction.MATCH)):
+                print(t, baseValueSecurity[tSecurityId], t.cashflow.amount) 
                 baseValueSecurity[tSecurityId] = baseValueSecurity[tSecurityId] - t.cashflow.amount
             
             # update number of securities
