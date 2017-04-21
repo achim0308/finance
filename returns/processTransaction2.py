@@ -293,8 +293,7 @@ def updateSecurityValuation(owner):
     if not transactionList.exists():
         return # nothing to do here 
     
-    numSecurityObjects = Security.objects.last().id
-    print(Security.objects.last())
+    numSecurityObjects = Security.objects.order_by('id').last().id
     securityActive = [False for i in range(numSecurityObjects+1)]
     securityMtM = [False for i in range(numSecurityObjects+1)]
     numSecurity = [Decimal(0.0) for i in range(numSecurityObjects+1)]
