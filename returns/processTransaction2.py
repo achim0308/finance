@@ -280,19 +280,17 @@ def last_day_of_month(any_day):
 
 def updateSecurityValuation(owner):
     # get date of last update of security valuations
-#    try:
-#        lastUpdate = SecurityValuation.object.filter(owner=owner).order_by('-modifiedDate')[:1]
-#    except:
-#         lastUpdate = date(1900,1,1)
+    try:
+        lastUpdate = SecurityValuation.object.filter(owner=owner).order_by('-modifiedDate').last().modifiedDate
+    except:
+         lastUpdate = date(1900,1,1)
     # find transactions that have been added since
-#    newTransaction = Transaction.objects.filter(owner=owner, modificationDate__gte=lastUpdate).
-    
-    
-    # set up data structure
-    transactionList = Transaction.objects.filter(owner=owner).order_by('date')
+    transactionList = Transaction.objects.filter(owner=owner,modificationDate__gte=lastUpdate).order_by('date')
+
     if not transactionList.exists():
         return # nothing to do here 
-    
+
+    # set up data structure    
     numSecurityObjects = Security.objects.order_by('id').last().id
     securityActive = [False for i in range(numSecurityObjects+1)]
     securityMtM = [False for i in range(numSecurityObjects+1)]
@@ -326,7 +324,6 @@ def updateSecurityValuation(owner):
                 break
             # process current transaction record
             tSecurityId = t.security.id
-            print(numSecurityObjects,tSecurityId)
             securityActive[tSecurityId] = True
             
             # update base value
