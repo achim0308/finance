@@ -315,7 +315,7 @@ def updateSecurityValuation(owner):
             except StopIteration:
                 endOfTransactionList = True
                 break
-            
+            print(t)
             # check if transaction occurred in currently considered month
             if t.date > currentDate:
                 break
