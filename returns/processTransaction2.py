@@ -285,7 +285,7 @@ def updateSecurityValuation(owner):
     except:
          lastUpdate = date(1900,1,1)
     # find transactions that have been added since
-    transactionList = Transaction.objects.filter(owner=owner,modificationDate__gte=lastUpdate).order_by('date')
+    transactionList = Transaction.objects.filter(owner=owner,modifiedDate__gte=lastUpdate).order_by('date')
 
     if not transactionList.exists():
         return # nothing to do here 
