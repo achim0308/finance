@@ -294,6 +294,7 @@ def updateSecurityValuation(owner):
         return # nothing to do here 
     
     numSecurityObjects = Security.objects.last().id
+    print(Security.objects.last())
     securityActive = [False for i in range(numSecurityObjects+1)]
     securityMtM = [False for i in range(numSecurityObjects+1)]
     numSecurity = [Decimal(0.0) for i in range(numSecurityObjects+1)]
