@@ -361,8 +361,8 @@ def updateSecurityValuation(owner):
                     security_id = securityId,
                     owner = owner,
                     defaults = {
-                        'cur_value': Money(amount=curValueSecurity[securityId], code=currency),
-                        'base_value': Money(amount=baseValueSecurity[securityId], code=currency),
+                        'cur_value': Money(amount=curValueSecurity[securityId], currency=get_currency(code=currency),
+                        'base_value': Money(amount=baseValueSecurity[securityId], currency=get_currency(code=currency),
                         'modifiedDate': today
                     },
                 )
