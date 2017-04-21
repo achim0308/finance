@@ -355,6 +355,8 @@ def updateSecurityValuation(owner):
                 
                 currency = Security.objects.get(pk=securityId).currency
                 
+                print(currentDate, securityId, curValueSecurity[securityId], baseValueSecurity[securityId])
+                
                 # store information, update record if possible
                 s, created = SecurityValuation.objects.update_or_create(
                     date = currentDate,
