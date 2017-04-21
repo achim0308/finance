@@ -332,6 +332,7 @@ def updateSecurityValuation(owner):
             if not (t.security.accumulate_interest and (t.kind == Transaction.INTEREST or t.kind == Transaction.MATCH)):
                 print(t, baseValueSecurity[tSecurityId], t.cashflow.amount) 
                 baseValueSecurity[tSecurityId] = baseValueSecurity[tSecurityId] - t.cashflow.amount
+                print(baseValueSecurity[tSecurityId])
             
             # update number of securities
             if t.security.mark_to_market:
