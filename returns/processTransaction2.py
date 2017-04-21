@@ -330,9 +330,7 @@ def updateSecurityValuation(owner):
             # treat accumulated interest or matched contributions separately
             # -cashflow b/c sign convention for cashflows
             if not (t.security.accumulate_interest and (t.kind == Transaction.INTEREST or t.kind == Transaction.MATCH)):
-                print(t, baseValueSecurity[tSecurityId], t.cashflow.amount) 
                 baseValueSecurity[tSecurityId] = baseValueSecurity[tSecurityId] - t.cashflow.amount
-                print(baseValueSecurity[tSecurityId])
             
             # update number of securities
             if t.security.mark_to_market:
@@ -351,6 +349,7 @@ def updateSecurityValuation(owner):
         # store information 
         for securityId in range(1,numSecurityObjects+1):
             if securityActive[securityId] == True:
+                print(curValueSecurity[securityId], markToMarketHistorical(securityId, currentDate))
                 # update security value with market data if applicable
                 if securityMtM[securityId] == True:
                     curValueSecurity[securityId] = numSecurity[securityId] * markToMarketHistorical(securityId, currentDate)
