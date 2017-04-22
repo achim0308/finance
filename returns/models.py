@@ -1,4 +1,5 @@
 from datetime import datetime, date
+from decimal import *
 from moneyed import Money, get_currency
 from djmoney.models.fields import MoneyField, CurrencyField
 from djmoney.forms.widgets import CURRENCY_CHOICES
@@ -9,7 +10,7 @@ from django.db import connection, models
 from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 
-import requests
+from requests import *
 
 @python_2_unicode_compatible
 class Security(models.Model):
