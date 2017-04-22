@@ -1,7 +1,7 @@
 {% extends 'returns/base.html' %}
 
 {% block preheader_block %}
-{% if segPerf %}
+{% if segPerf or chart_asset_history %}
 {% load nvd3_tags %}
 {% endif %}
 {% endblock preheader_block%}
@@ -16,16 +16,24 @@
 <script type="text/javascript" src="{% static 'returns/js/jquery.tablesorter.widgets.js'%} "></script>
 <script type="text/javascript" src="{% static 'returns/js/jquery.tablesorter.widgets/widget-alignChar.js'%} "></script>
 
-{% if segPerf %}
+{% if segPerf or chart_asset_history %}
 <link rel="stylesheet" type="text/css" href="{% static 'returns/css/nv.d3.min.css'%}"/>
 <script type="text/javascript" src="{% static 'returns/js/d3.min.js'%} "></script>
 <script type="text/javascript" src="{% static 'returns/js/nv.d3.min.js'%} "></script>
+
+{% if segPerf %}
 
 {% load_chart chart_asset_alloc.charttype chart_asset_alloc.chartdata chart_asset_alloc.chartcontainer chart_asset_alloc.extra %}
 {% load_chart chart_asset_perf.charttype chart_asset_perf.chartdata chart_asset_perf.chartcontainer chart_asset_perf.extra %}
 
 {% endif %}
 
+{% if chart_asset_history %}
+
+{% load_chart chart_asset_history.charttype chart_asset_history.chartdata chart_asset_history.chartcontainer chart_asset_history.extra %}
+
+{% endif %}
+{% endif %}
 <script language="javascript">
 $(document).ready(function()
   {
@@ -203,6 +211,11 @@ $(document).ready(function()
 </table>
 </div>
 {% endif %}
+
+{% if chart_asset_history %}
+{% include_container chart_asset_history.chartcontainer 450 100% %}
+{% endif %}
+
 
 {% if transaction_history %}
 <h2><a href="#" onclick="toggle_visibility('transaction_history_div');">Transaction history</a></h2>

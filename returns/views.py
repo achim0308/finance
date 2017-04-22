@@ -149,7 +149,38 @@ def security(request, security_id):
         num = Transaction.thobjects.getNum(securities = [security_id], owner = cur_user)
         if num is not None:
             info['cur_num'] = num[0]['num_transacted'].normalize
-    info['security'] = security
+        
+        # Collect information for chart
+        valuations = SecurityValuation.objects.filter(owner_id=cur_user,security_id=security_id).order_by('date')
+        for v in valuations:
+            xdata.append(v.date)
+            y1data.append(v.cur_value.amount)
+            y2data.append(v.base_value.amount)
+        
+        tooltip_date = "%b %Y"
+        extra_serie={"date_format": tooltip_date}
+        
+        chartdata = {
+            'x': xdata,
+            'name1': 'Actual value', 'y1': y1data, 'extra1': extra_serie,
+            'name2': 'Inflow - outflows', 'y2': y2data, 'extra2': extra_serie,
+        }
+        charttype = "lineWithFocusChart"
+        chartcontainer = 'asset_history'
+        data = {
+            'charttype': charttype,
+            'chartdata': chartdata,
+            'chartcontainer': chartcontainer,
+            'extra': {
+                'x_is_date': True,
+                'x_axis_format': '%b %Y',
+                'tag_script_js': True,
+                'jquery_on_ready': False,
+            }
+        }
+
+        info['chart_asset_history'] = data
+        info['security'] = security
 
     return render(request, 'returns/security.html', info)
 
