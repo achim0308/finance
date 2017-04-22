@@ -1,4 +1,5 @@
 from datetime import datetime, date, timedelta
+from time import mktime
 
 from django.shortcuts import render, get_object_or_404, redirect, render_to_response
 from django.template import RequestContext
@@ -156,7 +157,9 @@ def security(request, security_id):
         y1data=[]
         y2data=[]
         for v in valuations:
-            xdata.append(v.date)
+            # must convert date to integer
+            xdata.append(int(mktime(v.date.timetuple())*1000)
+            # must convert Decimal to float
             y1data.append(float(v.cur_value.amount))
             y2data.append(float(v.base_value.amount))
         
