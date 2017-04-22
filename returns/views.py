@@ -158,7 +158,7 @@ def security(request, security_id):
         y2data=[]
         for v in valuations:
             # must convert date to integer
-            xdata.append(int(mktime(v.date.timetuple())*1000)
+            xdata.append(int(mktime(v.date.timetuple())*1000))
             # must convert Decimal to float
             y1data.append(float(v.cur_value.amount))
             y2data.append(float(v.base_value.amount))
