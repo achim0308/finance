@@ -182,7 +182,6 @@ def security(request, security_id):
                 'x_axis_format': '%b %Y',
                 'tag_script_js': True,
                 'jquery_on_ready': False,
-                'chart_attr': {'y_axis_label': security.currency},
             }
         }
 
