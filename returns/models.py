@@ -65,7 +65,7 @@ class Security(models.Model):
             value = Decimal(float(data.content))
             price = Money(amount=value,currency=get_currency(code=self.currency))
         except:
-            raise RuntimeError('Trouble getting data')
+            raise RuntimeError('Trouble getting data for security', security.name)
         
         return price
 
@@ -80,8 +80,8 @@ class Account(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,
                               default=2,
 #                              on_delete=models.CASCADE)
-	)
-	
+    )
+    
     def __str__(self):
         return self.name
 
@@ -291,9 +291,6 @@ class Transaction(models.Model):
 
     def __str__(self):
         return "%s: (%s) %s (%s) %s" % (self.date, self.kind, self.security.name, self.security.descrip, self.cashflow)
-
-    def is_recent_transaction(self):
-        return timezone.now() >= self.date >= timezone.now() - datetime.timedelta(months=3)
 
 @python_2_unicode_compatible
 class HistValuation(models.Model):

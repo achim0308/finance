@@ -1,38 +1,9 @@
 from decimal import *
 from django.utils import timezone
 from datetime import datetime, timedelta, date
-from lxml import html
 from moneyed import Money, get_currency
-import requests 
-import csv
 from .models import Security, Transaction, Account, HistValuation, Inflation, SecurityValuation
 from .calc import callSolver2
-    
-def markToMarket(security):
-# screen scraping based on yahoo website
-
-    try:
-        data = requests.get(security.url)
-        price = float(data.content)
-    except:
-        raise RuntimeError('Trouble getting data')
-    return price
-
-#    try:
-#        page = requests.get(security.url)
-#    except requests.exeptions.RequestException:
-#        raise RuntimeError('Unknown URL')
-
-#    tree = html.fromstring(page.content)
-
-    #priceInfo = tree.xpath('//span[@itemprop="price"]/text()')
-#    priceInfo = tree.xpath('//*[@id="table1"]/tbody/tr[1]/td/text()')
-
-#    try:
-#        price = float(priceInfo.pop().replace("'","").replace(",","."))
-#    except:
-#        raise RuntimeError('Empty list')
-#    return price
 
 def markToMarketHistorical(securityID, date):
     h = HistValuation.objects.filter(security=securityID,date__lte=date).order_by('-date')[:1]
@@ -47,13 +18,14 @@ def addNewMarkToMarketData():
     today = timezone.now().date()
     
     for s in markToMarketSecurities:
-        if HistValuation.objects.filter(security=s.id,date=today).exists() == False:
-            try:
-                value = s.markToMarket()
-                newH = HistValuation(date=today, security=s, value=value)
-                newH.save()
-            except :
-                pass
+        try:
+            value = s.markToMarket()
+            HistValuation.objects.update_or_create(
+                    date = today,
+                    security = s,
+                    defaults = { 'value': value })
+        except:
+            pass
 
 def constructCompleteInfo2(accounts = None, securities = None, beginDate = None, endDate = None, owner = None):
 
