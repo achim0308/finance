@@ -59,7 +59,7 @@ class Security(models.Model):
             raise RuntimeError('Security not marked to market prices')
         try:
             data = requests.get(self.url)
-            value = float(data.content)
+            value = Decimal(data.content)
             price = Money(amount=value,currency=get_currency(code=self.currency))
         except:
             raise RuntimeError('Trouble getting data')
