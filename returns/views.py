@@ -164,7 +164,10 @@ def security(request, security_id):
             y2data.append(float(v.base_value.amount))
         
         tooltip_date = "%b %Y"
-        extra_serie={"date_format": tooltip_date}
+        extra_serie={
+            "tooltip": {"y_start": "", "y_end": security.currency},
+            "date_format": tooltip_date
+        }
         
         chartdata = {
             'x': xdata,
