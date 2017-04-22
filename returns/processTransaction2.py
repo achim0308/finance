@@ -93,12 +93,12 @@ def constructCompleteInfo2(accounts = None, securities = None, beginDate = None,
             for n in endNum:
                 if n['num_transacted'] != 0.0: 
                     price = Security.objects.get(pk=n['security_id']).markToMarket()
-                    cf = cf + Decimal('%.2f' % (price*n['num_transacted']))
+                    cf = cf + Decimal('%.2f' % (price.amount*n['num_transacted']))
         else:
             for n in endNum:
                 if n['num_transacted'] != 0.0: 
                     price = markToMarketHistorical(n['security_id'], endDate)
-                    cf = cf + Decimal('%.2f' % (price*n['num_transacted']))
+                    cf = cf + Decimal('%.2f' % (price.amount*n['num_transacted']))
     if cf != 0:
         if not endDate:
             cashflowList.append({'cashflow': cf, 'date': timezone.now().date()})
