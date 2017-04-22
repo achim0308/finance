@@ -157,8 +157,8 @@ def security(request, security_id):
         y2data=[]
         for v in valuations:
             xdata.append(v.date)
-            y1data.append(v.cur_value.amount)
-            y2data.append(v.base_value.amount)
+            y1data.append(float(v.cur_value.amount))
+            y2data.append(float(v.base_value.amount))
         
         tooltip_date = "%b %Y"
         extra_serie={"date_format": tooltip_date}
