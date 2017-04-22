@@ -1,5 +1,5 @@
 from datetime import datetime, date
-import moneyed
+from moneyed import Money, get_currency
 from djmoney.models.fields import MoneyField, CurrencyField
 from djmoney.forms.widgets import CURRENCY_CHOICES
 from django_countries.fields import CountryField
@@ -52,6 +52,19 @@ class Security(models.Model):
                                 default = 'EUR')
     def __str__(self):
         return "%s (%s)" % (self.name, self.descrip)
+
+    def markToMarket(self):
+    # screen scraping based on yahoo website
+        if not self.mark_to_market:
+            raise RuntimeError('Security not marked to market prices')
+        try:
+            data = requests.get(self.url)
+            value = float(data.content)
+            price = Money(amount=value,currency=get_currency(code=self.currency))
+        except:
+            raise RuntimeError('Trouble getting data')
+        
+        return price
 
     class Meta:
         ordering = ['name']

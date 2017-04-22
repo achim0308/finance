@@ -49,8 +49,8 @@ def addNewMarkToMarketData():
     for s in markToMarketSecurities:
         if HistValuation.objects.filter(security=s.id,date=today).exists() == False:
             try:
-                value = markToMarket(s)
-                newH = HistValuation(date=today, security=s, value=Money(amount=value,currency=get_currency(code=s.currency)))
+                value = s.markToMarket()
+                newH = HistValuation(date=today, security=s, value=value)
                 newH.save()
             except :
                 pass
@@ -92,8 +92,8 @@ def constructCompleteInfo2(accounts = None, securities = None, beginDate = None,
         if not endDate or endDate == timezone.now().date():
             for n in endNum:
                 if n['num_transacted'] != 0.0: 
-                    price = markToMarket(Security.objects.get(pk=n['security_id']))
-                    cf = cf + Decimal('%.2f' % (Decimal(price)*n['num_transacted']))
+                    price = Security.objects.get(pk=n['security_id']).markToMarket()
+                    cf = cf + Decimal('%.2f' % (price*n['num_transacted']))
         else:
             for n in endNum:
                 if n['num_transacted'] != 0.0: 
