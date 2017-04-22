@@ -166,7 +166,7 @@ $(document).ready(function()
 </table>
 </div>
 
-{% include_container chart_asset_perf.chartcontainer 450 600 %}
+{% include_container chart_asset_perf.chartcontainer 450 '100%' %}
 {% include_container chart_asset_alloc.chartcontainer 450 450 %}
 {% endif %}
 
@@ -213,7 +213,7 @@ $(document).ready(function()
 {% endif %}
 
 {% if chart_asset_history %}
-{% include_container chart_asset_history.chartcontainer 450 100% %}
+{% include_container chart_asset_history.chartcontainer 450 '100%' %}
 {% endif %}
 
 
