@@ -9,6 +9,8 @@ from django.db import connection, models
 from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 
+import requests
+
 @python_2_unicode_compatible
 class Security(models.Model):
     # models a single security held in an account
