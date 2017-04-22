@@ -10,7 +10,7 @@ from django.db import connection, models
 from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 
-from requests import *
+import requests
 
 @python_2_unicode_compatible
 class Security(models.Model):
