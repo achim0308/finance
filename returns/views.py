@@ -152,6 +152,9 @@ def security(request, security_id):
         
         # Collect information for chart
         valuations = SecurityValuation.objects.filter(owner_id=cur_user,security_id=security_id).order_by('date')
+        xdata=[]
+        y1data=[]
+        y2data=[]
         for v in valuations:
             xdata.append(v.date)
             y1data.append(v.cur_value.amount)
