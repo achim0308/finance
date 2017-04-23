@@ -164,15 +164,15 @@ def security(request, security_id):
             y2data.append(float(v.base_value.amount))
         
         tooltip_date = "%b %Y"
-#        extra_serie={
-#            "tooltip": {"y_start": "", "y_end": security.currency},
-#            "date_format": tooltip_date
-#        }
+        extra_serie={
+            "tooltip": {"y_start": "", "y_end": security.currency},
+            "date_format": tooltip_date
+        }
         
         chartdata = {
             'x': xdata,
-            'name1': 'Actual value', 'y1': y1data, #'extra1': extra_serie,
-            'name2': 'Inflow - outflows', 'y2': y2data, #'extra2': extra_serie,
+            'name1': 'Actual value', 'y1': y1data, 'extra1': extra_serie,
+            'name2': 'Inflow - outflows', 'y2': y2data, 'extra2': extra_serie,
         }
         charttype = "lineWithFocusChart"
         chartcontainer = 'asset_history'
