@@ -398,7 +398,7 @@ def updateAccountValuation():
             # process current transaction record
             tSecurityId = t.security.id
             tAccountId = t.account.id
-            tPosition = tSecurityId + tAccountId*(numAccountObjects-1)
+            tPosition = tSecurityId + (tAccountId-1)*numAccountObjects
             securityActive[tPosition] = True
             accountActive[tAccountId] = True
             
@@ -430,9 +430,10 @@ def updateAccountValuation():
                 currency = Account.objects.get(pk=accountId).currency
                 curValueAccount = Money(amount=0.0, currency=get_currency(code=currency))
                 baseValueAccount = Money(amount=0.0, currency=get_currency(code=currency))
+                
                 # loop over securities
                 for securityId in range(1,numSecurityObjects+1):
-                    positionId = securityId + accountId*(numAccountObjects-1)
+                    positionId = securityId + (accountId-1)*numAccountObjects
                     # only need to do sth for active objects
                     if securityActive[positionId] == True:
                         # update security value with market data if applicable
