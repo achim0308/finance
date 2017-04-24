@@ -8,7 +8,7 @@ class AccountForm(forms.ModelForm):
 
     class Meta:
         model = Account
-        fields = ('name', 'owner')
+        fields = ('name', 'owner', 'currency')
 
 class SecurityForm(forms.ModelForm):
 
