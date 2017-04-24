@@ -378,7 +378,6 @@ def updateAccountValuation():
     # set up data structure
     numSecurityObjects = Security.objects.order_by('id').last().id
     numAccountObjects = Account.objects.order_by('id').last().id
-    print(numSecurityObjects,numAccountObjects)
     accountActive = [False for i in range(numAccountObjects+1)]
     securityActive = [False for i in range(numSecurityObjects*numAccountObjects+1)]
     securityMtM = [False for i in range(numSecurityObjects+1)]
@@ -413,7 +412,7 @@ def updateAccountValuation():
             # process current transaction record
             tSecurityId = t.security.id
             tAccountId = t.account.id
-            tPosition = tSecurityId + (tAccountId-1)*numAccountObjects
+            tPosition = tSecurityId + (tAccountId-1)*numSecurityObjects
             securityActive[tPosition] = True
             accountActive[tAccountId] = True
             
@@ -448,7 +447,7 @@ def updateAccountValuation():
                 
                 # loop over securities
                 for securityId in range(1,numSecurityObjects+1):
-                    positionId = securityId + (accountId-1)*numAccountObjects
+                    positionId = securityId + (accountId-1)*numSecurityObjects
                     # only need to do sth for active objects
                     if securityActive[positionId] == True:
                         # update security value with market data if applicable
