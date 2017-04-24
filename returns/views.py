@@ -227,7 +227,7 @@ def security(request, security_id):
         }
 
         info['chart_asset_history'] = data
-        info['security'] = security
+    info['security'] = security
 
     return render(request, 'returns/security.html', info)
 
