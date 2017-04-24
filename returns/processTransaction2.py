@@ -378,6 +378,7 @@ def updateAccountValuation():
     # set up data structure
     numSecurityObjects = Security.objects.order_by('id').last().id
     numAccountObjects = Account.objects.order_by('id').last().id
+    print(numSecurityObjects,numAccountObjects)
     accountActive = [False for i in range(numAccountObjects+1)]
     securityActive = [False for i in range(numSecurityObjects*numAccountObjects+1)]
     securityMtM = [False for i in range(numSecurityObjects+1)]
