@@ -10,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 
 from .models import Transaction, Account, Security, Inflation, SecurityValuation
-from .processTransaction2 import addNewMarkToMarketData, constructCompleteInfo2, gatherData, addHistoricalPerformance, addSegmentPerformance, calcInterest, match, updateSecurityValuation
+from .processTransaction2 import addNewMarkToMarketData, constructCompleteInfo2, gatherData, addHistoricalPerformance, addSegmentPerformance, calcInterest, match, updateSecurityValuation, updateAccountValuation
 from .forms import AccountForm, SecurityForm, TransactionForm, TransactionFormForSuperuser, HistValuationForm, AddInterestForm, AddInterestFormForSuperuser, InflationForm
 
 @login_required
@@ -128,7 +128,45 @@ def account(request, account_id):
         cur_user = request.user.id
         info = gatherData(accounts = [account_id], owner = cur_user)
         info['histPerf'] = addHistoricalPerformance(accounts = [account_id], owner = cur_user)
- 
+    
+    # Collect information for chart
+    valuations = AccountValuation.objects.filter(account_id=account_id).order_by('date')
+    xdata=[]
+    y1data=[]
+    y2data=[]
+    for v in valuations:
+        # must convert date to integer
+        xdata.append(int(mktime(v.date.timetuple())*1000))
+        # must convert Decimal to float
+        y1data.append(float(v.cur_value.amount))
+        y2data.append(float(v.base_value.amount))
+    
+    tooltip_date = "%b %Y"
+    extra_serie={
+        "tooltip": {"y_start": "", "y_end": account.currency},
+        "date_format": tooltip_date
+    }
+    
+    chartdata = {
+        'x': xdata,
+        'name1': 'Actual value', 'y1': y1data, 'extra1': extra_serie,
+        'name2': 'Inflow - outflows', 'y2': y2data, 'extra2': extra_serie,
+    }
+    charttype = "lineWithFocusChart"
+    chartcontainer = 'asset_history'
+    data = {
+        'charttype': charttype,
+        'chartdata': chartdata,
+        'chartcontainer': chartcontainer,
+        'extra': {
+            'x_is_date': True,
+            'x_axis_format': '%b %Y',
+            'tag_script_js': True,
+            'jquery_on_ready': False,
+        }
+    }
+    
+    info['chart_asset_history'] = data
     info['account'] = account
 
     return render(request, 'returns/account.html', info)
@@ -359,6 +397,7 @@ def add_hist_data(request):
     addNewMarkToMarketData()
     for u in User.objects.all():
         updateSecurityValuation(u)
+    updateAccountValuation()
     return redirect('returns:index')
 
 @login_required

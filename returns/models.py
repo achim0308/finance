@@ -81,6 +81,10 @@ class Account(models.Model):
                               default=2,
 #                              on_delete=models.CASCADE)
     )
+    currency = models.CharField('Currency',
+                                max_length = 3,
+                                choices = CURRENCY_CHOICES,
+                                default = 'EUR')
     
     def __str__(self):
         return self.name

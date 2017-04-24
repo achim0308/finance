@@ -2,7 +2,7 @@ from decimal import *
 from django.utils import timezone
 from datetime import datetime, timedelta, date
 from moneyed import Money, get_currency
-from .models import Security, Transaction, Account, HistValuation, Inflation, SecurityValuation
+from .models import Security, Transaction, Account, HistValuation, Inflation, SecurityValuation, AccountValuation
 from .calc import callSolver2
 
 def markToMarketHistorical(securityID, date):
@@ -262,7 +262,7 @@ def updateSecurityValuation(owner):
     if not transactionList.exists():
         return # nothing to do here 
 
-    # set up data structure    
+    # set up data structure
     numSecurityObjects = Security.objects.order_by('id').last().id
     securityActive = [False for i in range(numSecurityObjects+1)]
     securityMtM = [False for i in range(numSecurityObjects+1)]
@@ -348,3 +348,114 @@ def updateSecurityValuation(owner):
         
         # go to end of next month
         currentDate = last_day_of_month(currentDate + timedelta(days=1))
+
+def updateAccountValuation():
+    # get date of last update of security valuations
+    try:
+        lastUpdate = AccountValuation.object.order_by('-modifiedDate').last().modifiedDate
+    except:
+         lastUpdate = date(1900,1,1)
+    # find transactions that have been added since
+    transactionList = Transaction.objects.filter(modifiedDate__gte=lastUpdate).order_by('date')
+
+    if not transactionList.exists():
+        return # nothing to do here 
+
+    # set up data structure
+    numSecurityObjects = Security.objects.order_by('id').last().id
+    numAccountObjects = Account.objects.order_by('id').last().id
+    securityActive = [False for i in range(numSecurityObjects*numAccountObjects+1)]
+    securityMtM = [False for i in range(numSecurityObjects+1)]
+    numSecurity = [Decimal(0.0) for i in range(numSecurityObjects*numAccountObjects+1)]
+    curValueSecurity = [Decimal(0.0) for i in range(numSecurityObjects*numAccountObjects+1)]
+    baseValueSecurity = [Decimal(0.0) for i in range(numSecurityObjects*numAccountObjects+1)]
+    
+    currentDate = last_day_of_month(transactionList.first().date)
+    today = date.today()
+    
+    transactionIterator = transactionList.iterator()
+    endOfTransactionList = False
+    previousTransactionNotProcessed = False
+    
+    while currentDate <= today:
+        
+        while not endOfTransactionList: 
+            # advance iterator unless previous transaction was not processed
+            if not previousTransactionNotProcessed:
+                try:
+                    t = next(transactionIterator)
+                except StopIteration:
+                    endOfTransactionList = True
+                    break
+            else:
+                previousTransactionNotProcessed = False
+            
+            # check if transaction occurred in currently considered month
+            if t.date > currentDate:
+                previousTransactionNotProcessed = True
+                break
+            # process current transaction record
+            tSecurityId = t.security.id
+            tAccountId = t.account.id
+            tPosition = tSecurityId + tAccountId*(numAccountObjects-1)
+            securityActive[tPosition] = True
+            
+            # update base value
+            # treat accumulated interest or matched contributions separately
+            # -cashflow b/c sign convention for cashflows
+            if not (t.security.accumulate_interest and (t.kind == Transaction.INTEREST or t.kind == Transaction.MATCH)):
+                baseValueSecurity[tPosition] = baseValueSecurity[tPosition] - t.cashflow.amount
+            
+            # update number of securities
+            if t.security.mark_to_market:
+                numSecurity[tPosition] = numSecurity[tPosition] + t.num_transacted
+                securityMtM[tSecurityId] = True
+            # update current value
+            else:
+                # treat accumulated interest or matched contributions separate
+                # cashflow b/c sign convention for cashflows (always >0 for these)
+                if t.security.accumulate_interest and (t.kind == Transaction.INTEREST or t.kind == Transaction.MATCH):
+                    curValueSecurity[tPosition] = curValueSecurity[tPosition] + t.cashflow.amount
+                # -cashflow b/c sign convention for cashflows
+                elif not (t.kind == Transaction.INTEREST or t.kind == Transaction.MATCH):
+                    curValueSecurity[tPosition] = curValueSecurity[tPosition] - (t.cashflow.amount - t.tax.amount - t.expense.amount)
+        
+        # store information 
+        # loop over accounts
+        for accountId in range(1,numAccountObjects+1):
+            currency = Account.objects.get(pk=accountId).currency
+            curValueAccount = Money(amount=0.0)
+            baseValueAccount = Decimal(0.0)
+            # loop over securities
+            for securityId in range(1,numSecurityObjects+1):
+                positionId = securityId + accountId*(numAccountObjects-1)
+                # only need to do sth for active objects
+                if securityActive[positionId] == True:
+                    # update security value with market data if applicable
+                    if securityMtM[securityId] == True:
+                        # if all securities were sold, no longer need to update
+                        if numSecurity[positionId] <= 0.0:
+                            securityActive[positionId] = False;
+                        curValueSecurity[positionId] = numSecurity[positionId] * (markToMarketHistorical(securityId, currentDate).amount)
+                    else:
+                        # if all securities were sold, no longer need to update
+                        if curValueSecurity[positionId] <= 0.0:
+                            securityActive[positionId] = False;
+                    
+                    currency = Security.objects.get(pk=securityId).currency
+                    curValueAccount = curValueAccount + Money(amount=curValueSecurity[positionId], currency=get_currency(code=currency))
+                    baseValueAccount = baseValueAccount + Money(amount=baseValueSecurity[positionId], currency=get_currency(code=currency))
+                    
+            # store information, update record if possible
+            s, created = AccountValuation.objects.update_or_create(
+                date = currentDate,
+                account_id = accountId,
+                defaults = {
+                    'cur_value': curValueAccount,
+                    'base_value': baseValueAccount,
+                    'modifiedDate': today
+                },
+            )
+        
+        # go to end of next month
+        currentDate = last_day_of_month(currentDate + timedelta(days=1))        
