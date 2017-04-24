@@ -424,8 +424,8 @@ def updateAccountValuation():
         # loop over accounts
         for accountId in range(1,numAccountObjects+1):
             currency = Account.objects.get(pk=accountId).currency
-            curValueAccount = Decimal(0.0)
-            baseValueAccount = Decimal(0.0)
+            curValueAccount = Money(amount=0.0, currency=get_currency(code=currency))
+            baseValueAccount = Money(amount=0.0, currency=get_currency(code=currency))
             # loop over securities
             for securityId in range(1,numSecurityObjects+1):
                 positionId = securityId + accountId*(numAccountObjects-1)
