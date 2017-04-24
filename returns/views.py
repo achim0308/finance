@@ -398,7 +398,7 @@ def add_hist_data(request):
     addNewMarkToMarketData()
     for u in User.objects.all():
         updateSecurityValuation(u)
-    #updateAccountValuation()
+    updateAccountValuation()
     return redirect('returns:index')
 
 @login_required
