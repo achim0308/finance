@@ -379,6 +379,7 @@ def add_interest(request, security_id):
             transaction.tax = 0.0
             transaction.expense = 0.0
             transaction.num_transacted = 0.0
+            transaction.modifiedDate = timezone.now().date()
             if not request.user.is_superuser:
                 transaction.owner = request.user
             transaction.save()
