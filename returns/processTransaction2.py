@@ -364,6 +364,7 @@ def updateAccountValuation():
     # set up data structure
     numSecurityObjects = Security.objects.order_by('id').last().id
     numAccountObjects = Account.objects.order_by('id').last().id
+    accountActive = [False for i in range(numAccountObjects+1)]
     securityActive = [False for i in range(numSecurityObjects*numAccountObjects+1)]
     securityMtM = [False for i in range(numSecurityObjects+1)]
     numSecurity = [Decimal(0.0) for i in range(numSecurityObjects*numAccountObjects+1)]
@@ -399,6 +400,7 @@ def updateAccountValuation():
             tAccountId = t.account.id
             tPosition = tSecurityId + tAccountId*(numAccountObjects-1)
             securityActive[tPosition] = True
+            accountActive[tAccountId] = True
             
             # update base value
             # treat accumulated interest or matched contributions separately
@@ -423,39 +425,41 @@ def updateAccountValuation():
         # store information 
         # loop over accounts
         for accountId in range(1,numAccountObjects+1):
-            currency = Account.objects.get(pk=accountId).currency
-            curValueAccount = Money(amount=0.0, currency=get_currency(code=currency))
-            baseValueAccount = Money(amount=0.0, currency=get_currency(code=currency))
-            # loop over securities
-            for securityId in range(1,numSecurityObjects+1):
-                positionId = securityId + accountId*(numAccountObjects-1)
-                # only need to do sth for active objects
-                if securityActive[positionId] == True:
-                    # update security value with market data if applicable
-                    if securityMtM[securityId] == True:
-                        # if all securities were sold, no longer need to update
-                        if numSecurity[positionId] <= 0.0:
-                            securityActive[positionId] = False;
-                        curValueSecurity[positionId] = numSecurity[positionId] * (markToMarketHistorical(securityId, currentDate).amount)
-                    else:
-                        # if all securities were sold, no longer need to update
-                        if curValueSecurity[positionId] <= 0.0:
-                            securityActive[positionId] = False;
-                    
-                    currency = Security.objects.get(pk=securityId).currency
-                    curValueAccount = curValueAccount + Money(amount=curValueSecurity[positionId], currency=get_currency(code=currency))
-                    baseValueAccount = baseValueAccount + Money(amount=baseValueSecurity[positionId], currency=get_currency(code=currency))
-                    
-            # store information, update record if possible
-            s, created = AccountValuation.objects.update_or_create(
-                date = currentDate,
-                account_id = accountId,
-                defaults = {
-                    'cur_value': curValueAccount,
-                    'base_value': baseValueAccount,
-                    'modifiedDate': today
-                },
-            )
+            # check if account is active
+            if accountActive[accountId] == True:
+                currency = Account.objects.get(pk=accountId).currency
+                curValueAccount = Money(amount=0.0, currency=get_currency(code=currency))
+                baseValueAccount = Money(amount=0.0, currency=get_currency(code=currency))
+                # loop over securities
+                for securityId in range(1,numSecurityObjects+1):
+                    positionId = securityId + accountId*(numAccountObjects-1)
+                    # only need to do sth for active objects
+                    if securityActive[positionId] == True:
+                        # update security value with market data if applicable
+                        if securityMtM[securityId] == True:
+                            # if all securities were sold, no longer need to update
+                            if numSecurity[positionId] <= 0.0:
+                                securityActive[positionId] = False;
+                            curValueSecurity[positionId] = numSecurity[positionId] * (markToMarketHistorical(securityId, currentDate).amount)
+                        else:
+                            # if all securities were sold, no longer need to update
+                            if curValueSecurity[positionId] <= 0.0:
+                                securityActive[positionId] = False;
+                        
+                        currency = Security.objects.get(pk=securityId).currency
+                        curValueAccount = curValueAccount + Money(amount=curValueSecurity[positionId], currency=get_currency(code=currency))
+                        baseValueAccount = baseValueAccount + Money(amount=baseValueSecurity[positionId], currency=get_currency(code=currency))
+                        
+                # store information, update record if possible
+                s, created = AccountValuation.objects.update_or_create(
+                    date = currentDate,
+                    account_id = accountId,
+                    defaults = {
+                        'cur_value': curValueAccount,
+                        'base_value': baseValueAccount,
+                        'modifiedDate': today
+                    },
+                )
         
         # go to end of next month
         currentDate = last_day_of_month(currentDate + timedelta(days=1))        
