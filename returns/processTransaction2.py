@@ -461,6 +461,7 @@ def updateAccountValuation():
                             if curValueSecurity[positionId] <= 0.0:
                                 securityActive[positionId] = False;
                         
+                        print(currentDate,securityId, accountId, positionId)
                         currency = Security.objects.get(pk=securityId).currency
                         curValueAccount = curValueAccount + Money(amount=curValueSecurity[positionId], currency=get_currency(code=currency))
                         baseValueAccount = baseValueAccount + Money(amount=baseValueSecurity[positionId], currency=get_currency(code=currency))
