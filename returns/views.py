@@ -9,7 +9,7 @@ from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 
-from .models import Transaction, Account, Security, Inflation, SecurityValuation
+from .models import Transaction, Account, Security, Inflation, SecurityValuation, AccountValuation
 from .processTransaction2 import addNewMarkToMarketData, constructCompleteInfo2, gatherData, addHistoricalPerformance, addSegmentPerformance, calcInterest, match, updateSecurityValuation, updateAccountValuation
 from .forms import AccountForm, SecurityForm, TransactionForm, TransactionFormForSuperuser, HistValuationForm, AddInterestForm, AddInterestFormForSuperuser, InflationForm
 
