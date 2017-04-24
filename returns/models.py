@@ -346,6 +346,10 @@ class SecurityValuation(models.Model):
                             max_digits = 10,
                             decimal_places = 2,
                             default_currency='EUR')
+    sum_num = models.DecimalField('sum of number of securities exchanged',
+                                   max_digits = 13,
+                                   decimal_places = 5,
+                                   default = 0)
     modifiedDate = models.DateField('Last modification',
                                     db_index=True)
 

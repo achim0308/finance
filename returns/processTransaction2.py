@@ -270,6 +270,19 @@ def updateSecurityValuation(owner):
     curValueSecurity = [Decimal(0.0) for i in range(numSecurityObjects+1)]
     baseValueSecurity = [Decimal(0.0) for i in range(numSecurityObjects+1)]
     
+    # populate using existing data
+    for s in Security.objects.all():
+        try:
+            secValuation = SecurityValuation.objects.filter(owner=owner, date__lte=lastUpdate, security=s).order_by('-date').first()
+            numSecurity[s.id] = secValuation.sum_num
+            curValueSecurity[s.id] = secValuation.cur_value.amount
+            baseValueSecurity[s.id] = secValuation.base_value.amount
+            securityActive[s.id] = True
+            if s.markToMarket == True:
+                securityMtM = True
+        except:
+            pass
+    
     currentDate = last_day_of_month(transactionList.first().date)
     today = date.today()
     
@@ -342,6 +355,7 @@ def updateSecurityValuation(owner):
                     defaults = {
                         'cur_value': Money(amount=curValueSecurity[securityId], currency=get_currency(code=currency)),
                         'base_value': Money(amount=baseValueSecurity[securityId], currency=get_currency(code=currency)),
+                        'sum_num': numSecurity[securityId],
                         'modifiedDate': today
                     },
                 )
