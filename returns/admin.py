@@ -2,7 +2,7 @@ from django.contrib import admin
 from import_export.admin import ImportExportModelAdmin
 from import_export import resources
 
-from .models import Transaction, Account, Security, HistValuation, Inflation, SecurityValuation
+from .models import Transaction, Account, Security, HistValuation, Inflation, SecurityValuation, AccountValuation
 
 class TransactionResource(resources.ModelResource):
     class Meta:
@@ -58,8 +58,18 @@ class SecurityValuationResource(resources.ModelResource):
     class Meta:
         model = SecurityValuation
 
-class SecurityValuationResource(ImportExportModelAdmin):
+class SecurityValuationAdmin(ImportExportModelAdmin):
     resource_class = SecurityValuationResource
     pass
 
-admin.site.register(SecurityValuation, SecurityValuationResource)
+admin.site.register(SecurityValuation, SecurityValuationAdmin)
+
+class AccountValuationResource(resources.ModelResource):
+    class Meta:
+        model = AccountValuation
+
+class AccountValuationAdmin(ImportExportModelAdmin):
+    resource_class = AccountValuationResource
+    pass
+
+admin.site.register(AccountValuation, SecurityValuationAdmin)
