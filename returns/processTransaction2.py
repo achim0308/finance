@@ -379,7 +379,7 @@ def updateAccountValuation():
     relevantAccounts = list(set(transactionList.values_list('account_id', flat=True).order_by('account_id')))
     
     # construct list of all required transactions
-    transactionList = Transaction.objects.filter(account_id__in=relevantAccounts),order_by('date')
+    transactionList = Transaction.objects.filter(account_id__in=relevantAccounts).order_by('date')
     
     # set up data structure
     numSecurityObjects = Security.objects.order_by('id').last().id
