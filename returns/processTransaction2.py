@@ -364,7 +364,7 @@ def updateSecurityValuation(owner):
         currentDate = last_day_of_month(currentDate + timedelta(days=1))
 
 def updateAccountValuation():
-    # get date of last update of security valuations
+    # get date of last update of account valuations
     try:
         lastUpdate = AccountValuation.object.order_by('-modifiedDate').last().modifiedDate
     except:
@@ -374,10 +374,12 @@ def updateAccountValuation():
 
     if not transactionList.exists():
         return # nothing to do here 
-    else:
-        # construct list of all accounts that require updating
-        print(transactionList.values_list('account_id', flat=True).order_by('account_id'))
-        print(set(transactionList.values_list('account_id', flat=True).order_by('account_id')))
+    
+    # construct list of all accounts that require updating
+    relevantAccounts = list(set(transactionList.values_list('account_id', flat=True).order_by('account_id')))
+    
+    # construct list of all required transactions
+    transactionList = Transaction.objects.filter(accounts_id__in=relevantAccounts),order_by('date')
     
     # set up data structure
     numSecurityObjects = Security.objects.order_by('id').last().id
