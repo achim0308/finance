@@ -15,7 +15,8 @@
     <tbody>
       {% for account in account_list %}
       <tr>
-      <td><a href="{% url 'returns:account' account.id %}">{{ account.name }}</a></td>
+        <td><a href="{% url 'returns:account' account.id %}">{{ account.name }}</a></td>
+        <td class="text-right"></td>
       </tr>
       {% endfor %}
     </tbody>
@@ -41,7 +42,7 @@
         <th scope="row">{{ security.get_kind_display|title }}</th>
         <td><a href="{% url 'returns:security' security.id %}">{{ security.name }}</a></td>
         <td>{{ security.descrip }}</td>
-        <td>{{ security.currency }}</td>
+        <td class="text-right">{{ security.currency }}</td>
       </tr>
       {% endfor %}
     </tbody>
@@ -69,7 +70,7 @@
         <td><a href="{% url 'returns:transaction' transaction.id %}">{{ transaction.get_kind_display|title }}</a></td>
         <td>{{ transaction.account.name }}</td>
         <td>{{ transaction.security.name }}</td>
-        <td>{{ transaction.cashflow }}</td>
+        <td class="text-right">{{ transaction.cashflow }}</td>
       </tr>
       {% endfor %}
     </tbody>
