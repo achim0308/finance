@@ -52,7 +52,7 @@
 
 {% if latest_transaction_list %}
 <h2><a href="#" onclick="toggle_visibility('seg_transactions');">Recent Transactions</a></h2>
-<div id="seg_transactions" style="display:block">  <ul>
+<div id="seg_transactions" style="display:block">
   <table class="table table-condensed">
     <thead>
       <tr>
@@ -69,7 +69,7 @@
         <th scope="row">{{ transaction.date }}</th>
         <td><a href="{% url 'returns:transaction' transaction.id %}">{{ transaction.get_kind_display|title }}</a></td>
         <td>{{ transaction.account.name }}</td>
-        <td>{{ transaction.security.name }}</td>
+        <td>{{ transaction.security.descrip }}</td>
         <td class="text-right">{{ transaction.cashflow }}</td>
       </tr>
       {% endfor %}
