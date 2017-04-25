@@ -31,6 +31,9 @@ def index(request):
         security_list = Security.objects.filter(pk__in=pk_securities).order_by('kind','name')
         security_values = SecurityValuation.objects.filter(date__gte=timezone.now(),security_id__in=pk_securities).order_by('security_kind', 'security_name')
         
+        print(account_list,account_values)
+        print(security_list,security_values)
+        
         latest_transaction_list = Transaction.objects.filter(date__gt=timezone.now()+timedelta(days=-30), owner=cur_user.id).order_by('-date')
     
     info = {'account_list': account_list, 
