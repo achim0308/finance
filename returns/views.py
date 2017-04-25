@@ -29,7 +29,7 @@ def index(request):
         # Get list of securities that have transactions for the current user
         pk_securities = Transaction.objects.filter(owner=cur_user.id).values_list('security', flat=True)
         security_list = Security.objects.filter(pk__in=pk_securities).order_by('kind','name')
-        security_values = SecurityValuation.objects.filter(date__gte=timezone.now(),security_id__in=pk_securities).order_by('security_kind', 'security_name')
+        security_values = SecurityValuation.objects.filter(date__gte=timezone.now(),security_id__in=pk_securities).order_by('security_kind', 'security_name').values(security_name,security_id,cur_value,security_descrip,security_kind)
         
         print(account_list,account_values)
         print(security_list,security_values)
@@ -37,9 +37,7 @@ def index(request):
         latest_transaction_list = Transaction.objects.filter(date__gt=timezone.now()+timedelta(days=-30), owner=cur_user.id).order_by('-date')
     
     info = {'account_list': account_list, 
-            'account_values': account_values, 
             'security_list': security_list, 
-            'security_values': security_values, 
             'latest_transaction_list': latest_transaction_list}
     return render(request, 'returns/index.html', info)
 

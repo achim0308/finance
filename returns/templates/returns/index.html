@@ -15,8 +15,8 @@
     <tbody>
       {% for account in account_values %}
       <tr>
-        <td><a href="{% url 'returns:account' account.account.id %}">{{ account.account.name }}</a></td>
-        <td class="text-right">account.cur_value</td>
+        <td><a href="{% url 'returns:account' account.id %}">{{ account.name }}</a></td>
+        <td class="text-right"></td>
       </tr>
       {% endfor %}
     </tbody>
@@ -31,7 +31,7 @@
     <thead>
       <tr>
 		<th>Kind</th>
-        <th>Account</th>
+        <th>Name</th>
         <th>Description</th>
         <th>Value</th>
       </tr>
@@ -39,10 +39,10 @@
     <tbody>
       {% for security in security_values %}
       <tr>
-        <th scope="row">{{ security.security.get_kind_display|title }}</th>
-        <td><a href="{% url 'returns:security' security.id %}">{{ security.security.name }}</a></td>
-        <td>{{ security.security.descrip }}</td>
-        <td class="text-right">{{ security.cur_value }}</td>
+        <th scope="row">{{ security.get_kind_display|title }}</th>
+        <td><a href="{% url 'returns:security' security.id %}">{{ security.name }}</a></td>
+        <td>{{ security.descrip }}</td>
+        <td class="text-right"></td>
       </tr>
       {% endfor %}
     </tbody>
