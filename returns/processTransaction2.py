@@ -374,6 +374,10 @@ def updateAccountValuation():
 
     if not transactionList.exists():
         return # nothing to do here 
+    else:
+        # construct list of all accounts that require updating
+        print(transactionList.values('account').distinct())
+        print(transactionList.values('account'))
 
     # set up data structure
     numSecurityObjects = Security.objects.order_by('id').last().id
@@ -461,7 +465,6 @@ def updateAccountValuation():
                             if curValueSecurity[positionId] <= 0.0:
                                 securityActive[positionId] = False;
                         
-                        print(currentDate,securityId, accountId, positionId)
                         currency = Security.objects.get(pk=securityId).currency
                         curValueAccount = curValueAccount + Money(amount=curValueSecurity[positionId], currency=get_currency(code=currency))
                         baseValueAccount = baseValueAccount + Money(amount=baseValueSecurity[positionId], currency=get_currency(code=currency))
