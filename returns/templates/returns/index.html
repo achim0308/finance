@@ -13,10 +13,10 @@
       </tr>
     </thead>
     <tbody>
-      {% for account in account_list %}
+      {% for account in account_values %}
       <tr>
-        <td><a href="{% url 'returns:account' account.id %}">{{ account.name }}</a></td>
-        <td class="text-right"></td>
+        <td><a href="{% url 'returns:account' account.account.id %}">{{ account.account.name }}</a></td>
+        <td class="text-right">account.cur_value</td>
       </tr>
       {% endfor %}
     </tbody>
@@ -37,12 +37,12 @@
       </tr>
     </thead>
     <tbody>
-      {% for security in security_list %}
+      {% for security in security_values %}
       <tr>
-        <th scope="row">{{ security.get_kind_display|title }}</th>
-        <td><a href="{% url 'returns:security' security.id %}">{{ security.name }}</a></td>
-        <td>{{ security.descrip }}</td>
-        <td class="text-right">{{ security.currency }}</td>
+        <th scope="row">{{ security.security.get_kind_display|title }}</th>
+        <td><a href="{% url 'returns:security' security.id %}">{{ security.security.name }}</a></td>
+        <td>{{ security.security.descrip }}</td>
+        <td class="text-right">{{ security.cur_value }}</td>
       </tr>
       {% endfor %}
     </tbody>
@@ -60,7 +60,7 @@
         <th>Kind</th>
         <th>Account</th>
         <th>Security</th>
-        <th>Value</th>
+        <th>Cashflow</th>
       </tr>
     </thead>
     <tbody>

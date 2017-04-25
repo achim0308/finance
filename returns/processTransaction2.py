@@ -259,9 +259,13 @@ def updateSecurityValuation(owner):
     # find transactions that have been added since
     transactionList = Transaction.objects.filter(owner=owner,modifiedDate__gte=lastUpdate).order_by('date')
 
-    if not transactionList.exists():
-        return # nothing to do here 
-
+    if transactionList.exists():
+        transactionIterator = transactionList.iterator()
+        endOfTransactionList = False
+        previousTransactionNotProcessed = False
+    else:
+        endOfTransactionList = True
+    
     # set up data structure
     numSecurityObjects = Security.objects.order_by('id').last().id
     securityActive = [False for i in range(numSecurityObjects+1)]
@@ -286,11 +290,7 @@ def updateSecurityValuation(owner):
     currentDate = last_day_of_month(transactionList.first().date)
     today = date.today()
     
-    transactionIterator = transactionList.iterator()
-    endOfTransactionList = False
-    previousTransactionNotProcessed = False
-    
-    while currentDate <= today:
+    while currentDate <= last_day_of_month(today):
         
         while not endOfTransactionList: 
             # advance iterator unless previous transaction was not processed
@@ -372,8 +372,12 @@ def updateAccountValuation():
     # find transactions that have been added since
     transactionList = Transaction.objects.filter(modifiedDate__gte=lastUpdate).order_by('date')
 
-    if not transactionList.exists():
-        return # nothing to do here 
+    if transactionList.exists():
+        transactionIterator = transactionList.iterator()
+        endOfTransactionList = False
+        previousTransactionNotProcessed = False
+    else:
+        endOfTransactionList = False
     
     # construct list of all accounts that require updating
     relevantAccounts = list(set(transactionList.values_list('account_id', flat=True).order_by('account_id')))
@@ -394,11 +398,7 @@ def updateAccountValuation():
     currentDate = last_day_of_month(transactionList.first().date)
     today = date.today()
     
-    transactionIterator = transactionList.iterator()
-    endOfTransactionList = False
-    previousTransactionNotProcessed = False
-    
-    while currentDate <= today:
+    while currentDate <= last_day_of_month(today):
         
         while not endOfTransactionList: 
             # advance iterator unless previous transaction was not processed

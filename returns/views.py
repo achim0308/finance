@@ -24,15 +24,19 @@ def index(request):
         # Get list of accounts of that have transactions for the current user
         pk_accounts = Transaction.objects.filter(owner=cur_user.id).values_list('account', flat=True)
         account_list = Account.objects.filter(pk__in=pk_accounts).order_by('name')
+        account_values = AccountValuation.objects.filter(date__gte=timezone.now(),account_id__in=pk_accounts).order_by('account_name')
         
         # Get list of securities that have transactions for the current user
         pk_securities = Transaction.objects.filter(owner=cur_user.id).values_list('security', flat=True)
         security_list = Security.objects.filter(pk__in=pk_securities).order_by('kind','name')
-
+        security_values = SecurityValuation.objects.filter(date__gte=timezone.now(),security_id__in=pk_securities).order_by('security_kind', 'security_name')
+        
         latest_transaction_list = Transaction.objects.filter(date__gt=timezone.now()+timedelta(days=-30), owner=cur_user.id).order_by('-date')
     
     info = {'account_list': account_list, 
+            'account_values': account_values, 
             'security_list': security_list, 
+            'security_values': security_values, 
             'latest_transaction_list': latest_transaction_list}
     return render(request, 'returns/index.html', info)
 
