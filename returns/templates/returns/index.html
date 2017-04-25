@@ -8,7 +8,7 @@
   <table class="table table-condensed">
     <thead>
       <tr>
-        <th>Account</th>
+        <th></th>
         <th>Value</th>
       </tr>
     </thead>
@@ -38,7 +38,7 @@
     <tbody>
       {% for security in security_list %}
       <tr>
-        <th scope="row">{{ security.kind }}</th>
+        <th scope="row">{{ security.get_kind_display }}</th>
         <td><a href="{% url 'returns:security' security.id %}">{{ security.name }}</a></td>
         <td>{{ security.descrip }}</td>
         <td>{{ security.currency }}</td>
@@ -66,7 +66,7 @@
       {% for transaction in latest_transaction_list %}
       <tr>
         <th scope="row">{{ transaction.date }}</th>
-        <td><a href="{% url 'returns:transaction' transaction.id %}">{{ transaction.kind }}</a></td>
+        <td><a href="{% url 'returns:transaction' transaction.id %}">{{ transaction.get_kind_display }}</a></td>
         <td>{{ transaction.account.name }}</td>
         <td>{{ transaction.security.name }}</td>
         <td>{{ transaction.cashflow }}</td>
