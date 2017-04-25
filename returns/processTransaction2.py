@@ -259,12 +259,17 @@ def updateSecurityValuation(owner):
     # find transactions that have been added since
     transactionList = Transaction.objects.filter(owner=owner,modifiedDate__gte=lastUpdate).order_by('date')
 
+    today = date.today()
+
     if transactionList.exists():
         transactionIterator = transactionList.iterator()
         endOfTransactionList = False
         previousTransactionNotProcessed = False
+        currentDate = last_day_of_month(transactionList.first().date)
+    
     else:
         endOfTransactionList = True
+        currentDate = last_day_of_month(today)
     
     # set up data structure
     numSecurityObjects = Security.objects.order_by('id').last().id
@@ -286,9 +291,6 @@ def updateSecurityValuation(owner):
                 securityMtM = True
         except:
             pass
-    
-    currentDate = last_day_of_month(transactionList.first().date)
-    today = date.today()
     
     while currentDate <= last_day_of_month(today):
         
@@ -372,12 +374,17 @@ def updateAccountValuation():
     # find transactions that have been added since
     transactionList = Transaction.objects.filter(modifiedDate__gte=lastUpdate).order_by('date')
 
+    today = date.today()
+
     if transactionList.exists():
         transactionIterator = transactionList.iterator()
         endOfTransactionList = False
         previousTransactionNotProcessed = False
+        currentDate = last_day_of_month(transactionList.first().date)
+
     else:
         endOfTransactionList = False
+        currentDate = last_day_of_month(today)
     
     # construct list of all accounts that require updating
     relevantAccounts = list(set(transactionList.values_list('account_id', flat=True).order_by('account_id')))
@@ -394,9 +401,6 @@ def updateAccountValuation():
     numSecurity = [Decimal(0.0) for i in range(numSecurityObjects*numAccountObjects+1)]
     curValueSecurity = [Decimal(0.0) for i in range(numSecurityObjects*numAccountObjects+1)]
     baseValueSecurity = [Decimal(0.0) for i in range(numSecurityObjects*numAccountObjects+1)]
-    
-    currentDate = last_day_of_month(transactionList.first().date)
-    today = date.today()
     
     while currentDate <= last_day_of_month(today):
         
