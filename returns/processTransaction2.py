@@ -376,9 +376,9 @@ def updateAccountValuation():
         return # nothing to do here 
     else:
         # construct list of all accounts that require updating
-        print(transactionList.values('account').distinct())
-        print(transactionList.values('account'))
-
+        print(transactionList.values_list('account_id', flat=True).order_by('account_id'))
+        print(set(transactionList.values_list('account_id', flat=True).order_by('account_id')))
+    
     # set up data structure
     numSecurityObjects = Security.objects.order_by('id').last().id
     numAccountObjects = Account.objects.order_by('id').last().id
