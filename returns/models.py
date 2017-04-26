@@ -97,7 +97,7 @@ class TransactionManager(models.Manager):
 
         cursor = connection.cursor()
         if securities == None and accounts == None:
-            sql = """SELECT T1.id, DATE_FORMAT(date,'%m/%d/%Y') tdate, T1.kind, security_id, name AS security_name, expense, tax, cashflow, account_id, num_transacted FROM returns_transaction T1 INNER JOIN returns_security T2 ON T1.security_id = T2.id"""
+            sql = """SELECT T1.id, DATE_FORMAT(date,'%%m/%%d/%%Y') tdate, T1.kind, security_id, name AS security_name, expense, tax, cashflow, account_id, num_transacted FROM returns_transaction T1 INNER JOIN returns_security T2 ON T1.security_id = T2.id"""
             arg = ()
             if owner != None:
                 sql = sql + """ WHERE T1.owner_id = """ + str(owner)
