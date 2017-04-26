@@ -51,7 +51,8 @@ def index(request):
     security_valuations = SecurityValuation.objects.filter(date__gte=timezone.now())
     for s in security_list:
         try:
-            security_values[s.id] = Money(amount=security_valuations.filter(security_id=s.id).aggregate(Sum('cur_value')).cur_value__sum,currency=get_currency(Security.objects.get(pk=s.id).currency))
+            print(security_valuations.filter(security_id=s.id).aggregate(Sum('cur_value')).cur_value__sum)
+            security_values[s.id] =  Money(amount=security_valuations.filter(security_id=s.id).aggregate(Sum('cur_value')).cur_value__sum,currency=get_currency(Security.objects.get(pk=s.id).currency))
         except:
             security_values[s.id] = Money(amount=0.0,currency='EUR')
     

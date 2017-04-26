@@ -224,7 +224,6 @@ $(document).ready(function()
       <tr>
 		<th>Date</th>
         <th>Kind</th>
-        <th>Account</th>
         <th>Security</th>
         <th>Cashflow</th>
         <th>Expenses</th>
@@ -236,9 +235,7 @@ $(document).ready(function()
       {% for t in transaction_history %}
       <tr>
         <th scope="row">{{ t.tdate }}</th>
-        <td>{{ t.kind }}</td>    
-        <td>{{ transaction.get_kind_display|title }}</td>
-        <td><a href="{% url 'returns:account' t.account_id %}">{{ t.account_name }}</a></td>
+        <td>{{ t.kind }}</td>
         <td><a href="{% url 'returns:security' t.security_id %}">{{ t.security_name }}</a></td>
         <td class="text-right">{{ t.cashflow }}</td>
         <td class="text-right">{{ t.expense }}</td>
