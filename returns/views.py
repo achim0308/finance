@@ -404,15 +404,21 @@ def add_interest(request, security_id):
             form = AddInterestForm(request.POST)
         if form.is_valid():
             transaction = form.save(commit=False)
-            transaction.kind = Transaction.INTEREST
-            transaction.cashflow = calcInterest(transaction.security.id,transaction.date)
-            transaction.tax = 0.0
-            transaction.expense = 0.0
-            transaction.num_transacted = 0.0
-            transaction.modifiedDate = timezone.now().date()
-            if not request.user.is_superuser:
-                transaction.owner = request.user
-            transaction.save()
+            currency = Security.objects.get(pk=transaction.security.id)).currency
+            s, created = Transaction.objects.update_or_create(
+                    date = transaction.date,
+                    security_id = transaction.security.id,
+                    account_id = transaction.account.id,
+                    kind = Transaction.INTEREST,
+                    defaults = {
+                        'cashflow': calcInterest(transaction.security.id,transaction.date),
+                        'tax': Money(amount=0.0,currency=currency)
+                        'expense': Money(amount=0.0,currency=currency),
+                        'num_transacted': 0.0,
+                        'modifiedDate': timezone.now().date(),
+                        'owner': Account.objects.get(pk=transaction.account.id).owner
+                    },
+                )
             return redirect('returns:transaction', transaction_id=transaction.id)
     else:
         today = timezone.now().date()
