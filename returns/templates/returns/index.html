@@ -24,6 +24,10 @@
         <td class="text-right">{{ account_values|lookup:account.id }}</td>
       </tr>
       {% endfor %}
+      <tr>
+        <th scope="row">Total</th>
+        <th scope="row" class="text-right">{{ account_values|lookup:0 }}</th>
+      </tr>
     </tbody>
   </table>
 </div>
