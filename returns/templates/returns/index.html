@@ -44,7 +44,7 @@
     <tbody>
       {% for security in security_list %}
       <tr>
-        <th scope="row">{{ security.get_kind_display|title }}</th>
+        <th scope="row">{{ security.get_kind_display }}</th>
         <td><a href="{% url 'returns:security' security.id %}">{{ security.name }}</a></td>
         <td>{{ security.descrip }}</td>
         <td class="text-right">{{ security_values|lookup:security.id }}</td>
