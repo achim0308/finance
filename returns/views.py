@@ -412,7 +412,7 @@ def add_interest(request, security_id):
                     kind = Transaction.INTEREST,
                     defaults = {
                         'cashflow': calcInterest(transaction.security.id,transaction.date),
-                        'tax': Money(amount=0.0,currency=currency)
+                        'tax': Money(amount=0.0,currency=currency),
                         'expense': Money(amount=0.0,currency=currency),
                         'num_transacted': 0.0,
                         'modifiedDate': timezone.now().date(),
