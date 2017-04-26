@@ -40,19 +40,21 @@ def index(request):
     
     # add information about account values
     account_values = {}
-    account_values[0] = 0.0
     for a in account_list:
         try:
             account_values[a.id] = AccountValuation.objects.filter(account_id=a).order_by('-date')[0].cur_value
         except:
             account_values[a.id] = Money(amount=0.0,currency='EUR')
-        account_values[0] = account_values[0] + account_values[a.id]
     
     # add information about security values
     security_values = {}
     security_valuations = SecurityValuation.objects.filter(date__gte=timezone.now())
     for s in security_list:
         try:
+            print(security_valuations.filter(security_id=s.id).aggregate(Sum('cur_value'))['cur_value__sum'])
+            print(Security.objects.get(pk=s.id))
+            print(Security.objects.get(pk=s.id).currency)
+            print(get_currency(Security.objects.get(pk=s.id).currency))
             security_values[s.id] =  Money(amount=security_valuations.filter(security_id=s.id).aggregate(Sum('cur_value'))['cur_value__sum'],currency=get_currency(Security.objects.get(pk=s.id).currency))
         except:
             security_values[s.id] = Money(amount=0.0,currency='EUR')
