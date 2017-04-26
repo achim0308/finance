@@ -22,12 +22,12 @@ class Security(models.Model):
     BONDS = 'BD'
     ALTERSVORSORGE = 'AV'
     SEC_KIND_CHOICES = (
-        (TAGESGELD,'TAGESGELD'),
-        (AKTIE, 'AKTIE'),
-        (AKTIENETF, 'AKTIEN-ETF'),
+        (TAGESGELD,'Savings'),
+        (AKTIE, 'Stock'),
+        (AKTIENETF, 'Stock-ETF'),
         (BONDSETF, 'BONDS-ETF'),
         (BONDS, 'BOND'),
-        (ALTERSVORSORGE, 'ALTERSVORSORGE'),
+        (ALTERSVORSORGE, 'Retirement'),
     )
     name = models.CharField('name of security',
                             max_length = 40)
