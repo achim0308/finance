@@ -404,7 +404,7 @@ def add_interest(request, security_id):
             form = AddInterestForm(request.POST)
         if form.is_valid():
             transaction = form.save(commit=False)
-            currency = Security.objects.get(pk=transaction.security.id)).currency
+            currency = Security.objects.get(pk=transaction.security.id).currency
             s, created = Transaction.objects.update_or_create(
                     date = transaction.date,
                     security_id = transaction.security.id,
