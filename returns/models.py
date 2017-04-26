@@ -25,8 +25,8 @@ class Security(models.Model):
         (TAGESGELD,'Savings'),
         (AKTIE, 'Stock'),
         (AKTIENETF, 'Stock-ETF'),
-        (BONDSETF, 'BONDS-ETF'),
-        (BONDS, 'BOND'),
+        (BONDSETF, 'Bond-ETF'),
+        (BONDS, 'Bond'),
         (ALTERSVORSORGE, 'Retirement'),
     )
     name = models.CharField('name of security',
