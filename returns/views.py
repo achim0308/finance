@@ -17,44 +17,38 @@ from .forms import AccountForm, SecurityForm, TransactionForm, TransactionFormFo
 
 @login_required
 def index(request):
-    if request.user.is_superuser:
-        account_list = Account.objects.order_by('name')
-        account_values = {}
-        for a in account_list.id:
-            account_values[a] = AccountValuation.objects.filter(account_id=a).order_by('-date')[0]
-        
-        security_list = Security.objects.order_by('name')
-        security_valuations = SecurityValuation.objects.filter(date__gte=timezone.now())
-        security_values = {}
-        for s in security_list.id:
-            try:
-                security_values[s] = security_valuations.filter(security_id=s).aggregate(Sum('cur_value'))
-            except:
-                security_values[s] = Money(amount=0.0,code='EUR')
-        
-        latest_transaction_list = Transaction.objects.filter(date__gt=timezone.now()+timedelta(days=-30)).order_by('-date')
-        
-    else:
+    account_list = Account.objects.order_by('name')
+    
+    security_list = Security.objects.order_by('kind','name')
+    
+    latest_transaction_list = Transaction.objects.filter(date__gt=timezone.now()+timedelta(days=-30)).order_by('-date')
+    
+    # restrict to data for current user
+    if not request.user.is_superuser:
         cur_user = request.user
         # Get list of accounts of that have transactions for the current user
         pk_accounts = Transaction.objects.filter(owner=cur_user.id).values_list('account', flat=True)
-        account_list = Account.objects.filter(pk__in=pk_accounts).order_by('name')
-        account_values = {}
-        for a in pk_accounts:
-            account_values[a] = AccountValuation.objects.filter(account_id=a).order_by('-date')[0]
+        account_list = account_list.filter(pk__in=pk_accounts)
         
         # Get list of securities that have transactions for the current user
         pk_securities = Transaction.objects.filter(owner=cur_user.id).values_list('security', flat=True)
-        security_list = Security.objects.filter(pk__in=pk_securities).order_by('kind','name')
-        security_valuations = SecurityValuation.objects.filter(date__gte=timezone.now())
-        security_values = {}
-        for s in pk_securities:
-            try:
-                security_values[s] = security_valuations.filter(security_id=s).aggregate(Sum('cur_value'))
-            except:
-                security_values[s] = Money(amount=0.0,code='EUR')
+        security_list = security_list.filter(pk__in=pk_securities)
         
-        latest_transaction_list = Transaction.objects.filter(date__gt=timezone.now()+timedelta(days=-30), owner=cur_user.id).order_by('-date')
+        latest_transaction_list = latest_transaction_list.filter(owner=cur_user.id)
+    
+    # add information about account values
+    account_values = {}
+    for a in account_list.id:
+        account_values[a] = AccountValuation.objects.filter(account_id=a).order_by('-date')[0].cur_value
+    
+    # add information about security values
+    security_values = {}
+    security_valuations = SecurityValuation.objects.filter(date__gte=timezone.now())
+    for s in pk_securities:
+        try:
+            security_values[s] = Money(amount=security_valuations.filter(security_id=s).aggregate(Sum('cur_value')).cur_value__sum,currency=get_currency(Security.objects.get(pk=s).currency))
+        except:
+            security_values[s] = Money(amount=0.0,currency='EUR')
     
     info = {'account_list': account_list, 
             'account_values': account_values,
