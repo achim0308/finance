@@ -30,7 +30,7 @@ def index(request):
             try:
                 security_values[s] = security_valuations.filter(security_id=s).aggregate(Sum('cur_value'))
             except:
-                security_values[s] = Money(amount=0.0,code='EUR'))
+                security_values[s] = Money(amount=0.0,code='EUR')
         
         latest_transaction_list = Transaction.objects.filter(date__gt=timezone.now()+timedelta(days=-30)).order_by('-date')
         
@@ -52,7 +52,7 @@ def index(request):
             try:
                 security_values[s] = security_valuations.filter(security_id=s).aggregate(Sum('cur_value'))
             except:
-                security_values[s] = Money(amount=0.0,code='EUR'))
+                security_values[s] = Money(amount=0.0,code='EUR')
         
         latest_transaction_list = Transaction.objects.filter(date__gt=timezone.now()+timedelta(days=-30), owner=cur_user.id).order_by('-date')
     
