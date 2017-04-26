@@ -9,6 +9,8 @@ from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 
+from django.db.models import Sum
+
 from .models import Transaction, Account, Security, Inflation, SecurityValuation, AccountValuation
 from .processTransaction2 import addNewMarkToMarketData, constructCompleteInfo2, gatherData, addHistoricalPerformance, addSegmentPerformance, calcInterest, match, updateSecurityValuation, updateAccountValuation
 from .forms import AccountForm, SecurityForm, TransactionForm, TransactionFormForSuperuser, HistValuationForm, AddInterestForm, AddInterestFormForSuperuser, InflationForm
@@ -17,19 +19,32 @@ from .forms import AccountForm, SecurityForm, TransactionForm, TransactionFormFo
 def index(request):
     if request.user.is_superuser:
         account_list = Account.objects.order_by('name')
+        account_valuations = AccountValuation.objects.filter(date__gte=timezone.now())
+        for a in pk_accounts:
+            account_values[a] = account_valuations.get(account_id=a)
+        
         security_list = Security.objects.order_by('name')
+        security_valuations = SecurityValuation.objects.filter(date__gte=timezone.now(),security_id__in=pk_securities)
+        for s in pk_securities:
+            security_values[s] = security_valuations.filter(security_id=s).aggregate(Sum('cur_value'))
+        
         latest_transaction_list = Transaction.objects.filter(date__gt=timezone.now()+timedelta(days=-30)).order_by('-date')
+        
     else:
         cur_user = request.user
         # Get list of accounts of that have transactions for the current user
         pk_accounts = Transaction.objects.filter(owner=cur_user.id).values_list('account', flat=True)
         account_list = Account.objects.filter(pk__in=pk_accounts).order_by('name')
-        account_values = AccountValuation.objects.filter(date__gte=timezone.now(),account_id__in=pk_accounts).order_by('account_name').values(account,cur_value)
+        account_valuations = AccountValuation.objects.filter(date__gte=timezone.now(),account_id__in=pk_accounts)
+        for a in pk_accounts:
+            account_values[a] = account_valuations.get(account_id=a)
         
         # Get list of securities that have transactions for the current user
         pk_securities = Transaction.objects.filter(owner=cur_user.id).values_list('security', flat=True)
-        security_list = Security.objects.filter(pk__in=pk_securities).order_by('kind','name')
-        security_values = SecurityValuation.objects.filter(date__gte=timezone.now(),security_id__in=pk_securities).order_by('security_kind', 'security_name').values(security__name,security,cur_value,security__descrip,security_kind)
+        security_list = Security.objects.filter(pk__in=pk_securities, owner=cur_user.id).order_by('kind','name')
+        security_valuations = SecurityValuation.objects.filter(date__gte=timezone.now(),security_id__in=pk_securities)
+        for s in pk_securities:
+            security_values[s] = security_valuations.get(security_id=s)
         
         print(account_list,account_values)
         print(security_list,security_values)

@@ -1,4 +1,9 @@
 {% extends 'returns/base.html' %}
+
+{% block preheader_block %}
+{% load finance_filters %}
+{% endblock preheader_block%}
+
 {% block title_block %} Main {% endblock title_block %}
 {% block body_block %}
 <h1>Overview</h1>
@@ -16,7 +21,7 @@
       {% for account in account_values %}
       <tr>
         <td><a href="{% url 'returns:account' account.id %}">{{ account.name }}</a></td>
-        <td class="text-right"></td>
+        <td class="text-right">{{ account_values|lookup:account.id }}</td>
       </tr>
       {% endfor %}
     </tbody>
@@ -42,7 +47,7 @@
         <th scope="row">{{ security.get_kind_display|title }}</th>
         <td><a href="{% url 'returns:security' security.id %}">{{ security.name }}</a></td>
         <td>{{ security.descrip }}</td>
-        <td class="text-right"></td>
+        <td class="text-right">{{ security_values|lookup:security.id }}</td>
       </tr>
       {% endfor %}
     </tbody>
