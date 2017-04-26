@@ -38,17 +38,20 @@ def index(request):
     
     # add information about account values
     account_values = {}
-    for a in account_list.id:
-        account_values[a] = AccountValuation.objects.filter(account_id=a).order_by('-date')[0].cur_value
+    for a in account_list:
+        try:
+            account_values[a.id] = AccountValuation.objects.filter(account_id=a).order_by('-date')[0].cur_value
+        except:
+            account_values[a.id] =  = Money(amount=0.0,currency='EUR')
     
     # add information about security values
     security_values = {}
     security_valuations = SecurityValuation.objects.filter(date__gte=timezone.now())
-    for s in pk_securities:
+    for s in security_list:
         try:
-            security_values[s] = Money(amount=security_valuations.filter(security_id=s).aggregate(Sum('cur_value')).cur_value__sum,currency=get_currency(Security.objects.get(pk=s).currency))
+            security_values[s.id] = Money(amount=security_valuations.filter(security_id=s.id).aggregate(Sum('cur_value')).cur_value__sum,currency=get_currency(Security.objects.get(pk=s.id).currency))
         except:
-            security_values[s] = Money(amount=0.0,currency='EUR')
+            security_values[s.id] = Money(amount=0.0,currency='EUR')
     
     info = {'account_list': account_list, 
             'account_values': account_values,
