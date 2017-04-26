@@ -49,6 +49,8 @@ def index(request):
     # add information about security values
     security_values = {}
     security_valuations = SecurityValuation.objects.filter(date__gte=timezone.now())
+    print(security_list)
+    print(security_valuations)
     for s in security_list:
         try:
             print(security_valuations.filter(security_id=s.id).aggregate(Sum('cur_value')).cur_value__sum)
