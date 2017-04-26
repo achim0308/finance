@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'import_export',
     'djmoney',
+    'returns'
     'django_countries', 
 #    'debug_toolbar',
     'django_nvd3',
