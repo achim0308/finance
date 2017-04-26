@@ -52,7 +52,7 @@ def index(request):
     for s in security_list:
         try:
             print(security_valuations.filter(security_id=s.id))
-            print(security_valuations.filter(security_id=s.id).aggregate(Sum('cur_value'))
+            print(security_valuations.filter(security_id=s.id).aggregate(Sum('cur_value')))
             security_values[s.id] =  Money(amount=security_valuations.filter(security_id=s.id).aggregate(Sum('cur_value')).cur_value__sum,currency=get_currency(Security.objects.get(pk=s.id).currency))
         except:
             security_values[s.id] = Money(amount=0.0,currency='EUR')
