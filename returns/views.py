@@ -42,7 +42,7 @@ def index(request):
         try:
             account_values[a.id] = AccountValuation.objects.filter(account_id=a).order_by('-date')[0].cur_value
         except:
-            account_values[a.id] =  = Money(amount=0.0,currency='EUR')
+            account_values[a.id] = Money(amount=0.0,currency='EUR')
     
     # add information about security values
     security_values = {}
