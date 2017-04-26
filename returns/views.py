@@ -405,7 +405,7 @@ def add_interest(request, security_id):
         if form.is_valid():
             transaction = form.save(commit=False)
             currency = Security.objects.get(pk=transaction.security.id).currency
-            s, created = Transaction.objects.update_or_create(
+            t, created = Transaction.objects.update_or_create(
                     date = transaction.date,
                     security_id = transaction.security.id,
                     account_id = transaction.account.id,
@@ -419,7 +419,7 @@ def add_interest(request, security_id):
                         'owner': Account.objects.get(pk=transaction.account.id).owner
                     },
                 )
-            return redirect('returns:transaction', transaction_id=transaction.id)
+            return redirect('returns:transaction', transaction_id=t.id)
     else:
         today = timezone.now().date()
         Jan1 = date(today.year,1,1)
