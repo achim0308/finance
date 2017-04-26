@@ -44,7 +44,7 @@ def index(request):
         
         # Get list of securities that have transactions for the current user
         pk_securities = Transaction.objects.filter(owner=cur_user.id).values_list('security', flat=True)
-        security_list = Security.objects.filter(pk__in=pk_securities, owner=cur_user.id).order_by('kind','name')
+        security_list = Security.objects.filter(pk__in=pk_securities).order_by('kind','name')
         security_values = {}
         security_valuations = SecurityValuation.objects.filter(date__gte=timezone.now(),security_id__in=pk_securities)
         for s in pk_securities:
