@@ -102,7 +102,7 @@ class TransactionManager(models.Manager):
             if owner != None:
                 sql = sql + """ WHERE T1.owner_id = """ + str(owner)
         else:
-            sql = """SELECT T1.id, DATE_FORMAT(date,'%m/%d/%Y') tdate, T1.kind, security_id, name AS security_name, expense, tax, cashflow, account_id, num_transacted FROM returns_transaction T1 INNER JOIN returns_security T2 ON T1.security_id = T2.id"""
+            sql = """SELECT T1.id, DATE_FORMAT(date,'%%m/%%d/%%Y') tdate, T1.kind, security_id, name AS security_name, expense, tax, cashflow, account_id, num_transacted FROM returns_transaction T1 INNER JOIN returns_security T2 ON T1.security_id = T2.id"""
             if securities == None:
                 format_string = ','.join(['%s'] * len(accounts))
                 sql = sql + """ WHERE account_id IN (%s)""" % (format_string)
@@ -122,6 +122,8 @@ class TransactionManager(models.Manager):
 
         sql = sql + """ ORDER BY date"""
         arg = None if arg == () else arg
+
+        print(sql, arg)
 
         cursor.execute(sql, arg)
         
