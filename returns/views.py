@@ -54,9 +54,6 @@ def index(request):
             except:
                 security_values[s] = Money(amount=0.0,code='EUR'))
         
-        print(account_list,account_values)
-        print(security_list,security_values)
-        
         latest_transaction_list = Transaction.objects.filter(date__gt=timezone.now()+timedelta(days=-30), owner=cur_user.id).order_by('-date')
     
     info = {'account_list': account_list, 
