@@ -57,7 +57,9 @@ def index(request):
         latest_transaction_list = Transaction.objects.filter(date__gt=timezone.now()+timedelta(days=-30), owner=cur_user.id).order_by('-date')
     
     info = {'account_list': account_list, 
+            'account_values': account_values,
             'security_list': security_list, 
+            'security_values': security_values,
             'latest_transaction_list': latest_transaction_list}
     return render(request, 'returns/index.html', info)
 

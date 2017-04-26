@@ -18,7 +18,7 @@
       </tr>
     </thead>
     <tbody>
-      {% for account in account_values %}
+      {% for account in account_list %}
       <tr>
         <td><a href="{% url 'returns:account' account.id %}">{{ account.name }}</a></td>
         <td class="text-right">{{ account_values|lookup:account.id }}</td>
@@ -42,7 +42,7 @@
       </tr>
     </thead>
     <tbody>
-      {% for security in security_values %}
+      {% for security in security_list %}
       <tr>
         <th scope="row">{{ security.get_kind_display|title }}</th>
         <td><a href="{% url 'returns:security' security.id %}">{{ security.name }}</a></td>
