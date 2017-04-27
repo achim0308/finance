@@ -22,6 +22,7 @@ def index(request):
     account_list = Account.objects.order_by('name')
     
     security_list = Security.objects.order_by('kind','name')
+    security_valuations = SecurityValuation.objects.filter(date__gte=timezone.now())
     
     latest_transaction_list = Transaction.objects.filter(date__gt=timezone.now()+timedelta(days=-30)).order_by('-date')
     
@@ -35,7 +36,7 @@ def index(request):
         # Get list of securities that have transactions for the current user
         pk_securities = Transaction.objects.filter(owner=cur_user.id).values_list('security', flat=True)
         security_list = security_list.filter(pk__in=pk_securities)
-        
+        security_valuations = security_valuations.filter(owner=cur_user.id())
         latest_transaction_list = latest_transaction_list.filter(owner=cur_user.id)
     
     # add information about account values
@@ -48,14 +49,13 @@ def index(request):
     
     # add information about security values
     security_values = {}
-    security_valuations = SecurityValuation.objects.filter(date__gte=timezone.now())
     for s in security_list:
         try:
-            print(security_valuations.filter(security_id=s.id).aggregate(Sum('cur_value'))['cur_value__sum'])
-            print(Security.objects.get(pk=s.id))
-            print(Security.objects.get(pk=s.id).currency)
-            print(get_currency(Security.objects.get(pk=s.id).currency))
-            security_values[s.id] =  Money(amount=security_valuations.filter(security_id=s.id).aggregate(Sum('cur_value'))['cur_value__sum'],currency=get_currency(Security.objects.get(pk=s.id).currency))
+            amount = security_valuations.filter(security_id=s.id).aggregate(Sum('cur_value'))['cur_value__sum']
+            security_values[s.id] =  Money(
+                amount=amount,
+                currency=get_currency(Security.objects.get(pk=s.id).currency)
+            )
         except:
             security_values[s.id] = Money(amount=0.0,currency='EUR')
     
@@ -88,7 +88,7 @@ def all_accounts(request):
 
     # Prepare data for pie chart
     listOfAssets = ['pTG', 'pBD', 'pBF', 'pAK', 'pAF', 'pAV']
-    xdata = ["Tagesgeld", "Bonds", "Bonds-Fonds", "Aktien", "Aktien-Fonds", "Altersvorsorge"]
+    xdata = ["Savings", "Bonds", "Bonds-ETF", "Share", "Share-ETF", "Retirement"]
     ydata = [float(info['segPerf'][s]['totalDecimal']) for s in listOfAssets]
     
     chartdata = {'x': xdata, 'y1': ydata}
@@ -111,7 +111,7 @@ def all_accounts(request):
     info['chart_asset_alloc'] = data
 
     # prepare data for bar chart
-    catdata = ["Tagesgeld", "Bonds", "Bonds-Fonds", "Aktien", "Aktien-Fonds", "Altersvorsorge"]
+    catdata = ["Savings", "Bonds", "Bonds-ETF", "Share", "Share-ETF", "Retirement"]
     xdata = ["YTD", "1 Yr", "5 Yrs", "Overall"]
     listOfTimes = ["rYTD", "r1Y", "r5Y", "rInfY"]
     
