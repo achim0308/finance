@@ -36,7 +36,7 @@ def index(request):
         # Get list of securities that have transactions for the current user
         pk_securities = Transaction.objects.filter(owner=cur_user.id).values_list('security', flat=True)
         security_list = security_list.filter(pk__in=pk_securities)
-        security_valuations = security_valuations.filter(owner=cur_user.id())
+        security_valuations = security_valuations.filter(owner=cur_user.id)
         latest_transaction_list = latest_transaction_list.filter(owner=cur_user.id)
     
     # add information about account values
