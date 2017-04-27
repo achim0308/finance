@@ -355,8 +355,8 @@ def updateSecurityValuation(owner):
                     security_id = securityId,
                     owner = owner,
                     defaults = {
-                        'cur_value': Money(amount=curValueSecurity[securityId], currency=get_currency(code=currency)),
-                        'base_value': Money(amount=baseValueSecurity[securityId], currency=get_currency(code=currency)),
+                        'cur_value': Money(amount=curValueSecurity[securityId], currency=currency),
+                        'base_value': Money(amount=baseValueSecurity[securityId], currency=currency),
                         'sum_num': numSecurity[securityId],
                         'modifiedDate': today
                     },
@@ -452,8 +452,8 @@ def updateAccountValuation():
             # check if account is active
             if accountActive[accountId] == True:
                 currency = Account.objects.get(pk=accountId).currency
-                curValueAccount = Money(amount=0.0, currency=get_currency(code=currency))
-                baseValueAccount = Money(amount=0.0, currency=get_currency(code=currency))
+                curValueAccount = Money(amount=0.0, currency=currency)
+                baseValueAccount = Money(amount=0.0, currency=currency)
                 
                 # loop over securities
                 for securityId in range(1,numSecurityObjects+1):
@@ -472,8 +472,8 @@ def updateAccountValuation():
                                 securityActive[positionId] = False;
                         
                         currency = Security.objects.get(pk=securityId).currency
-                        curValueAccount = curValueAccount + Money(amount=curValueSecurity[positionId], currency=get_currency(code=currency))
-                        baseValueAccount = baseValueAccount + Money(amount=baseValueSecurity[positionId], currency=get_currency(code=currency))
+                        curValueAccount = curValueAccount + Money(amount=curValueSecurity[positionId], currency=currency)
+                        baseValueAccount = baseValueAccount + Money(amount=baseValueSecurity[positionId], currency=currency)
                         
                 # store information, update record if possible
                 s, created = AccountValuation.objects.update_or_create(

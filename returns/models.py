@@ -63,7 +63,7 @@ class Security(models.Model):
         try:
             data = requests.get(self.url)
             value = Decimal(float(data.content))
-            price = Money(amount=value,currency=get_currency(code=self.currency))
+            price = Money(amount=value,currency=self.currency)
         except:
             raise RuntimeError('Trouble getting data for security', security.name)
         

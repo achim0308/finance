@@ -54,7 +54,7 @@ def index(request):
             amount = security_valuations.filter(security_id=s.id).aggregate(Sum('cur_value'))['cur_value__sum']
             security_values[s.id] =  Money(
                 amount=amount,
-                currency=get_currency(Security.objects.get(pk=s.id).currency)
+                currency=Security.objects.get(pk=s.id).currency
             )
         except:
             security_values[s.id] = Money(amount=0.0,currency='EUR')
