@@ -149,11 +149,11 @@ class TransactionQuerySet(models.QuerySet):
     def notCashflowRelevant(self):
     # remove transactions that are not relevant for cash flows, 
     # i.e., interest payments or company matches on securities that accumulate interest
-        return self.filter(Q(
-            ~(
-                security__accumulate_interest = True &
-                (kind = Transaction.INTEREST | kind = Transaction.MATCH)
-            )
+        return self.filter(Q( \
+            ~( \
+                security__accumulate_interest = True & \
+                (kind = Transaction.INTEREST | kind = Transaction.MATCH) \
+            ) \
         ))
     
     def accumulatingSecuritiesInterestAndMatch(self):
