@@ -95,7 +95,7 @@ class AccountQuerySet(models.QuerySet):
     def accountOwnedBy(self,ownerID):
         pk_accounts = Transaction.thobjects2.owner(ownerID) \
                                             .values_list('account', flat=True)
-        return self.filter(pk__in=pk_securities)
+        return self.filter(pk__in=pk_accounts)
 
 class AccountManager(models.Manager):
     def get_queryset(self):
