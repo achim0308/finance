@@ -153,7 +153,7 @@ class TransactionQuerySet(models.QuerySet):
                              Q(security__accumulate_interest = True) &
                                  (Q(kind = Transaction.INTEREST) |
                                   Q(kind = Transaction.MATCH))
-                             )))
+                             ))
     
     def accumulatingSecuritiesInterestAndMatch(self):
     # show only interest and company match transactions
