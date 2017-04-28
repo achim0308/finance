@@ -128,8 +128,8 @@ class Account(models.Model):
 
 class TransactionQuerySet(models.QuerySet):
     # custom query set function for Transaction
-    def owner(self, owner_id):
-        return self.filter(owner_id=owner_id)
+    def owner(self, ownerID):
+        return self.filter(owner_id=ownerID)
     
     def beginDate(self, beginDate):
         return self.filter(date__gte = beginDate)
@@ -179,6 +179,9 @@ class TransactionManager2(models.Manager):
     
     def recent(self):
         return self.get_queryset().recent().order_by('date')
+    
+    def owner(self, ownerID):
+        return self.get_queryset().owner(ownerID):
     
     def transactionHistory(self, beginDate = None, endDate = None,
                            securities = None, accounts = None, owner = None):
