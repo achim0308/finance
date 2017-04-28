@@ -20,7 +20,7 @@ class SecurityQuerySet(models.QuerySet):
 
 class SecurityManager(models.Manager):
     def get_queryset(self):
-        return SecurityQuerySet(self.model, using=self._db):
+        return SecurityQuerySet(self.model, using=self._db)
 
     def securityOwnedBy(self,ownerID):
         return self.get_queryset().securityOwnedBy(ownerID)
