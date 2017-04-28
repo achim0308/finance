@@ -99,7 +99,7 @@ class AccountQuerySet(models.QuerySet):
 
 class AccountManager(models.Manager):
     def get_queryset(self):
-        return AccountQuerySet(self.model, using=self._db):
+        return AccountQuerySet(self.model, using=self._db)
 
     def accountOwnedBy(self,ownerID):
         return self.get_queryset().accountOwnedBy(ownerID)
