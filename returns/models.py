@@ -175,7 +175,7 @@ class TransactionQuerySet(models.QuerySet):
 
 class TransactionManager2(models.Manager):
     def get_queryset(self):
-        return TransactionQuerySet(self.model, using=self._db):
+        return TransactionQuerySet(self.model, using=self._db)
     
     def recent(self):
         return self.get_queryset().recent().order_by('date')
@@ -195,7 +195,7 @@ class TransactionManager2(models.Manager):
         return th
     
     def cashflow(self, beginDate = None, endDate = None,
-                       securities = None, accounts = None, owner = None)::
+                       securities = None, accounts = None, owner = None):
     # sum daily cashflows of all transactions relevant for cashflows 
         cashflows = self.transactionHistory(beginDate, endDate, securities, accounts)
         cashflows = cashflows.notCashflowRelevant()
@@ -207,7 +207,7 @@ class TransactionManager2(models.Manager):
         return cashflows
 
     def num(self, beginDate = None, endDate = None,
-                  securities = None, accounts = None, owner = None)::
+                  securities = None, accounts = None, owner = None):
     # sum transacted securities
         numSecurities = self.transactionHistory(beginDate, endDate, securities, accounts)
         numSecurities = numSecurities.markToMarket()
@@ -219,7 +219,7 @@ class TransactionManager2(models.Manager):
         return numSecurities
     
     def curValue(self, beginDate = None, endDate = None,
-                       securities = None, accounts = None, owner = None)::
+                       securities = None, accounts = None, owner = None):
     # sum transacted securities
         curValues = self.transactionHistory(beginDate, endDate, securities, accounts)
         
