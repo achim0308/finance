@@ -213,7 +213,7 @@ class TransactionManager2(models.Manager):
         numSecurities = numSecurities.markToMarket()
         
         # construct sum
-        numSecurities = numSecurities.values('security_id')
+        numSecurities = numSecurities.values('security_id') \
                                      .annotate(sumNumTransacted=Sum('num_transacted'))
         
         return numSecurities
