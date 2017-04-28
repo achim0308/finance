@@ -24,7 +24,7 @@ def index(request):
     security_list = Security.objects.order_by('kind','name')
     security_valuations = SecurityValuation.objects.filter(date__gte=timezone.now())
     
-    latest_transaction_list = Transaction.objects2.recent()
+    latest_transaction_list = Transaction.thobjects2.recent()
     
     # restrict to data for current user
     if not request.user.is_superuser:
