@@ -149,20 +149,18 @@ class TransactionQuerySet(models.QuerySet):
     def notCashflowRelevant(self):
     # remove transactions that are not relevant for cash flows, 
     # i.e., interest payments or company matches on securities that accumulate interest
-        return self.filter(Q( \
-            ~( \
-                security__accumulate_interest = True & \
-                (kind = Transaction.INTEREST | kind = Transaction.MATCH) \
-            ) \
-        ))
+        return self.filter(~(
+                             Q(security__accumulate_interest = True) &
+                                 (Q(kind = Transaction.INTEREST) |
+                                  Q(kind = Transaction.MATCH))
+                             )))
     
     def accumulatingSecuritiesInterestAndMatch(self):
     # show only interest and company match transactions
     # for securities that accumulate interest
-        return self.filter(Q(
-            security__accumulate_interest = True &
-            (kind = Transaction.INTEREST | kind = Transaction.MATCH)
-        ))
+        return self.filter(Q(security__accumulate_interest = True) &
+                           (Q(kind = Transaction.INTEREST) | Q(kind = Transaction.MATCH))
+                          )
     
     def nonMarkToMarketInAndOutflows(self):
     # exclude only interest and company match transactions as well as 
