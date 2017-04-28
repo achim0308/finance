@@ -181,7 +181,7 @@ class TransactionManager2(models.Manager):
         return self.get_queryset().recent().order_by('date')
     
     def owner(self, ownerID):
-        return self.get_queryset().owner(ownerID):
+        return self.get_queryset().owner(ownerID)
     
     def transactionHistory(self, beginDate = None, endDate = None,
                            securities = None, accounts = None, owner = None):
