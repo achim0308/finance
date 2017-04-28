@@ -14,7 +14,7 @@ import requests
 
 class SecurityQuerySet(models.QuerySet):
     def securityOwnedBy(self,ownerID):
-        pk_securities = Transaction.thobjects2.owner(ownerID)
+        pk_securities = Transaction.thobjects2.owner(ownerID) \
                                               .values_list('security', flat=True)
         return self.filter(pk__in=pk_securities)
 
@@ -93,7 +93,7 @@ class Security(models.Model):
 
 class AccountQuerySet(models.QuerySet):
     def accountOwnedBy(self,ownerID):
-        pk_accounts = Transaction.thobjects2.owner(ownerID)
+        pk_accounts = Transaction.thobjects2.owner(ownerID) \
                                             .values_list('account', flat=True)
         return self.filter(pk__in=pk_securities)
 
@@ -167,9 +167,9 @@ class TransactionQuerySet(models.QuerySet):
     def nonMarkToMarketInAndOutflows(self):
     # exclude only interest and company match transactions as well as 
     # transactions for for securities that are marked to market
-        return self.exclude(security__mark_to_market = False)
-                   .exclude(kind=Transaction.INTEREST)
-                   .exclude(kind=Transaction.MATCH)
+        return self.exclude(security__mark_to_market = False) \
+                   .exclude(kind=Transaction.INTEREST) \
+                   .exclude(kind=Transaction.MATCH) \
     
     def markToMarket(self):
     # only select transactions of mark_to_market securities
@@ -203,7 +203,7 @@ class TransactionManager2(models.Manager):
         cashflows = cashflows.notCashflowRelevant()
         
         # construct sum
-        cashflows = cashflows.values('date')
+        cashflows = cashflows.values('date') \
                              .annotate(sumCashflow=Sum('cashflow'))
         
         return cashflows
@@ -229,12 +229,12 @@ class TransactionManager2(models.Manager):
         curValues2 = curValues.nonMarkToMarketInAndOutflows()
         
         # sum over cashflows only
-        curValues1 = curValues1.values('security_id')
+        curValues1 = curValues1.values('security_id') \
                                .annotate(curValue=Sum(-F('cashflow')))
         
         # sum over cashflows minus taxes and expenses 
         # (since these also reduce the value of security)
-        curValues2 = curValues2.values('security_id')
+        curValues2 = curValues2.values('security_id') \
                                .annotate(curValue=Sum(-(F('cashflow')
                                                         -F('tax')
                                                         -F('expense'))))
