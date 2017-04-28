@@ -12,6 +12,20 @@ from django.utils.encoding import python_2_unicode_compatible
 
 import requests
 
+class SecurityQuerySet(models.QuerySet):
+    def securityOwnedBy(self,ownerID):
+        pk_securities = Transaction.thobjects2.owner(ownerID)
+                                              .values_list('security', flat=True)
+        return self.filter(pk__in=pk_securities)
+
+class SecurityManager(models.Manager):
+    def get_queryset(self):
+        return SecurityQuerySet(self.model, using=self._db):
+
+    def securityOwnedBy(self,ownerID):
+        return self.get_queryset().securityOwnedBy(ownerID)
+    
+
 @python_2_unicode_compatible
 class Security(models.Model):
     # models a single security held in an account
@@ -53,6 +67,9 @@ class Security(models.Model):
                                 max_length = 3,
                                 choices = CURRENCY_CHOICES,
                                 default = 'EUR')
+    
+    objects = SecurityManager()
+    
     def __str__(self):
         return "%s (%s)" % (self.name, self.descrip)
 
@@ -71,7 +88,22 @@ class Security(models.Model):
 
     class Meta:
         ordering = ['name']
+        verbose_name_plural = 'Securities'
         
+
+class AccountQuerySet(models.QuerySet):
+    def accountOwnedBy(self,ownerID):
+        pk_accounts = Transaction.thobjects2.owner(ownerID)
+                                            .values_list('account', flat=True)
+        return self.filter(pk__in=pk_securities)
+
+class AccountManager(models.Manager):
+    def get_queryset(self):
+        return AccountQuerySet(self.model, using=self._db):
+
+    def accountOwnedBy(self,ownerID):
+        return self.get_queryset().accountOwnedBy(ownerID)
+
 @python_2_unicode_compatible
 class Account(models.Model):
     # models an account
@@ -85,6 +117,8 @@ class Account(models.Model):
                                 max_length = 3,
                                 choices = CURRENCY_CHOICES,
                                 default = 'EUR')
+    
+    objects = AccountManager()
     
     def __str__(self):
         return self.name
@@ -145,6 +179,9 @@ class TransactionManager2(models.Manager):
     def get_queryset(self):
         return TransactionQuerySet(self.model, using=self._db):
     
+    def recent(self):
+        return self.get_queryset().recent().order_by('date')
+    
     def transactionHistory(self, beginDate = None, endDate = None,
                            securities = None, accounts = None, owner = None):
         transactions = self.get_queryset().order_by('date')
@@ -200,7 +237,7 @@ class TransactionManager2(models.Manager):
         curValues2 = curValues2.values('security_id')
                                .annotate(curValue=Sum(-(F('cashflow')
                                                         -F('tax')
-                                                        -F('expense')))
+                                                        -F('expense'))))
         
         # combine query
         curValues = curValues1 | curValues2

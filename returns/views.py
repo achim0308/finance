@@ -24,20 +24,18 @@ def index(request):
     security_list = Security.objects.order_by('kind','name')
     security_valuations = SecurityValuation.objects.filter(date__gte=timezone.now())
     
-    latest_transaction_list = Transaction.objects.filter(date__gt=timezone.now()+timedelta(days=-30)).order_by('-date')
+    latest_transaction_list = Transaction.objects2.recent()
     
     # restrict to data for current user
     if not request.user.is_superuser:
-        cur_user = request.user
+        curUser = request.user.id
         # Get list of accounts of that have transactions for the current user
-        pk_accounts = Transaction.objects.filter(owner=cur_user.id).values_list('account', flat=True)
-        account_list = account_list.filter(pk__in=pk_accounts)
+        account_list = account_list.accountOwnedBy(curUser)
         
         # Get list of securities that have transactions for the current user
-        pk_securities = Transaction.objects.filter(owner=cur_user.id).values_list('security', flat=True)
-        security_list = security_list.filter(pk__in=pk_securities)
-        security_valuations = security_valuations.filter(owner=cur_user.id)
-        latest_transaction_list = latest_transaction_list.filter(owner=cur_user.id)
+        security_list = security_list.securityOwnedBy(curUser)
+        security_valuations = security_valuations.filter(owner=curUser)
+        latest_transaction_list = latest_transaction_list.owner(curUser)
     
     # add information about account values
     account_values = {}
@@ -71,7 +69,8 @@ def transaction(request, transaction_id):
     if request.user.is_superuser:
         transaction = get_object_or_404(Transaction, pk=transaction_id)
     else:
-        transaction = get_object_or_404(Transaction, pk=transaction_id, owner=request.user.id)
+        transaction = get_object_or_404(Transaction, pk=transaction_id,
+                                        owner=request.user.id)
     return render(request, 'returns/transaction.html', {'transaction': transaction})
 
 @login_required
@@ -157,7 +156,8 @@ def account(request, account_id):
     else:
         cur_user = request.user.id
         info = gatherData(accounts = [account_id], owner = cur_user)
-        info['histPerf'] = addHistoricalPerformance(accounts = [account_id], owner = cur_user)
+        info['histPerf'] = addHistoricalPerformance(accounts = [account_id],
+                                                    owner = cur_user)
     
     # Collect information for chart
     valuations = AccountValuation.objects.filter(account_id=account_id).order_by('date')
@@ -278,27 +278,33 @@ def timeperiod(request):
             selected_security = None
     except:
         if request.user.is_superuser:
-            return render(request, 'returns/timeperiod.html', {'accounts': Account.objects.all().order_by('name'), 'securities': Security.objects.all().order_by('name'), 'kinds': sorted(Security.SEC_KIND_CHOICES, key=lambda tup:tup[1])})
+            return render(request, 'returns/timeperiod.html',
+            {'accounts': Account.objects.all().order_by('name'), 'securities': Security.objects.all().order_by('name'), 'kinds': sorted(Security.SEC_KIND_CHOICES, key=lambda tup:tup[1])})
         else:
-            cur_user = request.user
+            curUser = request.user.id
             # Get list of accounts that have transactions for the current user
-            pk_accounts = Transaction.objects.filter(owner=cur_user.id).values_list('account', flat=True)
-            account_list = Account.objects.filter(pk__in=pk_accounts).order_by('name')
-        
+            account_list = Account.objects.accountOwnedBy(curUser).order_by('name')
             # Get list of securities that have transactions for the current user
-            pk_securities = Transaction.objects.filter(owner=cur_user.id).values_list('security', flat=True)
-            security_list = Security.objects.filter(pk__in=pk_securities).order_by('name')
-
-            return render(request, 'returns/timeperiod.html', {'accounts': account_list, 'securities': security_list, 'kinds': sorted(Security.SEC_KIND_CHOICES, key=lambda tup:tup[1])})
+            security_list = Security.objects.securityOwnedBy(curUser).order_by('name')
+            
+            return render(request, 'returns/timeperiod.html', 
+                          {'accounts': account_list, 'securities': security_list,
+                           'kinds': sorted(Security.SEC_KIND_CHOICES,
+                                           key=lambda tup:tup[1])
+                          })
     else:
         # do calculations
 
         begin_date = datetime.strptime(begin_date, "%m/%d/%Y").date()
         end_date = datetime.strptime(end_date, "%m/%d/%Y").date()
         if request.user.is_superuser:
-            info = gatherData(accounts=selected_account, securities=selected_security, kind=selected_kind, beginDate = begin_date, endDate = end_date)
+            info = gatherData(accounts=selected_account, securities=selected_security,
+                              kind=selected_kind, beginDate = begin_date,
+                              endDate = end_date)
         else:
-            info = gatherData(accounts=selected_account, securities=selected_security, kind=selected_kind, beginDate = begin_date, endDate = end_date, owner = request.user.id)
+            info = gatherData(accounts=selected_account, securities=selected_security,
+                              kind=selected_kind, beginDate = begin_date,
+                              endDate = end_date, owner = request.user.id)
         
         return render(request, 'returns/select2.html', info)
 
@@ -411,7 +417,8 @@ def add_interest(request, security_id):
                     account_id = transaction.account.id,
                     kind = Transaction.INTEREST,
                     defaults = {
-                        'cashflow': calcInterest(transaction.security.id,transaction.date),
+                        'cashflow': calcInterest(transaction.security.id, 
+                                                 transaction.date),
                         'tax': Money(amount=0.0,currency=currency),
                         'expense': Money(amount=0.0,currency=currency),
                         'num_transacted': 0.0,
@@ -425,7 +432,8 @@ def add_interest(request, security_id):
         Jan1 = date(today.year,1,1)
     
         if request.user.is_superuser:
-            form = AddInterestFormForSuperuser(initial={'security':security_id, 'date': Jan1})
+            form = AddInterestFormForSuperuser(initial={'security':security_id,
+                                                        'date': Jan1})
         else:
             form = AddInterestForm(initial={'security':security_id, 'date': Jan1})
     return render(request, 'returns/add_interest.html', {'form': form})
