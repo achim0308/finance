@@ -1,11 +1,12 @@
 from datetime import datetime, date, timedelta
 from decimal import *
-from moneyed import Money, get_currency
+from moneyed import Money
 from djmoney.models.fields import MoneyField, CurrencyField
 from djmoney.forms.widgets import CURRENCY_CHOICES
 from django_countries.fields import CountryField
 
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import connection, models
 from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
@@ -469,11 +470,15 @@ class HistValuationManager(models.Manager):
         return self.get_queryset.date(date)
     
     def getHistValuation(self,securityID, date):
-        h = self.security(securityID).date(date).earliest('date')
-        
-        currency = Security.objects.get(id=securitID)
-        if not h:
-            return Money
+        try:
+            h = self.get_queryset.security(securityID).date(date).earliest('date')
+            return h.value
+        except ObjectDoesNotExist:
+            try:
+                currency = Security.objects.get(id=securityID)
+                return Money(0.0,currency=currency)
+            except ObjectDoesNotExist:
+                return Money(0.0,currency='EUR')
 
 @python_2_unicode_compatible
 class HistValuation(models.Model):
@@ -484,18 +489,12 @@ class HistValuation(models.Model):
                                  on_delete = models.PROTECT,
                                  db_index=True)
     value = MoneyField('Valuation',
-                              max_digits = 10,
-                              decimal_places = 2,
-                              default_currency='EUR')
+                       max_digits = 10,
+                       decimal_places = 2,
+                       default_currency='EUR')
     
-    def getHistValuation(securityID, date):
-        h = HistValuation.objects.filter(security=securityID,date__lte=date).earliest('date')
-
-    if not h:
-        return Decimal("0.0")
-    else:
-        return h[0].value
-
+    objects = HistValuationManager
+    
     def __str__(self):
         return "%s (%s): %s" % (self.security.name, self.date, self.value)
 
