@@ -17,14 +17,13 @@ class SecurityQuerySet(models.QuerySet):
         pk_securities = Transaction.thobjects2.owner(ownerID) \
                                               .values_list('security', flat=True)
         return self.filter(pk__in=pk_securities)
-
+    
 class SecurityManager(models.Manager):
     def get_queryset(self):
         return SecurityQuerySet(self.model, using=self._db)
-
+    
     def securityOwnedBy(self,ownerID):
         return self.get_queryset().securityOwnedBy(ownerID)
-    
 
 @python_2_unicode_compatible
 class Security(models.Model):
@@ -452,6 +451,30 @@ class Transaction(models.Model):
     def __str__(self):
         return "%s: (%s) %s (%s) %s" % (self.date, self.kind, self.security.name, self.security.descrip, self.cashflow)
 
+class HistValuationQuerySet(models.QuerySet):
+    def security(self,securityID):
+        return self.filter(secrity=securityID)
+    
+    def date(self,date):
+        return self.filter(date__lte=date)
+
+class HistValuationManager(models.Manager):
+    def get_queryset(self):
+        return HistValuationQuerySet(self.model, using=self._db)
+
+    def security(self,securityID):
+        return self.get_queryset.security(securityID)
+    
+    def date(self,date):
+        return self.get_queryset.date(date)
+    
+    def getHistValuation(self,securityID, date):
+        h = self.security(securityID).date(date).earliest('date')
+        
+        currency = Security.objects.get(id=securitID)
+        if not h:
+            return Money
+
 @python_2_unicode_compatible
 class HistValuation(models.Model):
     # models a security at a date
@@ -464,6 +487,14 @@ class HistValuation(models.Model):
                               max_digits = 10,
                               decimal_places = 2,
                               default_currency='EUR')
+    
+    def getHistValuation(securityID, date):
+        h = HistValuation.objects.filter(security=securityID,date__lte=date).earliest('date')
+
+    if not h:
+        return Decimal("0.0")
+    else:
+        return h[0].value
 
     def __str__(self):
         return "%s (%s): %s" % (self.security.name, self.date, self.value)
