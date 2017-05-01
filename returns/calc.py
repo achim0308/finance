@@ -1,4 +1,4 @@
-import datetime
+from datetime import date
 
 def newtonSolve(f, df, x0, absTol=1E-4, relTol=1E-4, itMax=50, damping=0.70):
     lastX = x0
@@ -39,3 +39,59 @@ def callSolver2(cashflowList):
         raise RuntimeError('Iteration limit exceeded')
         
     return float(r)*100.0
+
+class Solver():
+    # solver to determine rate of return of given date-cashflow tuples
+    
+    def __init__(self):
+        self.cashflowList = {}
+        self.date0 = date(2000,1,1)
+    
+    def addCashflow(self,cashflow, date):
+        if len(self.cashflowList) == 0:
+            self.date0 = date
+        diffDate = (date - self.date0).days
+        if not diffDate in self.cashflowList:
+            self.cashflowList[diffDate] = float(cashflow)
+        else:
+            self.cashflowList[diffDate] = self.cashflowList[diffDate] + float(cashflow)
+    
+    def calcRateOfReturn(self):
+        if not self.cashflowList:
+            raise RuntimeError('Empty list')
+        r0 = 0.0
+        f = lambda r: self._solverF(r)
+        df = lambda r: self._solverDF(r)
+        try:
+            r = self._newtonSolve(f, df, r0)
+        except StopIteration:
+            raise RuntimeError('Iteration limit exceeded')
+        
+        return float(r)*100.0        
+
+	# private functions    
+    def _solverF(self, rate):
+        return sum([cashflow / (1 + rate)**(diffDays / 365.0) \
+                    for diffDays, cashflow in self.cashflowList.items()])
+
+    def _solverDF(self, rate):
+        return sum([-diffDays/365.0 * cashflow / (1 + rate)**(diffDays / 365.0 + 1.0)
+                    for diffDays, cashflow in self.cashflowList.items()])
+    
+    def _newtonSolve(f, df, x0, absTol=1E-4, relTol=1E-4, itMax=50, damping=0.70):
+        lastX = x0
+        nextX = lastX + 10.0 * absTol
+        it = 0
+        while (abs(lastX - nextX) > absTol or abs(lastX - nextX) > relTol*abs(lastX)):
+            it = it + 1
+            if it > itMax:
+                raise StopIteration('Exceed iteration count')
+            newY = f(nextX)
+            lastX = nextX
+            if (nextX > 10.0 or nextX < -1.0):
+                raise StopIteration('Diverging')
+            try:
+                nextX = lastX - damping * newY / df(nextX)
+            except ZeroDivisionError:
+                nextX = lastX + absTol
+        return nextX

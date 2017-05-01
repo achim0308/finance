@@ -8,9 +8,11 @@ from django_countries.fields import CountryField
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import connection, models
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
-
+from django.urls import reverse
+ 
 import requests
 
 class SecurityQuerySet(models.QuerySet):
@@ -19,12 +21,40 @@ class SecurityQuerySet(models.QuerySet):
                                               .values_list('security', flat=True)
         return self.filter(pk__in=pk_securities)
     
+    def markToMarket(self):
+        return self.filter(mark_to_market=True)
+    
+    def kinds(self, kind):
+        return self.filter(kind__in=kind)
+    
 class SecurityManager(models.Manager):
     def get_queryset(self):
         return SecurityQuerySet(self.model, using=self._db)
     
     def securityOwnedBy(self,ownerID):
         return self.get_queryset().securityOwnedBy(ownerID)
+    
+    def markToMarket(self):
+        return self.get_queryset().markToMarket()
+    
+    def kinds(self, kind):
+        return self.get_queryset().kinds(kind)
+    
+    def saveCurrentMarkToMarketValue(self):
+        # for each mark to market security get and save current value
+        markToMarketSecurities = self.get_queryset().markToMarket()
+        today = timezone.now().date()
+        
+        for s in markToMarketSecurities:
+            try:
+                value = s.markToMarket()
+                HistValuation.objects.update_or_create(
+                        date = today,
+                        security = s,
+                        defaults = { 'value': value }
+                )
+            except:
+                pass
 
 @python_2_unicode_compatible
 class Security(models.Model):
@@ -72,6 +102,9 @@ class Security(models.Model):
     
     def __str__(self):
         return "%s (%s)" % (self.name, self.descrip)
+    
+    def get_absolute_url(self):
+        return reverse('views.security', args=[str(self.id)])
 
     def markToMarket(self):
     # screen scraping based on yahoo website
@@ -89,7 +122,6 @@ class Security(models.Model):
     class Meta:
         ordering = ['name']
         verbose_name_plural = 'Securities'
-        
 
 class AccountQuerySet(models.QuerySet):
     def accountOwnedBy(self,ownerID):
@@ -122,7 +154,10 @@ class Account(models.Model):
     
     def __str__(self):
         return self.name
-
+    
+    def get_absolute_url(self):
+        return reverse('views.account', args=[str(self.id)])
+    
     class Meta:
         ordering = ['name']
 
@@ -223,11 +258,11 @@ class TransactionManager2(models.Manager):
     
     def curValue(self, beginDate = None, endDate = None,
                        securities = None, accounts = None, owner = None):
-    # sum transacted securities
+    # get current, i.e. at end date if available, value of securities
         curValues = self.transactionHistory(beginDate, endDate, securities, accounts)
         
-        curValues1 = curValues.accumulatingSecuritiesInterestAndMatch()
-        curValues2 = curValues.nonMarkToMarketInAndOutflows()
+        curValues1 = self.accumulatingSecuritiesInterestAndMatch()
+        curValues2 = self.nonMarkToMarketInAndOutflows()
         
         # sum over cashflows only
         curValues1 = curValues1.values('security_id') \
@@ -243,7 +278,43 @@ class TransactionManager2(models.Manager):
         # combine query
         curValues = curValues1 | curValues2
         
-        return values
+        # return sum of all current values
+        return curValues
+    
+    def rateOfReturn(self, beginDate = None, endDate = None,
+                           securities = None, accounts = None, owner = None):
+        # calculate rate of return for given list of transactions
+        
+        th = self.transactionHistory(beginDate, endDate, securities, accounts)
+        
+        if beginDate = None:
+            initialValue = Decimal(0.0)
+        else:
+            initialDate = beginDate+TimeDelta(days=-1)
+            initialValues = self.curValue(None, initialDate,
+                                          securities, accounts, owner)
+            initialValue = sum([record['curValue'] for record in initialValues])
+            initialNums = self.num(None, initialDate,
+                                   securities, accounts, owner)
+            # get initial value of m2m securities
+            for n in initialNums:
+                if n['sumNumTransacted'] != 0.0: 
+                    price = HistValuation.getHistValuation(n['security_id'], initialDate)
+                    initialValue = initialValue + Decimal('%.2f' % (price.amount*n['sumNumTransacted']))
+        
+        
+        
+        
+            finalValue = th.curValue(beginDate, endDate, securities, accounts, owner)
+        
+        initialDate = self.order_by('date').first().date
+        initialValue = self.curValue()
+        
+        finalValue = self.curValue()
+        
+        # determine initial value
+        # determine final value
+        
     
 class TransactionManager(models.Manager):
     def getTransactionHistory(self, beginDate = None, endDate = None, securities = None, accounts = None, owner = None):
@@ -497,6 +568,38 @@ class HistValuation(models.Model):
     
     def __str__(self):
         return "%s (%s): %s" % (self.security.name, self.date, self.value)
+    
+    def get_absolute_url(self):
+        return reverse('views.transaction', args=[str(self.id)])
+
+class InflationManager(models.Manager):
+    def rateOfInflation(beginDate = None, endDate = None):
+        inflation = Inflation.objects.order_by('date')
+        if beginDate is None: 
+            inflation1 = inflation.first()
+        else:
+            inflation1 = inflation.filter(date__lte=beginDate).last()
+        if endDate is None:
+            inflation2 = inflation.last()
+        else:
+            inflation2 = inflation.filter(date__lte=endDate).last()
+        
+        if not inflation1 or not inflation2:
+            errorInflation = "Error: No data"
+            inflationRate = ''
+        else:
+            solver = Solver()
+            solver.addCashflow(inflation1.inflationIndex, inflation1.date)
+            solver.addCashflow(inflation2.inflationIndex, inflation2.date)
+            
+            try:
+                inflationRate = solver.calcRateOfReturn()
+                errorInflation = ''
+            except RuntimeError as e:
+                inflationRate = ''
+                errorInflation = "Error: {0}".format(e)
+        
+        return {'inflation':inflationRate,'errorInflation':errorInflation}
 
 class Inflation(models.Model):
     # models inflation data
@@ -505,9 +608,14 @@ class Inflation(models.Model):
                                          max_digits = 5,
                                          decimal_places = 2)
     country = CountryField()
-
+    
+    objects = InflationManager()
+    
     def __str__(self):
         return "%s: %4.1f" % (self.date, self.inflationIndex)
+    
+    def get_absolute_url(self):
+        return reverse('views.inflation', args=[str(self.id)])
 
 def dict_cursor(cursor):
     description = cursor.description

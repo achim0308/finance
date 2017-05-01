@@ -13,20 +13,6 @@ def markToMarketHistorical(securityID, date):
     else:
         return h[0].value
 
-def addNewMarkToMarketData():
-    markToMarketSecurities = Security.objects.filter(mark_to_market=True)
-    today = timezone.now().date()
-    
-    for s in markToMarketSecurities:
-        try:
-            value = s.markToMarket()
-            HistValuation.objects.update_or_create(
-                    date = today,
-                    security = s,
-                    defaults = { 'value': value })
-        except:
-            pass
-
 def constructCompleteInfo2(accounts = None, securities = None, beginDate = None, endDate = None, owner = None):
 
     cashflowList = []
@@ -90,7 +76,7 @@ def getReturns(accounts = None, securities = None, kind = None, beginDate = None
         securities = [s.id for s in Security.objects.filter(kind__in = kind)]
 
     # construct cash flow list
-    cashflowList = Transaction.thobjects.getCashflow(accounts=accounts, securities = securities, beginDate = beginDate, endDate = endDate, owner = owner)        
+    cashflowList = Transaction.thobjects.getCashflow(accounts=accounts, securities = securities, beginDate = beginDate, endDate = endDate, owner = owner)
 
     # add current/historical values
     addCashflows = constructCompleteInfo2(accounts=accounts, securities = securities, beginDate = beginDate, endDate = endDate, owner = owner)
@@ -116,7 +102,7 @@ def getReturns(accounts = None, securities = None, kind = None, beginDate = None
         errorReturns = "Error: {0}".format(e)
         returns = ''
 
-    inflation = calcInflation(beginDate, endDate)
+    inflation = Inflation.objects.calcInflation(beginDate, endDate)
 
     return  {'cashflowList': cashflowList, 'total': total, 'totalDecimal': totalDecimal, 'initial': initial, 'returns': returns, 'errorReturns': errorReturns, 'inflation': inflation['inflation'], 'errorInflation': inflation['errorInflation']}
 

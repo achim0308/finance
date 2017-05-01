@@ -439,7 +439,10 @@ def add_interest(request, security_id):
     return render(request, 'returns/add_interest.html', {'form': form})
 
 def add_hist_data(request):
-    addNewMarkToMarketData()
+    # all tasks for cron job
+    # get current quote
+    Security.objects.saveCurrentMarkToMarketValue()
+    # update security and account valuations
     for u in User.objects.all():
         updateSecurityValuation(u)
     updateAccountValuation()
