@@ -280,40 +280,6 @@ class TransactionManager2(models.Manager):
         
         # return sum of all current values
         return curValues
-    
-    def rateOfReturn(self, beginDate = None, endDate = None,
-                           securities = None, accounts = None, owner = None):
-        # calculate rate of return for given list of transactions
-        
-        th = self.transactionHistory(beginDate, endDate, securities, accounts)
-        
-        if beginDate = None:
-            initialValue = Decimal(0.0)
-        else:
-            initialDate = beginDate+TimeDelta(days=-1)
-            initialValues = self.curValue(None, initialDate,
-                                          securities, accounts, owner)
-            initialValue = sum([record['curValue'] for record in initialValues])
-            initialNums = self.num(None, initialDate,
-                                   securities, accounts, owner)
-            # get initial value of m2m securities
-            for n in initialNums:
-                if n['sumNumTransacted'] != 0.0: 
-                    price = HistValuation.getHistValuation(n['security_id'], initialDate)
-                    initialValue = initialValue + Decimal('%.2f' % (price.amount*n['sumNumTransacted']))
-        
-        
-        
-        
-            finalValue = th.curValue(beginDate, endDate, securities, accounts, owner)
-        
-        initialDate = self.order_by('date').first().date
-        initialValue = self.curValue()
-        
-        finalValue = self.curValue()
-        
-        # determine initial value
-        # determine final value
         
     
 class TransactionManager(models.Manager):
@@ -622,14 +588,127 @@ def dict_cursor(cursor):
     return [dict(zip([col[0] for col in description], row))
             for row in cursor.fetchall()]
 
+class ValuationQuerySet(models.QuerySet):
+    def getRateOfReturn(self, beginDate = None, endDate = None):
+        # calculate internal rate of return given the cashflows
+        
+        # limit query set to date range given
+        qs = self.order_by('date')
+        if endDate != None:
+            qs = qs.filter(date__lte=endDate)
+            
+        if beginDate != None:
+            qs = qs.filter(date__gte=beginDate)
+        
+        # get value at beginning of interval
+        try:
+            base0 = self.filter(date__lt=beginDate).order_by('date').last()
+            date0 = base0.date
+            baseValue0 = base0.base_value
+            initialValue0 = base0.cur_value
+        except:
+        # if query empty --> baseValue must be zero
+            date0 = None
+            baseValue0 = 0
+            initialValue0 = 0
+
+        # get final value
+        try:
+            final = self.filter(date_gte=endDate).order_by('date').first()
+            finalValue = final.cur_value
+            finalDate = final.date
+        except:
+        # if query empty --> either no valuations at all or none at end date
+            finalValue = 0
+            finalDate = None
+            try:
+                # take last valuation
+                final = self.order_by('date').last()
+                finalValue = final.cur_value
+                finalDate = final.date
+            except:
+                pass
+        
+        solver = Solver()
+        
+        if date0 is not None:
+            solver.addCashflow(date0, baseValue0)
+        
+        # add date/cashflows to solver
+        for v in qs:
+            solver.addCashflow(v.date,v.base_value-baseValue0)
+            baseValue0 = v.base_value
+        
+        if finalDate is not None:
+            solver.addCashflow(finalDate, finalValue)
+        
+        try:
+            r = solver.calcRateOfReturn()
+        except:
+            r = 'Error'
+        
+        return {'rate': r,
+                'initial': initialValue,
+                'final': finalValue }
+    
+    def makeChart(self):
+        # Collects information and processes it to show chart of valuation
+        # requires queryset 
+        valuations = self.order_by('date')
+        
+        xdata=[]
+        y1data=[]
+        y2data=[]
+        currency = self.last().cur_value.currency
+        for v in valuations:
+            # must convert date to integer
+            xdata.append(int(mktime(v.date.timetuple())*1000))
+            # must convert Decimal to float
+            y1data.append(float(v.cur_value.amount))
+            y2data.append(float(v.base_value.amount))
+        
+        tooltip_date = "%b %Y"
+        extra_serie={
+            "tooltip": {"y_start": "", "y_end": currency},
+            "date_format": tooltip_date
+        }
+        
+        chartdata = {
+            'x': xdata,
+            'name1': 'Actual value', 'y1': y1data, 'extra1': extra_serie,
+            'name2': 'Inflow - outflows', 'y2': y2data, 'extra2': extra_serie,
+        }
+       charttype = "lineWithFocusChart"
+       chartcontainer = 'asset_history'
+       data = {
+            'charttype': charttype,
+            'chartdata': chartdata,
+            'chartcontainer': chartcontainer,
+            'extra': {
+                'x_is_date': True,
+                'x_axis_format': '%b %Y',
+                'tag_script_js': True,
+                'jquery_on_ready': False,
+            }
+        }
+        
+        return data
+
+class ValuationManager(models.Manager):
+    def get_queryset(self):
+        return ValuationQuerySet(self.model, using=self._db)
+    
+    def getRateOfReturn(self, beginDate = None, endDate = None):
+        return self.get_queryset().getRateOfReturn(beginDate, endDate)
+    
+    def makeChart(self):
+        return self.get_queryset().makeChart()
+
 @python_2_unicode_compatible
-class SecurityValuation(models.Model):
-    # models the current valuation and the base value (in-outflow excluding interest or dividends) of a security of a given owner for a given date 
+class Valuation(models.Model):
+    # abstract model to store historical valuation to be used to calculate rate of returns
     date = models.DateField('Valuation date',
                             db_index=True)
-    security = models.ForeignKey(Security,
-                                 on_delete = models.PROTECT,
-                                 db_index=True)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,
                               default=2)
     cur_value = MoneyField('Current value',
@@ -640,35 +719,37 @@ class SecurityValuation(models.Model):
                             max_digits = 10,
                             decimal_places = 2,
                             default_currency='EUR')
+    modifiedDate = models.DateField('Last modification',
+                                    db_index=True)
+    
+    objects = ValuationManager()
+    
+    class meta:
+        abstract = True
+
+@python_2_unicode_compatible
+class SecurityValuation(Valuation):
+    # models the current valuation and the base value (in-outflow excluding interest or dividends) of a security of a given owner for a given date 
+    security = models.ForeignKey(Security,
+                                 on_delete = models.PROTECT,
+                                 db_index=True)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL,
+                              default=2)
     sum_num = models.DecimalField('sum of number of securities exchanged',
                                    max_digits = 13,
                                    decimal_places = 5,
                                    default = 0)
-    modifiedDate = models.DateField('Last modification',
-                                    db_index=True)
-
+    
     def __str__(self):
         return "%s (%s): %s (%s)" % (self.security.name, self.date, self.cur_value, self.base_value)
 
 @python_2_unicode_compatible
-class AccountValuation(models.Model):
+class AccountValuation(Valuation):
     # models the current valuation and the base value (in-outflow excluding interest or dividends) of an account for a given date 
-    date = models.DateField('Valuation date',
-                            db_index=True)
     account = models.ForeignKey(Account,
                                 on_delete = models.PROTECT,
                                 db_index=True)
-    cur_value = MoneyField('Current value',
-                           max_digits = 10,
-                           decimal_places = 2,
-                           default_currency='EUR')
-    base_value = MoneyField('Base value based on in- and outflows',
-                            max_digits = 10,
-                            decimal_places = 2,
-                            default_currency='EUR')
-    modifiedDate = models.DateField('Last modification',
-                                    db_index=True)
-
+    
     def __str__(self):
         return "%s (%s): %s (%s)" % (self.account.name, self.date, self.cur_value, self.base_value)
 
