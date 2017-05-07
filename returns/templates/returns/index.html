@@ -14,14 +14,16 @@
     <thead>
       <tr>
         <th></th>
-        <th>Value</th>
+	<th>Value</th>
+	<th></th>
       </tr>
     </thead>
     <tbody>
       {% for account in account_list %}
       <tr>
-        <td><a href="{% url 'returns:account' account.id %}">{{ account.name }}</a></td>
+        <th scope="row">{{ account.name }}</a></th>
         <td class="text-right">{{ account_values|lookup:account.id }}</td>
+        <td><a href="{% url 'returns:account' account.id %}"><span class="glyphicon glyphicon-info-sign"></span></a>&ensp;<a href="{% url 'returns:account_edit' account_id=account.id %}"><span class="glyphicon glyphicon-pencil"></span></a></td>
       </tr>
       {% endfor %}
     </tbody>
@@ -35,8 +37,8 @@
   <table class="table table-condensed">
     <thead>
       <tr>
-		<th>Kind</th>
-        <th>Name</th>
+	<th></th>
+        <th>Kind</th>
         <th>Description</th>
         <th>Value</th>
       </tr>
@@ -44,10 +46,11 @@
     <tbody>
       {% for security in security_list %}
       <tr>
-        <th scope="row">{{ security.get_kind_display }}</th>
-        <td><a href="{% url 'returns:security' security.id %}">{{ security.name }}</a></td>
+        <th scope="row">{{ security.name }}</th>
+        <td>{{ security.get_kind_display }}</td>
         <td>{{ security.descrip }}</td>
         <td class="text-right">{{ security_values|lookup:security.id }}</td>
+	          <td><a href="{% url 'returns:security' security.id %}"><span class="glyphicon glyphicon-info-sign"></span></a>&ensp;<a href="{% url 'returns:security_edit' security_id=security.id %}"><span class="glyphicon glyphicon-pencil"></span></a></td>
       </tr>
       {% endfor %}
     </tbody>
@@ -55,32 +58,9 @@
 </div>
 {% endif %}
 
-{% if latest_transaction_list %}
-<h2><a href="#" onclick="toggle_visibility('seg_transactions');">Recent Transactions</a></h2>
-<div id="seg_transactions" style="display:block">
-  <table class="table table-condensed">
-    <thead>
-      <tr>
-		<th>Date</th>
-        <th>Kind</th>
-        <th>Account</th>
-        <th>Security</th>
-        <th>Cashflow</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for transaction in latest_transaction_list %}
-      <tr>
-        <th scope="row">{{ transaction.date }}</th>
-        <td><a href="{% url 'returns:transaction' transaction.id %}">{{ transaction.get_kind_display|title }}</a></td>
-        <td>{{ transaction.account.name }}</td>
-        <td>{{ transaction.security.descrip }}</td>
-        <td class="text-right">{{ transaction.cashflow }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
+{% if transaction_list %}
+<h2><a href="#" onclick="toggle_visibility('transactions-list-div');">Recent Transactions</a></h2>
+{% include "returns/t-history.html" %}
 {% else %}
   <p>No transactions available.</p>
 {% endif %}

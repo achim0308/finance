@@ -1,3 +1,4 @@
+from time import mktime
 from datetime import datetime, date, timedelta
 from decimal import *
 from moneyed import Money
@@ -8,11 +9,15 @@ from django_countries.fields import CountryField
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import connection, models
+from django.db.models import Sum
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 from django.urls import reverse
- 
+
+from .calc import Solver
+from .utilities import yearsago
+
 import requests
 
 class SecurityQuerySet(models.QuerySet):
@@ -225,17 +230,19 @@ class TransactionManager2(models.Manager):
             transactions = transactions.beginDate(beginDate)
         if not endDate is None:
             transactions = transactions.endDate(endDate)
+        if not owner is None:
+            transactions = transactions.owner(owner)
         if not securities is None:
             transactions = transactions.securities(securities)
         if not accounts is None:
             transactions = transactions.accounts(accounts)
         
-        return th
+        return transactions
     
     def cashflow(self, beginDate = None, endDate = None,
                        securities = None, accounts = None, owner = None):
     # sum daily cashflows of all transactions relevant for cashflows 
-        cashflows = self.transactionHistory(beginDate, endDate, securities, accounts)
+        cashflows = self.transactionHistory(beginDate, endDate, securities, accounts, owner)
         cashflows = cashflows.notCashflowRelevant()
         
         # construct sum
@@ -247,7 +254,7 @@ class TransactionManager2(models.Manager):
     def num(self, beginDate = None, endDate = None,
                   securities = None, accounts = None, owner = None):
     # sum transacted securities
-        numSecurities = self.transactionHistory(beginDate, endDate, securities, accounts)
+        numSecurities = self.transactionHistory(beginDate, endDate, securities, accounts, owner)
         numSecurities = numSecurities.markToMarket()
         
         # construct sum
@@ -259,7 +266,7 @@ class TransactionManager2(models.Manager):
     def curValue(self, beginDate = None, endDate = None,
                        securities = None, accounts = None, owner = None):
     # get current, i.e. at end date if available, value of securities
-        curValues = self.transactionHistory(beginDate, endDate, securities, accounts)
+        curValues = self.transactionHistory(beginDate, endDate, securities, accounts, owner)
         
         curValues1 = self.accumulatingSecuritiesInterestAndMatch()
         curValues2 = self.nonMarkToMarketInAndOutflows()
@@ -416,7 +423,7 @@ class TransactionManager(models.Manager):
         sql1 = sql1 + sql
         sql2 = sql2 + sql
 
-        sql3 = """SELECT security_id, sum(cashflow) AS cashflow FROM ( """ + sql1 + """ UNION ALL """ + sql2 + """ ) AS T5"""
+        sql3 = """SELECT security_id, sum(cashflow) AS cashflow FROM ( """ + sql1 + """ UNION ALL """ + sql2 + """ ) AS T5 GROUP BY security_id"""
         arg = None if arg == () else arg
         cursor.execute(sql3, arg)
 
@@ -539,7 +546,25 @@ class HistValuation(models.Model):
         return reverse('views.transaction', args=[str(self.id)])
 
 class InflationManager(models.Manager):
-    def rateOfInflation(beginDate = None, endDate = None):
+    def getHistoricalRateOfInflation(self):
+        # calculate inflation rate for multiple time periods
+        today = timezone.now().date()
+        thisYear = date(today.year,1,1)
+        prevYear = yearsago(1)
+        fiveYear = yearsago(5)
+
+        inflationYTD = self.rateOfInflation(beginDate = thisYear, endDate = today)
+        inflationPrevYear = self.rateOfInflation(beginDate = prevYear, endDate = today)
+        inflationFiveYear = self.rateOfInflation(beginDate = fiveYear, endDate = today)
+        inflationOverall = self.rateOfInflation()
+
+        return {'inYTD': inflationYTD, 
+                'in1Y': inflationPrevYear, 
+                'in5Y': inflationFiveYear, 
+                'inInfY': inflationOverall, 
+                }
+    
+    def rateOfInflation(self, beginDate = None, endDate = None):
         inflation = Inflation.objects.order_by('date')
         if beginDate is None: 
             inflation1 = inflation.first()
@@ -556,16 +581,15 @@ class InflationManager(models.Manager):
         else:
             solver = Solver()
             solver.addCashflow(inflation1.inflationIndex, inflation1.date)
-            solver.addCashflow(inflation2.inflationIndex, inflation2.date)
+            solver.addCashflow(-inflation2.inflationIndex, inflation2.date)
             
             try:
                 inflationRate = solver.calcRateOfReturn()
-                errorInflation = ''
             except RuntimeError as e:
                 inflationRate = ''
-                errorInflation = "Error: {0}".format(e)
+                print("Error calculating inflation: {0}".format(e))
         
-        return {'inflation':inflationRate,'errorInflation':errorInflation}
+        return inflationRate
 
 class Inflation(models.Model):
     # models inflation data
@@ -589,9 +613,36 @@ def dict_cursor(cursor):
             for row in cursor.fetchall()]
 
 class ValuationQuerySet(models.QuerySet):
+    def getHistoricalRateOfReturn(self):
+        # calculate internal rate of return for multiple time periods
+
+        today = timezone.now().date()
+        thisYear = date(today.year,1,1)
+        prevYear = yearsago(1)
+        fiveYear = yearsago(5)
+
+        performanceYTD = self.getRateOfReturn(beginDate = thisYear, endDate = today)
+        performancePrevYear = self.getRateOfReturn(beginDate = prevYear, endDate = today)
+        performanceFiveYear = self.getRateOfReturn(beginDate = fiveYear, endDate = today)
+        performanceOverall = self.getRateOfReturn()
+        
+        return {'rYTD': performanceYTD['rate'],
+                'iYTD': performanceYTD['initial'],
+                'tYTD': performanceYTD['final'],
+                'r1Y': performancePrevYear['rate'],
+                'i1Y': performancePrevYear['initial'],
+                't1Y': performancePrevYear['final'],
+                'r5Y': performanceFiveYear['rate'],
+                'i5Y': performanceFiveYear['initial'],
+                't5Y': performanceFiveYear['final'],
+                'rInfY': performanceOverall['rate'],
+                'iInfY': performanceOverall['initial'],
+                'tInfY': performanceOverall['final']}
+        
+    
     def getRateOfReturn(self, beginDate = None, endDate = None):
         # calculate internal rate of return given the cashflows
-        
+
         # limit query set to date range given
         qs = self.order_by('date')
         if endDate != None:
@@ -599,56 +650,71 @@ class ValuationQuerySet(models.QuerySet):
             
         if beginDate != None:
             qs = qs.filter(date__gte=beginDate)
+
+        # aggregate values per date
+        qs = qs.values('date').annotate(sumBaseValue=Sum('base_value'),
+                                        sumCurValue=Sum('cur_value'))
+
         
         # get value at beginning of interval
         try:
-            base0 = self.filter(date__lt=beginDate).order_by('date').last()
-            date0 = base0.date
-            baseValue0 = base0.base_value
-            initialValue0 = base0.cur_value
+            base0 = self.filter(date__lt=beginDate).order_by('date')\
+                        .values('date', 'cur_value_currency').annotate(sumBaseValue=Sum('base_value'),
+                                                                        sumCurValue=Sum('cur_value'))\
+                        .last()
+            date0 = base0['date']
+            baseValue0 = base0['sumBaseValue']
+            initialValue0 = Money(base0['sumCurValue'], base0['cur_value_currency'])
         except:
         # if query empty --> baseValue must be zero
             date0 = None
-            baseValue0 = 0
-            initialValue0 = 0
+            baseValue0 = 0.
+            initialValue0 = 0.
 
         # get final value
         try:
-            final = self.filter(date_gte=endDate).order_by('date').first()
-            finalValue = final.cur_value
-            finalDate = final.date
+            final = self.filter(date__gte=endDate).order_by('date')\
+                        .values('date', 'cur_value_currency').annotate(sumCurValue=Sum('cur_value'))\
+                        .first()
+            finalValue = Money(final['sumCurValue'],final['cur_value_currency'])
+            finalDate = final['date']
         except:
         # if query empty --> either no valuations at all or none at end date
-            finalValue = 0
+            finalValue = 0.
             finalDate = None
             try:
                 # take last valuation
-                final = self.order_by('date').last()
-                finalValue = final.cur_value
-                finalDate = final.date
+                final = self.order_by('date')\
+                            .values('date', 'cur_value_currency').annotate(sumCurValue=Sum('cur_value'))\
+                            .last()
+                finalValue = Money(final['sumCurValue'],final['cur_value_currency'])
+                finalDate = final['date']
             except:
                 pass
         
         solver = Solver()
-        
+
         if date0 is not None:
-            solver.addCashflow(date0, baseValue0)
+            solver.addCashflow(initialValue0.amount, date0)
         
         # add date/cashflows to solver
         for v in qs:
-            solver.addCashflow(v.date,v.base_value-baseValue0)
-            baseValue0 = v.base_value
+            cashflow = float(v['sumBaseValue'])-float(baseValue0)
+            if cashflow != 0.0:
+                solver.addCashflow(cashflow, v['date'])
+            baseValue0 = v['sumBaseValue']
         
         if finalDate is not None:
-            solver.addCashflow(finalDate, finalValue)
-        
+            # negative due to different sign conventions
+            solver.addCashflow(-finalValue.amount, finalDate)
+
         try:
             r = solver.calcRateOfReturn()
         except:
             r = 'Error'
         
         return {'rate': r,
-                'initial': initialValue,
+                'initial': initialValue0,
                 'final': finalValue }
     
     def makeChart(self):
@@ -678,9 +744,9 @@ class ValuationQuerySet(models.QuerySet):
             'name1': 'Actual value', 'y1': y1data, 'extra1': extra_serie,
             'name2': 'Inflow - outflows', 'y2': y2data, 'extra2': extra_serie,
         }
-       charttype = "lineWithFocusChart"
-       chartcontainer = 'asset_history'
-       data = {
+        charttype = "lineWithFocusChart"
+        chartcontainer = 'asset_history'
+        data = {
             'charttype': charttype,
             'chartdata': chartdata,
             'chartcontainer': chartcontainer,
@@ -709,8 +775,6 @@ class Valuation(models.Model):
     # abstract model to store historical valuation to be used to calculate rate of returns
     date = models.DateField('Valuation date',
                             db_index=True)
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL,
-                              default=2)
     cur_value = MoneyField('Current value',
                            max_digits = 10,
                            decimal_places = 2,
@@ -724,7 +788,7 @@ class Valuation(models.Model):
     
     objects = ValuationManager()
     
-    class meta:
+    class Meta:
         abstract = True
 
 @python_2_unicode_compatible

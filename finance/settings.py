@@ -26,12 +26,11 @@ config.read(BASE_DIR + '/finance/settings.ini')
 SECRET_KEY = config.get('secrets', 'SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-#DEBUG = True
 DEBUG = config.getboolean('debug', 'DEBUG_FLAG')
 
-ALLOWED_HOSTS = ['awechsun.pythonanywhere.com']
+ALLOWED_HOSTS = [config.get('hosts', 'ALLOWED_HOSTS')]
 
-SECURE_SSL_REDIRECT = True
+SECURE_SSL_REDIRECT = config.getboolean('hosts', 'SECURE_SSL_REDIRECT')
 
 # Application definition
 

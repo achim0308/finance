@@ -55,7 +55,6 @@ class Solver():
             self.cashflowList[diffDate] = float(cashflow)
         else:
             self.cashflowList[diffDate] = self.cashflowList[diffDate] + float(cashflow)
-    
     def calcRateOfReturn(self):
         if not self.cashflowList:
             raise RuntimeError('Empty list')
@@ -63,7 +62,7 @@ class Solver():
         f = lambda r: self._solverF(r)
         df = lambda r: self._solverDF(r)
         try:
-            r = self._newtonSolve(f, df, r0)
+            r = self._newtonSolve(f=f, df=df, x0=r0)
         except StopIteration:
             raise RuntimeError('Iteration limit exceeded')
         
@@ -78,7 +77,7 @@ class Solver():
         return sum([-diffDays/365.0 * cashflow / (1 + rate)**(diffDays / 365.0 + 1.0)
                     for diffDays, cashflow in self.cashflowList.items()])
     
-    def _newtonSolve(f, df, x0, absTol=1E-4, relTol=1E-4, itMax=50, damping=0.70):
+    def _newtonSolve(self, f, df, x0, absTol=1E-4, relTol=1E-4, itMax=50, damping=0.70):
         lastX = x0
         nextX = lastX + 10.0 * absTol
         it = 0
@@ -88,6 +87,7 @@ class Solver():
                 raise StopIteration('Exceed iteration count')
             newY = f(nextX)
             lastX = nextX
+
             if (nextX > 10.0 or nextX < -1.0):
                 raise StopIteration('Diverging')
             try:

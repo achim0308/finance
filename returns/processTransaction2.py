@@ -95,6 +95,8 @@ def getReturns(accounts = None, securities = None, kind = None, beginDate = None
         initial = '{:,.2f}'.format(0)
         totalDecimal = 0
     # calculate returns
+    for c in cashflowList:
+        print(c['date'], c['cashflow'])
     try:
         returns = callSolver2(cashflowList)
         errorReturns = ''
@@ -102,9 +104,9 @@ def getReturns(accounts = None, securities = None, kind = None, beginDate = None
         errorReturns = "Error: {0}".format(e)
         returns = ''
 
-    inflation = Inflation.objects.calcInflation(beginDate, endDate)
+    inflation = Inflation.objects.rateOfInflation(beginDate, endDate)
 
-    return  {'cashflowList': cashflowList, 'total': total, 'totalDecimal': totalDecimal, 'initial': initial, 'returns': returns, 'errorReturns': errorReturns, 'inflation': inflation['inflation'], 'errorInflation': inflation['errorInflation']}
+    return  {'cashflowList': cashflowList, 'total': total, 'totalDecimal': totalDecimal, 'initial': initial, 'returns': returns, 'errorReturns': errorReturns, 'inflation': inflation}
 
 def gatherData(accounts = None, securities = None, kind = None, beginDate = None, endDate = None, owner = None):
 

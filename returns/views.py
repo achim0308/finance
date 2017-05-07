@@ -14,7 +14,7 @@ from django.db.models import Sum
 from moneyed import Money, get_currency
 
 from .models import Transaction, Account, Security, Inflation, SecurityValuation, AccountValuation
-from .processTransaction2 import addNewMarkToMarketData, constructCompleteInfo2, gatherData, addHistoricalPerformance, addSegmentPerformance, calcInterest, match, updateSecurityValuation, updateAccountValuation
+from .processTransaction2 import constructCompleteInfo2, gatherData, addHistoricalPerformance, addSegmentPerformance, calcInterest, match, updateSecurityValuation, updateAccountValuation, getReturns
 from .forms import AccountForm, SecurityForm, TransactionForm, TransactionFormForSuperuser, HistValuationForm, AddInterestForm, AddInterestFormForSuperuser, InflationForm
 
 @login_required
@@ -24,7 +24,7 @@ def index(request):
     security_list = Security.objects.order_by('kind','name')
     security_valuations = SecurityValuation.objects.filter(date__gte=timezone.now())
     
-    latest_transaction_list = Transaction.thobjects2.recent()
+    transaction_list = Transaction.thobjects2.recent()
     
     # restrict to data for current user
     if not request.user.is_superuser:
@@ -35,7 +35,7 @@ def index(request):
         # Get list of securities that have transactions for the current user
         security_list = security_list.securityOwnedBy(curUser)
         security_valuations = security_valuations.filter(owner=curUser)
-        latest_transaction_list = latest_transaction_list.owner(curUser)
+        transaction_list = transaction_list.owner(curUser)
     
     # add information about account values
     account_values = {}
@@ -61,7 +61,7 @@ def index(request):
             'account_values': account_values,
             'security_list': security_list, 
             'security_values': security_values,
-            'latest_transaction_list': latest_transaction_list}
+            'transaction_list': transaction_list}
     return render(request, 'returns/index.html', info)
 
 @login_required
@@ -75,26 +75,51 @@ def transaction(request, transaction_id):
 
 @login_required
 def all_accounts(request):
+    valuation = SecurityValuation.objects.all()
+    data = {}
+    
     if request.user.is_superuser:
-        info = gatherData()
-        info['histPerf'] = addHistoricalPerformance()
-        info['segPerf'] = addSegmentPerformance()
+        data['transaction_list'] = Transaction.thobjects2.transactionHistory()
     else:
         cur_user = request.user.id
-        info = gatherData(owner = cur_user)
-        info['histPerf'] = addHistoricalPerformance(owner = cur_user)
-        info['segPerf'] = addSegmentPerformance(owner = cur_user)
+        valuation = valuation.filter(owner_id=cur_user)
+        data['transaction_list'] = Transaction.thobjects2.transactionHistory(owner=cur_user)
+    
+    data['inflation'] = Inflation.objects.rateOfInflation()    
+
+    data['histPerf'] = valuation.getHistoricalRateOfReturn()
+    data['histPerf'].update(Inflation.objects.getHistoricalRateOfInflation())
+
+    data['returns'] = data['histPerf']['rInfY']
+    data['total'] = data['histPerf']['tInfY']
+
+    # need to calculate information sector specific
+    data['segPerf'] = {}
+    total = 0
+    for kind in Security.SEC_KIND_CHOICES:
+        securities = Security.objects.kinds([kind[0]])
+        valuation = SecurityValuation.objects.filter(security__in=securities)
+        data['segPerf'][kind[0]] = valuation.getHistoricalRateOfReturn()
+        total = total + float(data['segPerf'][kind[0]]['tYTD'].amount)
+
+    for kind in Security.SEC_KIND_CHOICES:
+        data['segPerf'][kind[0]]['frac'] = float(data['segPerf'][kind[0]]['tYTD'].amount) / total * 100.0
+
+    # need to add function for charts
 
     # Prepare data for pie chart
-    listOfAssets = ['pTG', 'pBD', 'pBF', 'pAK', 'pAF', 'pAV']
-    xdata = ["Savings", "Bonds", "Bonds-ETF", "Share", "Share-ETF", "Retirement"]
-    ydata = [float(info['segPerf'][s]['totalDecimal']) for s in listOfAssets]
+    listOfAssets = []
+    xdata = []
+    for kind in Security.SEC_KIND_CHOICES:
+        listOfAssets.append(kind[0])
+        xdata.append(kind[1])
+    ydata = [float(data['segPerf'][s]['tYTD'].amount) for s in listOfAssets]
     
     chartdata = {'x': xdata, 'y1': ydata}
     charttype = 'pieChart'
     chartcontainer = 'asset_allocation'
 
-    data = {
+    data['chart_asset_alloc'] = {
         'charttype': charttype,
         'chartdata': chartdata,
         'chartcontainer': chartcontainer,
@@ -107,16 +132,14 @@ def all_accounts(request):
         }
     }
 
-    info['chart_asset_alloc'] = data
-
     # prepare data for bar chart
-    catdata = ["Savings", "Bonds", "Bonds-ETF", "Share", "Share-ETF", "Retirement"]
+    catdata = xdata
     xdata = ["YTD", "1 Yr", "5 Yrs", "Overall"]
     listOfTimes = ["rYTD", "r1Y", "r5Y", "rInfY"]
     
     ydata = {}
     for s in listOfAssets:
-        ydata[s] = [info['segPerf'][s][t] for t in listOfTimes]
+        ydata[s] = [data['segPerf'][s][t] for t in listOfTimes]
 
     chartdata = {
         'x': xdata,
@@ -130,7 +153,7 @@ def all_accounts(request):
 
     charttype = 'multiBarHorizontalChart'
     chartcontainer = 'asset_performance'
-    data = {
+    data['chart_asset_perf'] = {
         'charttype': charttype,
         'chartdata': chartdata,
         'chartcontainer': chartcontainer,
@@ -141,127 +164,54 @@ def all_accounts(request):
             'jquery_on_ready': False,
         }
     }
-
-    info['chart_asset_perf'] = data
-
-    return render(request, 'returns/all_accounts.html', info)
+    
+    return render(request, 'returns/all_accounts.html', data)
 
 @login_required
 def account(request, account_id):
     account = get_object_or_404(Account, pk=account_id)
-    
-    if request.user.is_superuser:
-        info = gatherData(accounts = [account_id])
-        info['histPerf'] = addHistoricalPerformance(accounts = [account_id])
-    else:
-        cur_user = request.user.id
-        info = gatherData(accounts = [account_id], owner = cur_user)
-        info['histPerf'] = addHistoricalPerformance(accounts = [account_id],
-                                                    owner = cur_user)
-    
-    # Collect information for chart
-#     valuations = AccountValuation.objects.filter(account_id=account_id).order_by('date')
-#     xdata=[]
-#     y1data=[]
-#     y2data=[]
-#     for v in valuations:
-#         # must convert date to integer
-#         xdata.append(int(mktime(v.date.timetuple())*1000))
-#         # must convert Decimal to float
-#         y1data.append(float(v.cur_value.amount))
-#         y2data.append(float(v.base_value.amount))
-#     
-#     tooltip_date = "%b %Y"
-#     extra_serie={
-#         "tooltip": {"y_start": "", "y_end": account.currency},
-#         "date_format": tooltip_date
-#     }
-#     
-#     chartdata = {
-#         'x': xdata,
-#         'name1': 'Actual value', 'y1': y1data, 'extra1': extra_serie,
-#         'name2': 'Inflow - outflows', 'y2': y2data, 'extra2': extra_serie,
-#     }
-#     charttype = "lineWithFocusChart"
-#     chartcontainer = 'asset_history'
-#     data = {
-#         'charttype': charttype,
-#         'chartdata': chartdata,
-#         'chartcontainer': chartcontainer,
-#         'extra': {
-#             'x_is_date': True,
-#             'x_axis_format': '%b %Y',
-#             'tag_script_js': True,
-#             'jquery_on_ready': False,
-#         }
-#     }
-#     
-#     info['chart_asset_history'] = data
-    
-    info['chart_asset_history'] = AccountValuation.objects.filter(account_id=account_id).makeChart()
-    info['account'] = account
+    valuation = AccountValuation.objects.filter(account_id=account_id)
 
-    return render(request, 'returns/account.html', info)
+    data = {}
+    data['account'] = account
+    data['inflation'] = Inflation.objects.rateOfInflation()
+    data['transaction_list'] = Transaction.thobjects2.transactionHistory(accounts=[account_id])
+
+    data['histPerf'] = valuation.getHistoricalRateOfReturn()
+    data['histPerf'].update(Inflation.objects.getHistoricalRateOfInflation())
+    
+    data['returns'] = data['histPerf']['rInfY']
+    data['total'] = data['histPerf']['tInfY']
+        
+    data['chart_asset_history'] = valuation.makeChart()
+
+    return render(request, 'returns/account.html', data)
 
 @login_required
 def security(request, security_id):
     security = get_object_or_404(Security, pk=security_id)
-
+    valuation = SecurityValuation.objects.filter(security_id=security_id)
+    data = {}
+    data['security'] = security
+    data['inflation'] = Inflation.objects.rateOfInflation()
+    
     if request.user.is_superuser:
-        info = gatherData(securities = [security_id])
-        info['histPerf'] = addHistoricalPerformance(securities = [security_id])
-        num = Transaction.thobjects.getNum(securities = [security_id])
-        if num is not None:
-            info['cur_num'] = num[0]['num_transacted'].normalize
+        data['transaction_list'] = Transaction.thobjects2.transactionHistory(securities=[security.id])
     else:
         cur_user = request.user.id
-        info = gatherData(securities = [security_id], owner = cur_user)
-        info['histPerf'] = addHistoricalPerformance(securities = [security_id], owner = cur_user)
-        num = Transaction.thobjects.getNum(securities = [security_id], owner = cur_user)
-        if num is not None:
-            info['cur_num'] = num[0]['num_transacted'].normalize
-        
-        # Collect information for chart
-        valuations = SecurityValuation.objects.filter(owner_id=cur_user,security_id=security_id).order_by('date')
-        xdata=[]
-        y1data=[]
-        y2data=[]
-        for v in valuations:
-            # must convert date to integer
-            xdata.append(int(mktime(v.date.timetuple())*1000))
-            # must convert Decimal to float
-            y1data.append(float(v.cur_value.amount))
-            y2data.append(float(v.base_value.amount))
-        
-        tooltip_date = "%b %Y"
-        extra_serie={
-            "tooltip": {"y_start": "", "y_end": security.currency},
-            "date_format": tooltip_date
-        }
-        
-        chartdata = {
-            'x': xdata,
-            'name1': 'Actual value', 'y1': y1data, 'extra1': extra_serie,
-            'name2': 'Inflow - outflows', 'y2': y2data, 'extra2': extra_serie,
-        }
-        charttype = "lineWithFocusChart"
-        chartcontainer = 'asset_history'
-        data = {
-            'charttype': charttype,
-            'chartdata': chartdata,
-            'chartcontainer': chartcontainer,
-            'extra': {
-                'x_is_date': True,
-                'x_axis_format': '%b %Y',
-                'tag_script_js': True,
-                'jquery_on_ready': False,
-            }
-        }
+        valuation = valuation.filter(owner_id=cur_user)
+        data['transaction_list'] = Transaction.thobjects2.transactionHistory(securities=[security.id], owner=cur_user)
 
-        info['chart_asset_history'] = data
-    info['security'] = security
+    data['histPerf'] = valuation.getHistoricalRateOfReturn()
+    data['histPerf'].update(Inflation.objects.getHistoricalRateOfInflation())
 
-    return render(request, 'returns/security.html', info)
+    data['cur_num'] = valuation.order_by('date').last().sum_num.normalize
+    data['returns'] = data['histPerf']['rInfY']
+    data['total'] = data['histPerf']['tInfY']
+
+    data['chart_asset_history'] = valuation.makeChart()
+        
+    return render(request, 'returns/security.html', data)
 
 @login_required
 def timeperiod(request):

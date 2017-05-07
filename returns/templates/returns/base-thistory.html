@@ -37,12 +37,6 @@
 <script language="javascript">
 $(document).ready(function()
   {
-    $("#seg_perf").tablesorter(
-      {
-        headerTemplate: '{content} {icon}',
-        widgets: ['zebra', 'uitheme', 'alignChar'],
-        theme: 'bootstrap'
-      });
     $("#hist_perf").tablesorter(
       {
         headerTemplate: '{content} {icon}',
@@ -90,77 +84,73 @@ $(document).ready(function()
 {% block add_body_block%} {% endblock add_body_block%}
 
 <h2>Financial performance</h2>
-{% if errorReturns == '' %}
-<p><strong>Return:</strong> {{ returns|floatformat:2 }}%  {% if errorInflation == '' %} (<a href="{% url 'returns:inflation_latest' %}">Inflation</a>: {{ inflation|floatformat:2 }}%) {% endif %}</p>
-{% else %}
-<p class="errorlist">ERROR: {{ errorReturns }}</p>
-{% endif %}
+<p><strong>Return:</strong> {{ returns|floatformat:1 }}% (<a href="{% url 'returns:inflation_latest' %}">Inflation</a>: {{ inflation|floatformat:1 }}%)</p>
 
-<p><strong>Total:</strong> EUR {{ total }}
+<p><strong>Total:</strong> {{ total }}
 {% if cur_num %} (<strong>&#35;</strong> {{ cur_num }} ){% endif %}</p>
 
 {% if segPerf %}
-<h2><a href="#" onclick="toggle_visibility('seg_perf_div');">Segments performance</a></h2>
-<div id="seg_perf_div" style="display:none">
-<table id="seg_perf">
+<h2><a href="#" onclick="toggle_visibility('seg-perf-div');">Segments performance</a></h2>
+<div id="seg-perf-div" style="display:none">
+<table class="table table-condensed" id="seg_perf">
 <thead>
   <tr>
     <th></th>
-    <th data-align-char="." data-align-adjust="10">YTD return</th>
-    <th data-align-char="." data-align-adjust="10">Last year return</th>
-    <th data-align-char="." data-align-adjust="10">Overall return</th>
-    <th data-align-char="." data-align-adjust="10">Total value (&euro;)</th>
-    <th data-align-char="." data-align-adjust="10">Total value (&#37;)</th>
+    <th>YTD return</th>
+    <th>Last year return</th>
+    <th>Overall return</th>
+    <th>Total value</th>
+    <th>Of total</th>
   </tr>
 </thead>
 <tbody>
   <tr>
-    <td>Tagesgeld</td>
-    <td>{{ segPerf.pTG.rYTD|floatformat:2 }}%</td>
-    <td>{{ segPerf.pTG.r1Y|floatformat:2 }}%</td>
-    <td>{{ segPerf.pTG.rInfY|floatformat:2 }}%</td>
-    <td>{{ segPerf.pTG.tYTD }}</td>
-    <td>{{ segPerf.pTG.frac|floatformat:2 }}%</td>
+    <th class="row">Savings</th>
+    <td class="text-right">{{ segPerf.TG.rYTD|floatformat:1 }}%</td>
+    <td class="text-right">{{ segPerf.TG.r1Y|floatformat:1 }}%</td>
+    <td class="text-right">{{ segPerf.TG.rInfY|floatformat:1 }}%</td>
+    <td class="text-right">{{ segPerf.TG.tYTD }}</td>
+    <td class="text-right">{{ segPerf.TG.frac|floatformat:1 }}%</td>
   </tr>
   <tr>
-    <td>Aktien</td>
-    <td>{{ segPerf.pAK.rYTD|floatformat:2 }}%</td>
-    <td>{{ segPerf.pAK.r1Y|floatformat:2 }}%</td>
-    <td>{{ segPerf.pAK.rInfY|floatformat:2 }}%</td>
-    <td>{{ segPerf.pAK.tYTD }}</td>
-    <td>{{ segPerf.pAK.frac|floatformat:2 }}%</td>
+    <th class="row">Stock</th>
+    <td class="text-right">{{ segPerf.AK.rYTD|floatformat:1 }}%</td>
+    <td class="text-right">{{ segPerf.AK.r1Y|floatformat:1 }}%</td>
+    <td class="text-right">{{ segPerf.AK.rInfY|floatformat:1 }}%</td>
+    <td class="text-right">{{ segPerf.AK.tYTD }}</td>
+    <td class="text-right">{{ segPerf.AK.frac|floatformat:1 }}%</td>
   </tr>
   <tr>
-    <td>Aktien-Fonds</td>
-    <td>{{ segPerf.pAF.rYTD|floatformat:2 }}%</td>
-    <td>{{ segPerf.pAF.r1Y|floatformat:2 }}%</td>
-    <td>{{ segPerf.pAF.rInfY|floatformat:2 }}%</td>
-    <td>{{ segPerf.pAF.tYTD }}</td>
-    <td>{{ segPerf.pAF.frac|floatformat:2 }}%</td>
+    <th class="row">Stock-ETF</th>
+    <td class="text-right">{{ segPerf.AF.rYTD|floatformat:1 }}%</td>
+    <td class="text-right">{{ segPerf.AF.r1Y|floatformat:1 }}%</td>
+    <td class="text-right">{{ segPerf.AF.rInfY|floatformat:1 }}%</td>
+    <td class="text-right">{{ segPerf.AF.tYTD }}</td>
+    <td class="text-right">{{ segPerf.AF.frac|floatformat:1 }}%</td>
   </tr>
   <tr>
-    <td>Bonds</td>
-    <td>{{ segPerf.pBD.rYTD|floatformat:2 }}%</td>
-    <td>{{ segPerf.pBD.r1Y|floatformat:2 }}%</td>
-    <td>{{ segPerf.pBD.rInfY|floatformat:2 }}%</td>
-    <td>{{ segPerf.pBD.tYTD }}</td>
-    <td>{{ segPerf.pBD.frac|floatformat:2 }}%</td>
+    <th class="row">Bonds</th>
+    <td class="text-right">{{ segPerf.BD.rYTD|floatformat:1 }}%</td>
+    <td class="text-right">{{ segPerf.BD.r1Y|floatformat:1 }}%</td>
+    <td class="text-right">{{ segPerf.BD.rInfY|floatformat:1 }}%</td>
+    <td class="text-right">{{ segPerf.BD.tYTD }}</td>
+    <td class="text-right">{{ segPerf.BD.frac|floatformat:1 }}%</td>
   </tr>
   <tr>
-    <td>Bonds-Fonds</td>
-    <td>{{ segPerf.pBF.rYTD|floatformat:2 }}%</td>
-    <td>{{ segPerf.pBF.r1Y|floatformat:2 }}%</td>
-    <td>{{ segPerf.pBF.rInfY|floatformat:2 }}%</td>
-    <td>{{ segPerf.pBF.tYTD }}</td>
-    <td>{{ segPerf.pBF.frac|floatformat:2 }}%</td>
+    <th class="row">Bonds-ETF</th>
+    <td class="text-right">{{ segPerf.BF.rYTD|floatformat:1 }}%</td>
+    <td class="text-right">{{ segPerf.BF.r1Y|floatformat:1 }}%</td>
+    <td class="text-right">{{ segPerf.BF.rInfY|floatformat:1 }}%</td>
+    <td class="text-right">{{ segPerf.BF.tYTD }}</td>
+    <td class="text-right">{{ segPerf.BF.frac|floatformat:1 }}%</td>
   </tr>
   <tr>
-    <td>Altersvorsorge</td>
-    <td>{{ segPerf.pAV.rYTD|floatformat:2 }}%</td>
-    <td>{{ segPerf.pAV.r1Y|floatformat:2 }}%</td>
-    <td>{{ segPerf.pAV.rInfY|floatformat:2 }}%</td>
-    <td>{{ segPerf.pAV.tYTD }}</td>
-    <td>{{ segPerf.pAV.frac|floatformat:2 }}%</td>
+    <th class="row">Retirement</th>
+    <td class="text-right">{{ segPerf.AV.rYTD|floatformat:1 }}%</td>
+    <td class="text-right">{{ segPerf.AV.r1Y|floatformat:1}}%</td>
+    <td class="text-right">{{ segPerf.AV.rInfY|floatformat:1 }}%</td>
+    <td class="text-right">{{ segPerf.AV.tYTD }}</td>
+    <td class="text-right">{{ segPerf.AV.frac|floatformat:1 }}%</td>
   </tr>
 </tbody>
 </table>
@@ -171,13 +161,13 @@ $(document).ready(function()
 {% endif %}
 
 {% if histPerf %}
-<h2><a href="#" onclick="toggle_visibility('hist_perf_div');">Historical performance</a></h2>
-<div id="hist_perf_div" style="display:block">
+<h2><a href="#" onclick="toggle_visibility('hist-perf-div');">Historical performance</a></h2>
+<div id="hist-perf-div" style="display:block">
 <table id="hist_perf">
 <thead>
   <tr>
     <th>Time span</th>
-    <th data-align-char="." data-align-adjust="05">Initial value (&euro;)</th>
+    <th data-align-char="." data-align-adjust="05">Initial value</th>
     <th data-align-char="." data-align-adjust="10">Annualized return</th>
     <th data-align-char="." data-align-adjust="10">Inflation</th>
   </tr>
@@ -186,26 +176,26 @@ $(document).ready(function()
   <tr>
     <td>YTD</td>
     <td>{{ histPerf.iYTD }}</td>
-    <td>{{ histPerf.rYTD|floatformat:2 }}%</td>
-    <td>{{ histPerf.inYTD|floatformat:2 }}%</td>
+    <td>{{ histPerf.rYTD|floatformat:1 }}%</td>
+    <td>{{ histPerf.inYTD|floatformat:1 }}%</td>
   </tr>
   <tr>
     <td>Last year</td>
     <td>{{ histPerf.i1Y }}</td>
-    <td>{{ histPerf.r1Y|floatformat:2 }}%</td>
-    <td>{{ histPerf.in1Y|floatformat:2 }}%</td>
+    <td>{{ histPerf.r1Y|floatformat:1 }}%</td>
+    <td>{{ histPerf.in1Y|floatformat:1 }}%</td>
   </tr>
   <tr>
     <td>Last 5 years</td>
     <td>{{ histPerf.i5Y }}</td>
-    <td>{{ histPerf.r5Y|floatformat:2 }}%</td>
-    <td>{{ histPerf.in5Y|floatformat:2 }}%</td>
+    <td>{{ histPerf.r5Y|floatformat:1 }}%</td>
+    <td>{{ histPerf.in5Y|floatformat:1 }}%</td>
   </tr>
   <tr>
     <td>Overall</td>
     <td>{{ histPerf.iInfY }}</td>
-    <td>{{ histPerf.rInfY|floatformat:2 }}%</td>
-    <td>{{ histPerf.inInfY|floatformat:2 }}%</td>
+    <td>{{ histPerf.rInfY|floatformat:1 }}%</td>
+    <td>{{ histPerf.inInfY|floatformat:1 }}%</td>
   </tr>
 </tbody>
 </table>
@@ -216,35 +206,8 @@ $(document).ready(function()
 {% include_container chart_asset_history.chartcontainer 450 '100%' %}
 {% endif %}
 
-{% if transaction_history %}
-<h2><a href="#" onclick="toggle_visibility('transaction_history_div');">Transaction history</a></h2>
-<div id="transaction_history_div" style="display:block">
-  <table id="transaction_history" class="table table-sorter table-condensed">
-    <thead>
-      <tr>
-		<th>Date</th>
-        <th>Kind</th>
-        <th>Security</th>
-        <th>Cashflow</th>
-        <th>Expenses</th>
-        <th>Tax</th>
-        <th>Details</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for t in transaction_history %}
-      <tr>
-        <th scope="row">{{ t.tdate }}</th>
-        <td>{{ t.kind }}</td>
-        <td><a href="{% url 'returns:security' t.security_id %}">{{ t.security_name }}</a></td>
-        <td class="text-right">{{ t.cashflow }}</td>
-        <td class="text-right">{{ t.expense }}</td>
-        <td class="text-right">{{ t.tax }}</td> 
-        <td><a href="{% url 'returns:transaction' t.id %}"><span class="glyphicon glyphicon-info-sign"></span></a>&ensp;<a href="{% url 'returns:transaction_edit' transaction_id=t.id %}"><span class="glyphicon glyphicon-pencil"></span></a></td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
+{% if transaction_list %}
+<h2><a href="#" onclick="toggle_visibility('transactions-list-div');">Transaction history</a></h2>
+{% include "returns/t-history.html" %}
 {% endif %}
 {% endblock body_block%}
