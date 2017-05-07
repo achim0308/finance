@@ -14,7 +14,6 @@
 
 <script type="text/javascript" src="{% static 'returns/js/jquery.tablesorter.js'%} "></script>
 <script type="text/javascript" src="{% static 'returns/js/jquery.tablesorter.widgets.js'%} "></script>
-<script type="text/javascript" src="{% static 'returns/js/jquery.tablesorter.widgets/widget-alignChar.js'%} "></script>
 
 {% if segPerf or chart_asset_history %}
 <link rel="stylesheet" type="text/css" href="{% static 'returns/css/nv.d3.min.css'%}"/>
@@ -35,45 +34,19 @@
 {% endif %}
 {% endif %}
 <script language="javascript">
-$(document).ready(function()
+<!--$(document).ready(function()
   {
-    $("#hist_perf").tablesorter(
-      {
-        headerTemplate: '{content} {icon}',
-        widgets: ['zebra', 'uitheme', 'alignChar'],
-        theme: 'bootstrap'
-      });
-    $("#transaction_history").tablesorter(
+    $("#transaction-history").tablesorter(
       {
         headerTemplate: '{content} {icon}',
         dateFormat: 'mmddyyyy',
-        widgets: ['zebra', 'uitheme', 'alignChar'],
+        widgets: ['uitheme'],
         theme: 'bootstrap'
       });
   }
 );
+-->
 </script>
-
-<style>
-/* CSS needed for this widget */
-.ts-align-wrap {
-  white-space: nowrap;
-  width: 100%;
-  overflow: hidden;
-}
-.ts-align-wrap, .ts-align-left, .ts-align-right {
-  display: inline-block;
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-  box-sizing: border-box;
-}
-.ts-align-left {
-  text-align:right;
-}
-.ts-align-right {
-  text-align:left;
-}
-</style>
 
 {% load djmoney %}
 
@@ -104,54 +77,16 @@ $(document).ready(function()
   </tr>
 </thead>
 <tbody>
+{% for key, items in segPerf.items %}
   <tr>
-    <th class="row">Savings</th>
-    <td class="text-right">{{ segPerf.TG.rYTD|floatformat:1 }}%</td>
-    <td class="text-right">{{ segPerf.TG.r1Y|floatformat:1 }}%</td>
-    <td class="text-right">{{ segPerf.TG.rInfY|floatformat:1 }}%</td>
-    <td class="text-right">{{ segPerf.TG.tYTD }}</td>
-    <td class="text-right">{{ segPerf.TG.frac|floatformat:1 }}%</td>
+    <th class="row">{{ key }}</th>
+    <td class="text-right">{{ items.rYTD|floatformat:1 }}%</td>
+    <td class="text-right">{{ items.r1Y|floatformat:1 }}%</td>
+    <td class="text-right">{{ items.rInfY|floatformat:1 }}%</td>
+    <td class="text-right">{{ items.tYTD }}</td>
+    <td class="text-right">{{ items.frac|floatformat:1 }}%</td>
   </tr>
-  <tr>
-    <th class="row">Stock</th>
-    <td class="text-right">{{ segPerf.AK.rYTD|floatformat:1 }}%</td>
-    <td class="text-right">{{ segPerf.AK.r1Y|floatformat:1 }}%</td>
-    <td class="text-right">{{ segPerf.AK.rInfY|floatformat:1 }}%</td>
-    <td class="text-right">{{ segPerf.AK.tYTD }}</td>
-    <td class="text-right">{{ segPerf.AK.frac|floatformat:1 }}%</td>
-  </tr>
-  <tr>
-    <th class="row">Stock-ETF</th>
-    <td class="text-right">{{ segPerf.AF.rYTD|floatformat:1 }}%</td>
-    <td class="text-right">{{ segPerf.AF.r1Y|floatformat:1 }}%</td>
-    <td class="text-right">{{ segPerf.AF.rInfY|floatformat:1 }}%</td>
-    <td class="text-right">{{ segPerf.AF.tYTD }}</td>
-    <td class="text-right">{{ segPerf.AF.frac|floatformat:1 }}%</td>
-  </tr>
-  <tr>
-    <th class="row">Bonds</th>
-    <td class="text-right">{{ segPerf.BD.rYTD|floatformat:1 }}%</td>
-    <td class="text-right">{{ segPerf.BD.r1Y|floatformat:1 }}%</td>
-    <td class="text-right">{{ segPerf.BD.rInfY|floatformat:1 }}%</td>
-    <td class="text-right">{{ segPerf.BD.tYTD }}</td>
-    <td class="text-right">{{ segPerf.BD.frac|floatformat:1 }}%</td>
-  </tr>
-  <tr>
-    <th class="row">Bonds-ETF</th>
-    <td class="text-right">{{ segPerf.BF.rYTD|floatformat:1 }}%</td>
-    <td class="text-right">{{ segPerf.BF.r1Y|floatformat:1 }}%</td>
-    <td class="text-right">{{ segPerf.BF.rInfY|floatformat:1 }}%</td>
-    <td class="text-right">{{ segPerf.BF.tYTD }}</td>
-    <td class="text-right">{{ segPerf.BF.frac|floatformat:1 }}%</td>
-  </tr>
-  <tr>
-    <th class="row">Retirement</th>
-    <td class="text-right">{{ segPerf.AV.rYTD|floatformat:1 }}%</td>
-    <td class="text-right">{{ segPerf.AV.r1Y|floatformat:1}}%</td>
-    <td class="text-right">{{ segPerf.AV.rInfY|floatformat:1 }}%</td>
-    <td class="text-right">{{ segPerf.AV.tYTD }}</td>
-    <td class="text-right">{{ segPerf.AV.frac|floatformat:1 }}%</td>
-  </tr>
+{% endfor %}
 </tbody>
 </table>
 </div>
@@ -163,39 +98,39 @@ $(document).ready(function()
 {% if histPerf %}
 <h2><a href="#" onclick="toggle_visibility('hist-perf-div');">Historical performance</a></h2>
 <div id="hist-perf-div" style="display:block">
-<table id="hist_perf">
+<table id="hist_perf" class="table table-condensed">
 <thead>
   <tr>
     <th>Time span</th>
-    <th data-align-char="." data-align-adjust="05">Initial value</th>
-    <th data-align-char="." data-align-adjust="10">Annualized return</th>
-    <th data-align-char="." data-align-adjust="10">Inflation</th>
+    <th>Initial value</th>
+    <th>Annualized return</th>
+    <th>Inflation</th>
   </tr>
 </thead>
 <tbody>
   <tr>
     <td>YTD</td>
-    <td>{{ histPerf.iYTD }}</td>
-    <td>{{ histPerf.rYTD|floatformat:1 }}%</td>
-    <td>{{ histPerf.inYTD|floatformat:1 }}%</td>
+    <td class="text-right">{{ histPerf.iYTD }}</td>
+    <td class="text-right">{{ histPerf.rYTD|floatformat:1 }}%</td>
+    <td class="text-right">{{ histPerf.inYTD|floatformat:1 }}%</td>
   </tr>
   <tr>
     <td>Last year</td>
-    <td>{{ histPerf.i1Y }}</td>
-    <td>{{ histPerf.r1Y|floatformat:1 }}%</td>
-    <td>{{ histPerf.in1Y|floatformat:1 }}%</td>
+    <td class="text-right">{{ histPerf.i1Y }}</td>
+    <td class="text-right">{{ histPerf.r1Y|floatformat:1 }}%</td>
+    <td class="text-right">{{ histPerf.in1Y|floatformat:1 }}%</td>
   </tr>
   <tr>
     <td>Last 5 years</td>
-    <td>{{ histPerf.i5Y }}</td>
-    <td>{{ histPerf.r5Y|floatformat:1 }}%</td>
-    <td>{{ histPerf.in5Y|floatformat:1 }}%</td>
+    <td class="text-right">{{ histPerf.i5Y }}</td>
+    <td class="text-right">{{ histPerf.r5Y|floatformat:1 }}%</td>
+    <td class="text-right">{{ histPerf.in5Y|floatformat:1 }}%</td>
   </tr>
   <tr>
     <td>Overall</td>
-    <td>{{ histPerf.iInfY }}</td>
-    <td>{{ histPerf.rInfY|floatformat:1 }}%</td>
-    <td>{{ histPerf.inInfY|floatformat:1 }}%</td>
+    <td class="text-right">{{ histPerf.iInfY }}</td>
+    <td class="text-right">{{ histPerf.rInfY|floatformat:1 }}%</td>
+    <td class="text-right">{{ histPerf.inInfY|floatformat:1 }}%</td>
   </tr>
 </tbody>
 </table>

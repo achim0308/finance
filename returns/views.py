@@ -99,11 +99,11 @@ def all_accounts(request):
     for kind in Security.SEC_KIND_CHOICES:
         securities = Security.objects.kinds([kind[0]])
         valuation = SecurityValuation.objects.filter(security__in=securities)
-        data['segPerf'][kind[0]] = valuation.getHistoricalRateOfReturn()
-        total = total + float(data['segPerf'][kind[0]]['tYTD'].amount)
+        data['segPerf'][kind[1]] = valuation.getHistoricalRateOfReturn()
+        total = total + float(data['segPerf'][kind[1]]['tYTD'].amount)
 
     for kind in Security.SEC_KIND_CHOICES:
-        data['segPerf'][kind[0]]['frac'] = float(data['segPerf'][kind[0]]['tYTD'].amount) / total * 100.0
+        data['segPerf'][kind[1]]['frac'] = float(data['segPerf'][kind[1]]['tYTD'].amount) / total * 100.0
 
     # need to add function for charts
 
@@ -111,7 +111,7 @@ def all_accounts(request):
     listOfAssets = []
     xdata = []
     for kind in Security.SEC_KIND_CHOICES:
-        listOfAssets.append(kind[0])
+        listOfAssets.append(kind[1])
         xdata.append(kind[1])
     ydata = [float(data['segPerf'][s]['tYTD'].amount) for s in listOfAssets]
     
@@ -231,7 +231,10 @@ def timeperiod(request):
     except:
         if request.user.is_superuser:
             return render(request, 'returns/timeperiod.html',
-            {'accounts': Account.objects.all().order_by('name'), 'securities': Security.objects.all().order_by('name'), 'kinds': sorted(Security.SEC_KIND_CHOICES, key=lambda tup:tup[1])})
+                          {'accounts': Account.objects.all().order_by('name'),
+                           'securities': Security.objects.all().order_by('name'),
+                           'kinds': sorted(Security.SEC_KIND_CHOICES, key=lambda tup:tup[1])
+                          })
         else:
             curUser = request.user.id
             # Get list of accounts that have transactions for the current user
@@ -275,7 +278,7 @@ def transaction_new(request):
             transaction.save()
 
             if float(request.POST['match']) > 0:
-                matched_transaction = match(transaction, request.POST['match'])
+                matched_transaction = transaction.match(request.POST['match'])
                 matched_transaction.save()
             # return redirect('returns:transaction', transaction_id=transaction.id)
             return redirect('returns:transaction_new')
@@ -362,20 +365,20 @@ def add_interest(request, security_id):
             form = AddInterestForm(request.POST)
         if form.is_valid():
             transaction = form.save(commit=False)
-            currency = Security.objects.get(pk=transaction.security.id).currency
+            currency = security.currency
+            owner = Account.objects.get(pk=transaction.account.id).owner
             t, created = Transaction.objects.update_or_create(
                     date = transaction.date,
                     security_id = transaction.security.id,
                     account_id = transaction.account.id,
                     kind = Transaction.INTEREST,
                     defaults = {
-                        'cashflow': calcInterest(transaction.security.id, 
-                                                 transaction.date),
+                        'cashflow': security.calcInterest(transaction.date, owner),
                         'tax': Money(amount=0.0,currency=currency),
                         'expense': Money(amount=0.0,currency=currency),
                         'num_transacted': 0.0,
                         'modifiedDate': timezone.now().date(),
-                        'owner': Account.objects.get(pk=transaction.account.id).owner
+                        'owner': owner
                     },
                 )
             return redirect('returns:transaction', transaction_id=t.id)

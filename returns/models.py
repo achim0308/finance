@@ -124,6 +124,16 @@ class Security(models.Model):
         
         return price
 
+    def calcInterest(self, date, owner):
+    # calculate interest for security based on for year leading up to date
+        if not self.calc_interest > 0:
+            raise RuntimeError('Security does not have fixed interest payment')
+        total = SecurityValuation.objects.filter(security=self, date__lte=date, owner_id=owner).order_by('date').last().cur_value
+        
+        # calculate interest payment (calc_interest is in %!)
+        interest = Money(total.amount * self.calc_interest / Decimal(100.0), self.currency)
+        return interest
+    
     class Meta:
         ordering = ['name']
         verbose_name_plural = 'Securities'
@@ -496,6 +506,14 @@ class Transaction(models.Model):
     def __str__(self):
         return "%s: (%s) %s (%s) %s" % (self.date, self.kind, self.security.name, self.security.descrip, self.cashflow)
 
+    def match(self, percentage):
+    # Copy transaction and adjust
+        self.pk = None
+        self.kind = Transaction.MATCH
+        self.cashflow = + Decimal(percentage) / Decimal(100.0) * abs(self.cashflow)
+
+        return self
+
 class HistValuationQuerySet(models.QuerySet):
     def security(self,securityID):
         return self.filter(secrity=securityID)
@@ -576,7 +594,7 @@ class InflationManager(models.Manager):
             inflation2 = inflation.filter(date__lte=endDate).last()
         
         if not inflation1 or not inflation2:
-            errorInflation = "Error: No data"
+            print("Error: No data")
             inflationRate = ''
         else:
             solver = Solver()

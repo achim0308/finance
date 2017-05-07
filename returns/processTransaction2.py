@@ -95,8 +95,6 @@ def getReturns(accounts = None, securities = None, kind = None, beginDate = None
         initial = '{:,.2f}'.format(0)
         totalDecimal = 0
     # calculate returns
-    for c in cashflowList:
-        print(c['date'], c['cashflow'])
     try:
         returns = callSolver2(cashflowList)
         errorReturns = ''
