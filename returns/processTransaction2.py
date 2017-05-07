@@ -125,7 +125,7 @@ def gatherData(accounts = None, securities = None, kind = None, beginDate = None
     if securities:
         securities = Security.objects.filter(pk__in=securities)
     
-    return {'accounts': accounts, 'securities': securities, 'beginDate': beginDate, 'endDate':endDate, 'cashflowList': performance['cashflowList'], 'total': performance['total'], 'returns': performance['returns'], 'errorReturns': performance['errorReturns'], 'inflation': performance['inflation'], 'errorInflation': performance['errorInflation'], 'transaction_history': transaction_history}
+    return {'accounts': accounts, 'securities': securities, 'beginDate': beginDate, 'endDate':endDate, 'cashflowList': performance['cashflowList'], 'total': performance['total'], 'returns': performance['returns'], 'errorReturns': performance['errorReturns'], 'inflation': performance['inflation'], 'transaction_history': transaction_history}
 
 def addSegmentPerformance(owner = None):
     pTG = addHistoricalPerformance(kind=[Security.TAGESGELD], owner = owner)
@@ -474,3 +474,67 @@ def updateAccountValuation():
         
         # go to end of next month
         currentDate = last_day_of_month(currentDate + timedelta(days=1))        
+
+
+def makePieChartSegPerf(segPerf):
+# Prepare data for pie chart
+    listOfAssets = []
+    xdata = []
+    for kind in Security.SEC_KIND_CHOICES:
+        listOfAssets.append(kind[1])
+        xdata.append(kind[1])
+    ydata = [float(segPerf[s]['tYTD'].amount) for s in listOfAssets]
+    
+    chartdata = {'x': xdata, 'y1': ydata}
+    charttype = 'pieChart'
+    chartcontainer = 'asset_allocation'
+
+    return {
+        'charttype': charttype,
+        'chartdata': chartdata,
+        'chartcontainer': chartcontainer,
+        'extra': {
+            'x_is_date': False,
+            'x_axis_format': '',
+            'tag_script_js': True,
+            'jquery_on_ready': False,
+            'donut': True,
+        }
+    }
+
+def makeBarChartSegPerf(segPerf):
+    listOfAssets = []
+    catdata = []
+    for kind in Security.SEC_KIND_CHOICES:
+        listOfAssets.append(kind[1])
+        catdata.append(kind[1])
+    xdata = ["YTD", "1 Yr", "5 Yrs", "Overall"]
+    listOfTimes = ["rYTD", "r1Y", "r5Y", "rInfY"]
+    
+    ydata = {}
+    for s in listOfAssets:
+        ydata[s] = [segPerf[s][t] for t in listOfTimes]
+
+    chartdata = {
+        'x': xdata,
+        'name1': catdata[0], 'y1': ydata[listOfAssets[0]],
+        'name2': catdata[1], 'y2': ydata[listOfAssets[1]],
+        'name3': catdata[2], 'y3': ydata[listOfAssets[2]],
+        'name4': catdata[3], 'y4': ydata[listOfAssets[3]],
+        'name5': catdata[4], 'y5': ydata[listOfAssets[4]],
+        'name6': catdata[5], 'y6': ydata[listOfAssets[5]],
+    }
+
+    charttype = 'multiBarHorizontalChart'
+    chartcontainer = 'asset_performance'
+    return {
+        'charttype': charttype,
+        'chartdata': chartdata,
+        'chartcontainer': chartcontainer,
+        'extra': {
+            'x_is_date': False,
+            'x_axis_format': '',
+            'tag_script_js': True,
+            'jquery_on_ready': False,
+        }
+    }

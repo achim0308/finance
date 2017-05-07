@@ -14,8 +14,9 @@ from django.db.models import Sum
 from moneyed import Money, get_currency
 
 from .models import Transaction, Account, Security, Inflation, SecurityValuation, AccountValuation
-from .processTransaction2 import constructCompleteInfo2, gatherData, addHistoricalPerformance, addSegmentPerformance, calcInterest, match, updateSecurityValuation, updateAccountValuation, getReturns
+from .processTransaction2 import constructCompleteInfo2, gatherData, addHistoricalPerformance, addSegmentPerformance, calcInterest, match, updateSecurityValuation, updateAccountValuation, getReturns, makeBarChartSegPerf, makePieChartSegPerf
 from .forms import AccountForm, SecurityForm, TransactionForm, TransactionFormForSuperuser, HistValuationForm, AddInterestForm, AddInterestFormForSuperuser, InflationForm
+
 
 @login_required
 def index(request):
@@ -108,62 +109,10 @@ def all_accounts(request):
     # need to add function for charts
 
     # Prepare data for pie chart
-    listOfAssets = []
-    xdata = []
-    for kind in Security.SEC_KIND_CHOICES:
-        listOfAssets.append(kind[1])
-        xdata.append(kind[1])
-    ydata = [float(data['segPerf'][s]['tYTD'].amount) for s in listOfAssets]
-    
-    chartdata = {'x': xdata, 'y1': ydata}
-    charttype = 'pieChart'
-    chartcontainer = 'asset_allocation'
-
-    data['chart_asset_alloc'] = {
-        'charttype': charttype,
-        'chartdata': chartdata,
-        'chartcontainer': chartcontainer,
-        'extra': {
-            'x_is_date': False,
-            'x_axis_format': '',
-            'tag_script_js': True,
-            'jquery_on_ready': False,
-            'donut': True,
-        }
-    }
+    data['chart_asset_alloc'] = makePieChartSegPerf(data['segPerf'])
 
     # prepare data for bar chart
-    catdata = xdata
-    xdata = ["YTD", "1 Yr", "5 Yrs", "Overall"]
-    listOfTimes = ["rYTD", "r1Y", "r5Y", "rInfY"]
-    
-    ydata = {}
-    for s in listOfAssets:
-        ydata[s] = [data['segPerf'][s][t] for t in listOfTimes]
-
-    chartdata = {
-        'x': xdata,
-        'name1': catdata[0], 'y1': ydata[listOfAssets[0]],
-        'name2': catdata[1], 'y2': ydata[listOfAssets[1]],
-        'name3': catdata[2], 'y3': ydata[listOfAssets[2]],
-        'name4': catdata[3], 'y4': ydata[listOfAssets[3]],
-        'name5': catdata[4], 'y5': ydata[listOfAssets[4]],
-        'name6': catdata[5], 'y6': ydata[listOfAssets[5]],
-    }
-
-    charttype = 'multiBarHorizontalChart'
-    chartcontainer = 'asset_performance'
-    data['chart_asset_perf'] = {
-        'charttype': charttype,
-        'chartdata': chartdata,
-        'chartcontainer': chartcontainer,
-        'extra': {
-            'x_is_date': False,
-            'x_axis_format': '',
-            'tag_script_js': True,
-            'jquery_on_ready': False,
-        }
-    }
+    data['chart_asset_perf'] = makeBarChartSegPerf(data['segPerf'])
     
     return render(request, 'returns/all_accounts.html', data)
 
