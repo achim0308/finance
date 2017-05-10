@@ -198,19 +198,36 @@ def timeperiod(request):
                           })
     else:
         # do calculations
-
         begin_date = datetime.strptime(begin_date, "%m/%d/%Y").date()
         end_date = datetime.strptime(end_date, "%m/%d/%Y").date()
-        if request.user.is_superuser:
-            info = gatherData(accounts=selected_account, securities=selected_security,
-                              kind=selected_kind, beginDate = begin_date,
-                              endDate = end_date)
-        else:
-            info = gatherData(accounts=selected_account, securities=selected_security,
-                              kind=selected_kind, beginDate = begin_date,
-                              endDate = end_date, owner = request.user.id)
         
-        return render(request, 'returns/select2.html', info)
+        if selected_kind != []:
+            selected_security_list = Security.objects.kinds(selected_kind)
+            valuation = SecurityValuation.objects.filter(security_id__in=selected_security_list)
+        elif selected_account != []:
+            valuation = AccountValuation.objects.filter(account_id__in=selected_account)
+        elif selected_security != []:
+            valuation = SecurityValuation.objects.filter(security_id__in=selected_security)
+        else:
+            return render(request, 'returns/select2.html', info)
+
+        data = {}
+    
+        if request.user.is_superuser:
+            data['transaction_list'] = Transaction.thobjects2.transactionHistory()
+        else:
+            cur_user = request.user.id
+            valuation = valuation.filter(owner_id=cur_user)
+            data['transaction_list'] = Transaction.thobjects2.transactionHistory(owner=cur_user)
+    
+        data['inflation'] = Inflation.objects.rateOfInflation(beginDate = begin_date, endDate = end_date)
+
+        rateOfReturn = valuation.getRateOfReturn(beginDate = begin_date, endDate = end_date)
+        
+        data['returns'] = rateOfReturn['rate']
+        data['total'] = rateOfReturn['final']
+        
+        return render(request, 'returns/select2.html', data)
 
 @login_required
 def transaction_new(request):
