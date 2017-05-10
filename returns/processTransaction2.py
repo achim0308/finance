@@ -9,7 +9,10 @@ def markToMarketHistorical(securityID, date):
     h = HistValuation.objects.filter(security=securityID,date__lte=date).order_by('-date')[:1]
 
     if not h:
-        return Decimal("0.0")
+        try:
+            return Money("0.0", Security.objects.get(pk=securityID).currency)
+        except:
+            return Money("0.0", "EUR")
     else:
         return h[0].value
 
@@ -236,6 +239,10 @@ def last_day_of_month(any_day):
     next_month = any_day.replace(day=28) + timedelta(days=4)  # this will never fail
     return next_month - timedelta(days=next_month.day)
 
+def mid_day_of_next_month(any_day):
+    next_month = any_day.replace(day=28) + timedelta(days=4)  # this will never fail
+    return next_month.replace(day=15)
+
 def updateSecurityValuation(owner):
     # get date of last update of security valuations
     try:
@@ -277,8 +284,15 @@ def updateSecurityValuation(owner):
                 securityMtM = True
         except:
             pass
+
+
+    endOfMonth = True
+    if today.day > 15:
+        lastDay = last_day_of_month(today)
+    else:
+        lastDay = today.replace(day=15)
     
-    while currentDate <= last_day_of_month(today):
+    while currentDate <= lastDay:
         
         while not endOfTransactionList: 
             # advance iterator unless previous transaction was not processed
@@ -327,7 +341,7 @@ def updateSecurityValuation(owner):
                     # if all securities were sold, no longer need to update
                     if numSecurity[securityId] <= 0.0:
                         securityActive[securityId] = False;
-                    curValueSecurity[securityId] = numSecurity[securityId] * (markToMarketHistorical(securityId, currentDate).amount)
+                    curValueSecurity[securityId] = numSecurity[securityId] * (HistValuation.objects.getHistValuation(securityId, currentDate).amount)
                 else:
                     # if all securities were sold, no longer need to update
                     if curValueSecurity[securityId] <= 0.0:
@@ -348,8 +362,13 @@ def updateSecurityValuation(owner):
                     },
                 )
         
-        # go to end of next month
-        currentDate = last_day_of_month(currentDate + timedelta(days=1))
+        # go to next date (15th of next month or last day of month)
+        if endOfMonth == True:
+            currentDate = mid_day_of_next_month(currentDate)
+            endOfMonth = False
+        else:
+            currentDate = last_day_of_month(currentDate)
+            endOfMonth = True
 
 def updateAccountValuation():
     # get date of last update of account valuations
@@ -387,8 +406,14 @@ def updateAccountValuation():
     numSecurity = [Decimal(0.0) for i in range(numSecurityObjects*numAccountObjects+1)]
     curValueSecurity = [Decimal(0.0) for i in range(numSecurityObjects*numAccountObjects+1)]
     baseValueSecurity = [Decimal(0.0) for i in range(numSecurityObjects*numAccountObjects+1)]
+
+    endOfMonth = True
+    if today.day > 15:
+        lastDay = last_day_of_month(today)
+    else:
+        lastDay = today.replace(day=15)
     
-    while currentDate <= last_day_of_month(today):
+    while currentDate <= lastDay:
         
         while not endOfTransactionList: 
             # advance iterator unless previous transaction was not processed
@@ -450,12 +475,12 @@ def updateAccountValuation():
                         if securityMtM[securityId] == True:
                             # if all securities were sold, no longer need to update
                             if numSecurity[positionId] <= 0.0:
-                                securityActive[positionId] = False;
-                            curValueSecurity[positionId] = numSecurity[positionId] * (markToMarketHistorical(securityId, currentDate).amount)
+                                securityActive[positionId] = False
+                            curValueSecurity[positionId] = numSecurity[positionId] * (HistValuation.objects.getHistValuation(securityId, currentDate).amount)
                         else:
                             # if all securities were sold, no longer need to update
                             if curValueSecurity[positionId] <= 0.0:
-                                securityActive[positionId] = False;
+                                securityActive[positionId] = False
                         
                         currency = Security.objects.get(pk=securityId).currency
                         curValueAccount = curValueAccount + Money(amount=curValueSecurity[positionId], currency=currency)
@@ -472,9 +497,13 @@ def updateAccountValuation():
                     },
                 )
         
-        # go to end of next month
-        currentDate = last_day_of_month(currentDate + timedelta(days=1))        
-
+        # go to next date (15th of next month or last day of month)
+        if endOfMonth == True:
+            currentDate = mid_day_of_next_month(currentDate)
+            endOfMonth = False
+        else:
+            currentDate = last_day_of_month(currentDate)
+            endOfMonth = True
 
 def makePieChartSegPerf(segPerf):
 # Prepare data for pie chart

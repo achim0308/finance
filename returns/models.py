@@ -13,7 +13,6 @@ from django.db.models import Sum
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
-from django.urls import reverse
 
 from .calc import Solver
 from .utilities import yearsago
@@ -516,7 +515,7 @@ class Transaction(models.Model):
 
 class HistValuationQuerySet(models.QuerySet):
     def security(self,securityID):
-        return self.filter(secrity=securityID)
+        return self.filter(security=securityID)
     
     def date(self,date):
         return self.filter(date__lte=date)
@@ -526,18 +525,18 @@ class HistValuationManager(models.Manager):
         return HistValuationQuerySet(self.model, using=self._db)
 
     def security(self,securityID):
-        return self.get_queryset.security(securityID)
+        return self.get_queryset().security(securityID)
     
     def date(self,date):
-        return self.get_queryset.date(date)
+        return self.get_queryset().date(date)
     
     def getHistValuation(self,securityID, date):
         try:
-            h = self.get_queryset.security(securityID).date(date).earliest('date')
+            h = self.get_queryset().security(securityID).date(date).latest('date')
             return h.value
         except ObjectDoesNotExist:
             try:
-                currency = Security.objects.get(id=securityID)
+                currency = Security.objects.get(id=securityID).currency
                 return Money(0.0,currency=currency)
             except ObjectDoesNotExist:
                 return Money(0.0,currency='EUR')
@@ -555,7 +554,7 @@ class HistValuation(models.Model):
                        decimal_places = 2,
                        default_currency='EUR')
     
-    objects = HistValuationManager
+    objects = HistValuationManager()
     
     def __str__(self):
         return "%s (%s): %s" % (self.security.name, self.date, self.value)
