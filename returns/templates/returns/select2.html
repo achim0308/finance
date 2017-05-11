@@ -3,25 +3,46 @@
 {% block add_body_block %}
 <h1>Restricted timeperiod</h1>
 
-{% if accounts %}
-<h2>Accounts</h2>
-<ul>
-{% for a in accounts %}
-<li><a href="{% url 'returns:account' a.id %}">{{ a.name }}</a></li>
-{% endfor %}
-</ul>
-{% else %}
-{% if securities %}
-<h2>Securities</h2>
-<ul>
-{% for s in securities %}
-<li><a href="{% url 'returns:security' s.id %}">{{ s.name }}</a>: {{ s.descrip }} </li>
-{% endfor %}
-</ul>
-{% endif %}
-{% endif %}
 {% if beginDate %}
 <h2>Time range</h2>
 <p>{{ beginDate }} through {{ endDate }}</p>
 {% endif %}
+
+<a href="#" onclick="toggle_visibility('selected-div');">
+{% if selected_kinds %}
+<h2>Selected kinds of securities</h2>
+{% elif selected_accounts %}
+<h2>Selected accounts</h2>
+{% elif selected_securities %}
+<h2>Selected securities</h2>
+{% endif %}
+</a>
+
+<div id="selected-div" style="display:none">
+<table class="table table-condensed" id="selected_perf">
+<thead>
+  <tr>
+    <th>Selection</th>
+    <th>Details</th>
+  </tr>
+</thead>
+<tbody>
+    {% if selected_kinds or selected_securities %}
+      {% for security in security_list %}
+      <tr>
+        <td>{{ security.name }}</td>
+	<td><a href="{% url 'returns:security' security.id %}"><span class="glyphicon glyphicon-info-sign"></span></a>&ensp;<a href="{% url 'returns:security_edit' security_id=security.id %}"><span class="glyphicon glyphicon-pencil"></span></a></td>
+      </tr>
+      {% endfor %}
+    {% else %}
+      {% for account in account_list %}
+      <tr>
+	<td scope="row">{{ account.name }}</a></td>
+        <td><a href="{% url 'returns:account' account.id %}"><span class="glyphicon glyphicon-info-sign"></span></a>&ensp;<a href="{% url 'returns:account_edit' account_id=account.id %}"><span class="glyphicon glyphicon-pencil"></span></a></td>
+      </tr>
+      {% endfor %}
+    {% endif %}
+</tbody>
+</table>
+</div>
 {% endblock add_body_block%}

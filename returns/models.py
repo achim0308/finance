@@ -655,12 +655,8 @@ class ValuationQuerySet(models.QuerySet):
                 'rInfY': performanceOverall['rate'],
                 'iInfY': performanceOverall['initial'],
                 'tInfY': performanceOverall['final']}
-        
-    
-    def getRateOfReturn(self, beginDate = None, endDate = None):
-        # calculate internal rate of return given the cashflows
 
-        # limit query set to date range given
+    def restrictDateRange(self, beginDate = None, endDate = None):
         qs = self.order_by('date')
         if endDate != None:
             qs = qs.filter(date__lte=endDate)
@@ -668,6 +664,14 @@ class ValuationQuerySet(models.QuerySet):
         if beginDate != None:
             qs = qs.filter(date__gte=beginDate)
 
+        return qs
+    
+    def getRateOfReturn(self, beginDate = None, endDate = None):
+        # calculate internal rate of return given the cashflows
+
+        # limit query set to date range given
+        qs = self.restrictDateRange(beginDate, endDate)
+        
         # aggregate values per date
         qs = qs.values('date').annotate(sumBaseValue=Sum('base_value'),
                                         sumCurValue=Sum('cur_value'))

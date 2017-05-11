@@ -197,28 +197,40 @@ def timeperiod(request):
                                            key=lambda tup:tup[1])
                           })
     else:
+        data = {}
+    
         # do calculations
         begin_date = datetime.strptime(begin_date, "%m/%d/%Y").date()
         end_date = datetime.strptime(end_date, "%m/%d/%Y").date()
+
+        data['beginDate'] = begin_date
+        data['endDate'] = end_date
         
         if selected_kind != []:
-            selected_security_list = Security.objects.kinds(selected_kind)
-            valuation = SecurityValuation.objects.filter(security_id__in=selected_security_list)
+            selected_security = Security.objects.kinds(selected_kind).order_by('kind')
+            valuation = SecurityValuation.objects.filter(security_id__in=selected_security)
+            data['selected_kinds'] = True
+            data['security_list'] = selected_security
         elif selected_account != []:
             valuation = AccountValuation.objects.filter(account_id__in=selected_account)
+            data['selected_account'] = True
+            data['acccount_list'] = selected_account
         elif selected_security != []:
             valuation = SecurityValuation.objects.filter(security_id__in=selected_security)
+            data['selected_security'] = True
+            data['security_list'] = selected_security
         else:
             return render(request, 'returns/select2.html', info)
 
-        data = {}
-    
         if request.user.is_superuser:
-            data['transaction_list'] = Transaction.thobjects2.transactionHistory()
+            data['transaction_list'] = Transaction.thobjects2.transactionHistory(beginDate = begin_date, endDate = end_date,
+                                                                                 securities = selected_security, accounts = selected_account)
         else:
             cur_user = request.user.id
             valuation = valuation.filter(owner_id=cur_user)
-            data['transaction_list'] = Transaction.thobjects2.transactionHistory(owner=cur_user)
+            data['transaction_list'] = Transaction.thobjects2.transactionHistory(beginDate = begin_date, endDate = end_date,
+                                                                                 securities = selected_security, accounts = selected_account,
+                                                                                 owner=cur_user)
     
         data['inflation'] = Inflation.objects.rateOfInflation(beginDate = begin_date, endDate = end_date)
 
@@ -226,6 +238,9 @@ def timeperiod(request):
         
         data['returns'] = rateOfReturn['rate']
         data['total'] = rateOfReturn['final']
+        data['valuation'] = valuation.restrictDateRange(beginDate = end_date + timedelta(days=-10), endDate = end_date + timedelta(days=10))
+
+        print(data)
         
         return render(request, 'returns/select2.html', data)
 
