@@ -80,11 +80,11 @@ def all_accounts(request):
     data = {}
     
     if request.user.is_superuser:
-        data['transaction_list'] = Transaction.thobjects2.transactionHistory()
+        data['transaction_list'] = Transaction.thobjects2.transactionHistory().select_related('security','account')
     else:
         cur_user = request.user.id
         valuation = valuation.filter(owner_id=cur_user)
-        data['transaction_list'] = Transaction.thobjects2.transactionHistory(owner=cur_user)
+        data['transaction_list'] = Transaction.thobjects2.transactionHistory(owner=cur_user).select_related('security','account')
     
     data['inflation'] = Inflation.objects.rateOfInflation()    
 
@@ -238,9 +238,6 @@ def timeperiod(request):
         
         data['returns'] = rateOfReturn['rate']
         data['total'] = rateOfReturn['final']
-        data['valuation'] = valuation.restrictDateRange(beginDate = end_date + timedelta(days=-10), endDate = end_date + timedelta(days=10))
-
-        print(data)
         
         return render(request, 'returns/select2.html', data)
 

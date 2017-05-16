@@ -34,7 +34,7 @@ SECURE_SSL_REDIRECT = config.getboolean('hosts', 'SECURE_SSL_REDIRECT')
 
 # Application definition
 
-INSTALLED_APPS = [
+INSTALLED_APPS = (
     'returns.apps.ReturnsConfig',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -45,11 +45,10 @@ INSTALLED_APPS = [
     'import_export',
     'djmoney',
     'django_countries', 
-#    'debug_toolbar',
     'django_nvd3',
-]
+)
 
-MIDDLEWARE_CLASSES = [
+MIDDLEWARE = (
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -58,7 +57,21 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-]
+)
+if DEBUG == True:
+    INSTALLED_APPS += (
+        'debug_toolbar',
+    )
+    MIDDLEWARE += (
+        'debug_toolbar.middleware.DebugToolbarMiddleware',
+    )
+    INTERNAL_IPS = ('127.0.0.1', 'localhost')
+    
+    def show_toolbar(request):
+        return True
+    
+    DEBUG_TOOLBAR_CONFIG = {'INTERCEPT_REDIRECTS' : False,
+                            'SHOW_TOOLBAR_CALLBACK': show_toolbar}
 
 ROOT_URLCONF = 'finance.urls'
 

@@ -193,7 +193,7 @@ class TransactionQuerySet(models.QuerySet):
         return self.filter(account_id__in = accounts)
     
     def recent(self):
-        return self.filter(date__gte = timezone.now()+timedelta(days=-30))
+        return self.filter(date__gte = timezone.now()+timedelta(days=-30)).select_related('security','account')
     
     def notCashflowRelevant(self):
     # remove transactions that are not relevant for cash flows, 
