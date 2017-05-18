@@ -193,8 +193,28 @@ class TransactionQuerySet(models.QuerySet):
         return self.filter(account_id__in = accounts)
     
     def recent(self):
-        return self.filter(date__gte = timezone.now()+timedelta(days=-30)).select_related('security','account')
-    
+        return self.filter(date__gte = timezone.now()+timedelta(days=-30)).select_related('security','account').order_by('date')
+
+    def transactionHistory(self, beginDate = None, endDate = None,
+                           securities = None, accounts = None, owner = None):
+        transactions = self.order_by('date')
+        if not beginDate is None:
+            transactions = transactions.beginDate(beginDate)
+        if not endDate is None:
+            transactions = transactions.endDate(endDate)
+        if not owner is None:
+            transactions = transactions.owner(owner)
+        if not securities is None:
+            transactions = transactions.securities(securities)
+        if not accounts is None:
+            transactions = transactions.accounts(accounts)
+        
+        return transactions
+
+    def transactionHistoryWithRelated(self, beginDate = None, endDate = None,
+                                      securities = None, accounts = None, owner = None):
+        return self.transactionHistory(beginDate, endDate, securities, accounts, owner).select_related('security','account')
+        
     def notCashflowRelevant(self):
     # remove transactions that are not relevant for cash flows, 
     # i.e., interest payments or company matches on securities that accumulate interest
@@ -227,27 +247,19 @@ class TransactionManager2(models.Manager):
         return TransactionQuerySet(self.model, using=self._db)
     
     def recent(self):
-        return self.get_queryset().recent().order_by('date')
+        return self.get_queryset().recent()
     
     def owner(self, ownerID):
         return self.get_queryset().owner(ownerID)
+
+    def transactionHistoryWithRelated(self, beginDate = None, endDate = None,
+                                      securities = None, accounts = None, owner = None):
+        return self.get_queryset().transactionHistoryWithRelated(beginDate, endDate, securities, accounts, owner)
     
     def transactionHistory(self, beginDate = None, endDate = None,
                            securities = None, accounts = None, owner = None):
-        transactions = self.get_queryset().order_by('date')
-        if not beginDate is None:
-            transactions = transactions.beginDate(beginDate)
-        if not endDate is None:
-            transactions = transactions.endDate(endDate)
-        if not owner is None:
-            transactions = transactions.owner(owner)
-        if not securities is None:
-            transactions = transactions.securities(securities)
-        if not accounts is None:
-            transactions = transactions.accounts(accounts)
+        return self.get_queryset().transactionHistory(beginDate, endDate, securities, accounts, owner)
         
-        return transactions
-    
     def cashflow(self, beginDate = None, endDate = None,
                        securities = None, accounts = None, owner = None):
     # sum daily cashflows of all transactions relevant for cashflows 

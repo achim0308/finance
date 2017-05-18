@@ -14,7 +14,7 @@ from django.db.models import Sum
 from moneyed import Money, get_currency
 
 from .models import Transaction, Account, Security, Inflation, SecurityValuation, AccountValuation
-from .processTransaction2 import constructCompleteInfo2, gatherData, addHistoricalPerformance, addSegmentPerformance, calcInterest, match, updateSecurityValuation, updateAccountValuation, getReturns, makeBarChartSegPerf, makePieChartSegPerf
+from .processTransaction2 import updateSecurityValuation, updateAccountValuation, makeBarChartSegPerf, makePieChartSegPerf
 from .forms import AccountForm, SecurityForm, TransactionForm, TransactionFormForSuperuser, HistValuationForm, AddInterestForm, AddInterestFormForSuperuser, InflationForm
 
 
@@ -53,7 +53,7 @@ def index(request):
             amount = security_valuations.filter(security_id=s.id).aggregate(Sum('cur_value'))['cur_value__sum']
             security_values[s.id] =  Money(
                 amount=amount,
-                currency=Security.objects.get(pk=s.id).currency
+                currency=s.currency
             )
         except:
             security_values[s.id] = Money(amount=0.0,currency='EUR')
@@ -80,11 +80,11 @@ def all_accounts(request):
     data = {}
     
     if request.user.is_superuser:
-        data['transaction_list'] = Transaction.thobjects2.transactionHistory().select_related('security','account')
+        data['transaction_list'] = Transaction.thobjects2.transactionHistoryWithRelated()
     else:
         cur_user = request.user.id
         valuation = valuation.filter(owner_id=cur_user)
-        data['transaction_list'] = Transaction.thobjects2.transactionHistory(owner=cur_user).select_related('security','account')
+        data['transaction_list'] = Transaction.thobjects2.transactionHistoryWithRelated(owner=cur_user)
     
     data['inflation'] = Inflation.objects.rateOfInflation()    
 
@@ -124,7 +124,7 @@ def account(request, account_id):
     data = {}
     data['account'] = account
     data['inflation'] = Inflation.objects.rateOfInflation()
-    data['transaction_list'] = Transaction.thobjects2.transactionHistory(accounts=[account_id])
+    data['transaction_list'] = Transaction.thobjects2.transactionHistoryWithRelated(accounts=[account_id])
 
     data['histPerf'] = valuation.getHistoricalRateOfReturn()
     data['histPerf'].update(Inflation.objects.getHistoricalRateOfInflation())
@@ -145,11 +145,11 @@ def security(request, security_id):
     data['inflation'] = Inflation.objects.rateOfInflation()
     
     if request.user.is_superuser:
-        data['transaction_list'] = Transaction.thobjects2.transactionHistory(securities=[security.id])
+        data['transaction_list'] = Transaction.thobjects2.transactionHistoryWithRelated(securities=[security.id])
     else:
         cur_user = request.user.id
         valuation = valuation.filter(owner_id=cur_user)
-        data['transaction_list'] = Transaction.thobjects2.transactionHistory(securities=[security.id], owner=cur_user)
+        data['transaction_list'] = Transaction.thobjects2.transactionHistoryWithRelated(securities=[security.id], owner=cur_user)
 
     data['histPerf'] = valuation.getHistoricalRateOfReturn()
     data['histPerf'].update(Inflation.objects.getHistoricalRateOfInflation())
@@ -206,16 +206,16 @@ def timeperiod(request):
         data['beginDate'] = begin_date
         data['endDate'] = end_date
         
-        if selected_kind != []:
+        if selected_kind is not None:
             selected_security = Security.objects.kinds(selected_kind).order_by('kind')
             valuation = SecurityValuation.objects.filter(security_id__in=selected_security)
             data['selected_kinds'] = True
             data['security_list'] = selected_security
-        elif selected_account != []:
+        elif selected_account is not None:
             valuation = AccountValuation.objects.filter(account_id__in=selected_account)
             data['selected_account'] = True
             data['acccount_list'] = selected_account
-        elif selected_security != []:
+        elif selected_security is not None:
             valuation = SecurityValuation.objects.filter(security_id__in=selected_security)
             data['selected_security'] = True
             data['security_list'] = selected_security
@@ -223,13 +223,17 @@ def timeperiod(request):
             return render(request, 'returns/select2.html', info)
 
         if request.user.is_superuser:
-            data['transaction_list'] = Transaction.thobjects2.transactionHistory(beginDate = begin_date, endDate = end_date,
-                                                                                 securities = selected_security, accounts = selected_account)
+            data['transaction_list'] = Transaction.thobjects2\
+                                                  .transactionHistoryWithRelated(beginDate = begin_date, endDate = end_date,
+                                                                                 securities = selected_security,
+                                                                                 accounts = selected_account)
         else:
             cur_user = request.user.id
             valuation = valuation.filter(owner_id=cur_user)
-            data['transaction_list'] = Transaction.thobjects2.transactionHistory(beginDate = begin_date, endDate = end_date,
-                                                                                 securities = selected_security, accounts = selected_account,
+            data['transaction_list'] = Transaction.thobjects2\
+                                                  .transactionHistoryWithRelated(beginDate = begin_date, endDate = end_date,
+                                                                                 securities = selected_security,
+                                                                                 accounts = selected_account,
                                                                                  owner=cur_user)
     
         data['inflation'] = Inflation.objects.rateOfInflation(beginDate = begin_date, endDate = end_date)
