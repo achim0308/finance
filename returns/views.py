@@ -97,22 +97,24 @@ def all_accounts(request):
     # need to calculate information sector specific
     data['segPerf'] = {}
     total = 0
-    for kind in Security.SEC_KIND_CHOICES:
-        securities = Security.objects.kinds([kind[0]])
-        valuation = SecurityValuation.objects.filter(security__in=securities)
-        data['segPerf'][kind[1]] = valuation.getHistoricalRateOfReturn()
-        total = total + float(data['segPerf'][kind[1]]['tYTD'].amount)
+    try:
+        for kind in Security.SEC_KIND_CHOICES:
+            securities = Security.objects.kinds([kind[0]])
+            valuation1 = valuation.filter(security__in=securities)
+            data['segPerf'][kind[1]] = valuation1.getHistoricalRateOfReturn()
+            total = total + float(data['segPerf'][kind[1]]['tYTD'].amount)
+            
+        for kind in Security.SEC_KIND_CHOICES:
+            data['segPerf'][kind[1]]['frac'] = float(data['segPerf'][kind[1]]['tYTD'].amount) / total * 100.0
+    
+        # Prepare data for pie chart
+        data['chart_asset_alloc'] = makePieChartSegPerf(data['segPerf'])
+        
+        # prepare data for bar chart
+        data['chart_asset_perf'] = makeBarChartSegPerf(data['segPerf'])
 
-    for kind in Security.SEC_KIND_CHOICES:
-        data['segPerf'][kind[1]]['frac'] = float(data['segPerf'][kind[1]]['tYTD'].amount) / total * 100.0
-
-    # need to add function for charts
-
-    # Prepare data for pie chart
-    data['chart_asset_alloc'] = makePieChartSegPerf(data['segPerf'])
-
-    # prepare data for bar chart
-    data['chart_asset_perf'] = makeBarChartSegPerf(data['segPerf'])
+    except:
+        data['segPerf'] = None
     
     return render(request, 'returns/all_accounts.html', data)
 
