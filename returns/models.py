@@ -752,46 +752,49 @@ class ValuationQuerySet(models.QuerySet):
     
     def makeChart(self):
         # Collects information and processes it to show chart of valuation
-        # requires queryset 
-        valuations = self.order_by('date')
+        # requires queryset
+        try:
+            valuations = self.order_by('date')
         
-        xdata=[]
-        y1data=[]
-        y2data=[]
-        currency = self.last().cur_value.currency
-        for v in valuations:
-            # must convert date to integer
-            xdata.append(int(mktime(v.date.timetuple())*1000))
-            # must convert Decimal to float
-            y1data.append(float(v.cur_value.amount))
-            y2data.append(float(v.base_value.amount))
-        
-        tooltip_date = "%b %Y"
-        extra_serie={
-            "tooltip": {"y_start": "", "y_end": currency},
-            "date_format": tooltip_date
-        }
-        
-        chartdata = {
-            'x': xdata,
-            'name1': 'Actual value', 'y1': y1data, 'extra1': extra_serie,
-            'name2': 'Inflow - outflows', 'y2': y2data, 'extra2': extra_serie,
-        }
-        charttype = "lineWithFocusChart"
-        chartcontainer = 'asset_history'
-        data = {
-            'charttype': charttype,
-            'chartdata': chartdata,
-            'chartcontainer': chartcontainer,
-            'extra': {
-                'x_is_date': True,
-                'x_axis_format': '%b %Y',
-                'tag_script_js': True,
-                'jquery_on_ready': False,
+            xdata=[]
+            y1data=[]
+            y2data=[]
+            currency = self.last().cur_value.currency
+            for v in valuations:
+                # must convert date to integer
+                xdata.append(int(mktime(v.date.timetuple())*1000))
+                # must convert Decimal to float
+                y1data.append(float(v.cur_value.amount))
+                y2data.append(float(v.base_value.amount))
+            
+            tooltip_date = "%b %Y"
+            extra_serie={
+                "tooltip": {"y_start": "", "y_end": currency},
+                "date_format": tooltip_date
             }
-        }
+            
+            chartdata = {
+                'x': xdata,
+                'name1': 'Actual value', 'y1': y1data, 'extra1': extra_serie,
+                'name2': 'Inflow - outflows', 'y2': y2data, 'extra2': extra_serie,
+            }
+            charttype = "lineWithFocusChart"
+            chartcontainer = 'asset_history'
+            data = {
+                'charttype': charttype,
+                'chartdata': chartdata,
+                'chartcontainer': chartcontainer,
+                'extra': {
+                    'x_is_date': True,
+                    'x_axis_format': '%b %Y',
+                    'tag_script_js': True,
+                    'jquery_on_ready': False,
+                }
+            }
         
-        return data
+            return data
+        except:
+            return None
 
 class ValuationManager(models.Manager):
     def get_queryset(self):
