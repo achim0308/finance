@@ -164,6 +164,7 @@ def updateAccountValuation():
     numAccountObjects = Account.objects.order_by('id').last().id
     accountActive = [False for i in range(numAccountObjects+1)]
     securityActive = [False for i in range(numSecurityObjects*numAccountObjects+1)]
+    securityEverActive = [False for i in range(numSecurityObjects*numAccountObjects+1)]
     securityMtM = [False for i in range(numSecurityObjects+1)]
     numSecurity = [Decimal(0.0) for i in range(numSecurityObjects*numAccountObjects+1)]
     curValueSecurity = [Decimal(0.0) for i in range(numSecurityObjects*numAccountObjects+1)]
@@ -198,6 +199,7 @@ def updateAccountValuation():
             tAccountId = t.account.id
             tPosition = tSecurityId + (tAccountId-1)*numSecurityObjects
             securityActive[tPosition] = True
+            securityEverActive[tPosition] = True
             accountActive[tAccountId] = True
             
             # update base value
@@ -247,10 +249,18 @@ def updateAccountValuation():
                         
                         if currencySecurity[securityId] == '':
                             currencySecurity[securityId] = Security.objects.get(pk=securityId).currency
+                        
                         curValueAccount = curValueAccount + Money(amount=curValueSecurity[positionId],
                                                                   currency=currencySecurity[securityId])
                         baseValueAccount = baseValueAccount + Money(amount=baseValueSecurity[positionId],
                                                                     currency=currencySecurity[securityId])
+                    elif securityEverActive[positionId] == True:
+                        curValueAccount = curValueAccount + Money(amount=curValueSecurity[positionId],
+                                                                  currency=currencySecurity[securityId])
+                        baseValueAccount = baseValueAccount + Money(amount=baseValueSecurity[positionId],
+                                                                    currency=currencySecurity[securityId])
+                    #if accountId == 8:
+                    #    print(currentDate, accountId, securityId, curValueAccount, baseValueAccount)
                         
                 # store information, update record if possible
                 s, created = AccountValuation.objects.update_or_create(
