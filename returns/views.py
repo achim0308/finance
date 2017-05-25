@@ -382,10 +382,12 @@ def add_hist_data(request):
     # get current quote
     Security.objects.saveCurrentMarkToMarketValue()
     # update security and account valuations
-    for u in User.objects.all():
-        updateSecurityValuation(u)
+    #for u in User.objects.all():
+    #    updateSecurityValuation(u)
     updateAccountValuation()
-    return redirect('returns:index')
+
+    return render(request, 'returns/add_hist_data.html')   
+#    return redirect('returns:index')
 
 @login_required
 def inflation(request, inflation_id):

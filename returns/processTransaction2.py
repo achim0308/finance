@@ -1,3 +1,5 @@
+from django.db import transaction
+
 from decimal import *
 from datetime import date
 from moneyed import Money, get_currency
@@ -11,7 +13,7 @@ def updateSecurityValuation(owner):
     except:
          lastUpdate = date(1900,1,1)
     # find transactions that have been added since
-    transactionList = Transaction.objects.filter(owner=owner,modifiedDate__gte=lastUpdate).order_by('date')
+    transactionList = Transaction.objects.filter(owner=owner,modifiedDate__gte=lastUpdate).order_by('date').select_related('security')
 
     today = date.today()
 
@@ -36,17 +38,18 @@ def updateSecurityValuation(owner):
     
     # populate using existing data
     for s in Security.objects.all():
+        sID = s.id
         try:
             secValuation = SecurityValuation.objects.filter(owner=owner, date__lte=lastUpdate, security=s).order_by('-date').first()
-            numSecurity[s.id] = secValuation.sum_num
-            curValueSecurity[s.id] = secValuation.cur_value.amount
-            baseValueSecurity[s.id] = secValuation.base_value.amount
-            securityActive[s.id] = True
-            currencySecurity[s.id] = s.currency
+            numSecurity[sID] = secValuation.sum_num
+            curValueSecurity[sID] = secValuation.cur_value.amount
+            baseValueSecurity[sID] = secValuation.base_value.amount
+            securityActive[sID] = True
+            currencySecurity[sID] = s.currency
             if s.markToMarket == True:
                 securityMtM = True
         except:
-            currencySecurity[s.id] = 'EUR'
+            currencySecurity[sID] = 'EUR'
             pass
 
 
@@ -74,7 +77,7 @@ def updateSecurityValuation(owner):
                 previousTransactionNotProcessed = True
                 break
             # process current transaction record
-            tSecurityId = t.security.id
+            tSecurityId = t.security_id
             securityActive[tSecurityId] = True
             
             # update base value
@@ -139,7 +142,7 @@ def updateAccountValuation():
     except:
          lastUpdate = date(1900,1,1)
     # find transactions that have been added since
-    transactionList = Transaction.objects.filter(modifiedDate__gte=lastUpdate).order_by('date')
+    transactionList = Transaction.objects.filter(modifiedDate__gte=lastUpdate).order_by('date').select_related('security')
 
     today = date.today()
 
@@ -170,6 +173,13 @@ def updateAccountValuation():
     curValueSecurity = [Decimal(0.0) for i in range(numSecurityObjects*numAccountObjects+1)]
     baseValueSecurity = [Decimal(0.0) for i in range(numSecurityObjects*numAccountObjects+1)]
     currencySecurity = ['' for i in range(numSecurityObjects+1)]
+    for s in Security.objects.all():
+        currencySecurity[s.id] = s.currency
+    currencyAccount = ['' for i in range(numAccountObjects+1)]
+    for a in Account.objects.all():
+       currencyAccount[a.id] = a.currency
+
+
 
     endOfMonth = True
     if today.day > 15:
@@ -195,8 +205,8 @@ def updateAccountValuation():
                 previousTransactionNotProcessed = True
                 break
             # process current transaction record
-            tSecurityId = t.security.id
-            tAccountId = t.account.id
+            tSecurityId = t.security_id
+            tAccountId = t.account_id
             tPosition = tSecurityId + (tAccountId-1)*numSecurityObjects
             securityActive[tPosition] = True
             securityEverActive[tPosition] = True
@@ -227,9 +237,8 @@ def updateAccountValuation():
         for accountId in range(1,numAccountObjects+1):
             # check if account is active
             if accountActive[accountId] == True:
-                currency = Account.objects.get(pk=accountId).currency
-                curValueAccount = Money(amount=0.0, currency=currency)
-                baseValueAccount = Money(amount=0.0, currency=currency)
+                curValueAccount = Money(amount=0.0, currency=currencyAccount[accountId])
+                baseValueAccount = Money(amount=0.0, currency=currencyAccount[accountId])
                 
                 # loop over securities
                 for securityId in range(1,numSecurityObjects+1):
@@ -246,10 +255,7 @@ def updateAccountValuation():
                             # if all securities were sold, no longer need to update
                             if curValueSecurity[positionId] <= 0.0:
                                 securityActive[positionId] = False
-                        
-                        if currencySecurity[securityId] == '':
-                            currencySecurity[securityId] = Security.objects.get(pk=securityId).currency
-                        
+                                                
                         curValueAccount = curValueAccount + Money(amount=curValueSecurity[positionId],
                                                                   currency=currencySecurity[securityId])
                         baseValueAccount = baseValueAccount + Money(amount=baseValueSecurity[positionId],
