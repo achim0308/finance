@@ -577,7 +577,7 @@ class HistValuation(models.Model):
 class InflationManager(models.Manager):
     def getHistoricalRateOfInflation(self):
         # calculate inflation rate for multiple time periods
-        today = timezone.now().date()
+        today = last_day_of_month(timezone.now().date())
         thisYear = date(today.year,1,1)
         prevYear = yearsago(1)
         fiveYear = yearsago(5)
