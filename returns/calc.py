@@ -46,7 +46,13 @@ class Solver():
     def __init__(self):
         self.cashflowList = {}
         self.date0 = date(2000,1,1)
-    
+
+    def __str__(self):
+        s = ""
+        for d in self.cashflowList:
+            s += str(d)  + ": " + str(self.cashflowList[d]) + "\n"
+        return s
+        
     def addCashflow(self,cashflow, date):
         if len(self.cashflowList) == 0:
             self.date0 = date

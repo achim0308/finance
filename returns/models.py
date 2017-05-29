@@ -15,7 +15,7 @@ from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 
 from .calc import Solver
-from .utilities import yearsago
+from .utilities import yearsago, last_day_of_month
 
 import requests
 
@@ -645,7 +645,8 @@ class ValuationQuerySet(models.QuerySet):
     def getHistoricalRateOfReturn(self):
         # calculate internal rate of return for multiple time periods
 
-        today = timezone.now().date()
+        # go to end of the month to ensure that all transactions have been captured
+        today = last_day_of_month(timezone.now().date())
         thisYear = date(today.year,1,1)
         prevYear = yearsago(1)
         fiveYear = yearsago(5)
