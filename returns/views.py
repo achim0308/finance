@@ -23,7 +23,7 @@ def index(request):
     account_list = Account.objects.order_by('name')
     
     security_list = Security.objects.order_by('kind','name')
-    security_valuations = SecurityValuation.objects.filter(date__gte=timezone.now())
+    security_valuations = SecurityValuation.objects.mostRecent()
     
     transaction_list = Transaction.thobjects2.recent()
     
@@ -42,7 +42,7 @@ def index(request):
     account_values = {}
     for a in account_list:
         try:
-            account_values[a.id] = AccountValuation.objects.filter(account_id=a).order_by('-date')[0].cur_value
+            account_values[a.id] = AccountValuation.objects.filter(account_id=a.id).order_by('-date')[0].cur_value
         except:
             account_values[a.id] = Money(amount=0.0,currency='EUR')
     

@@ -642,6 +642,9 @@ def dict_cursor(cursor):
             for row in cursor.fetchall()]
 
 class ValuationQuerySet(models.QuerySet):
+    def mostRecent(self):
+        return self.filter(date__gte=timezone.now())#.order_by('-date')
+    
     def getHistoricalRateOfReturn(self):
         # calculate internal rate of return for multiple time periods
 
@@ -800,6 +803,9 @@ class ValuationQuerySet(models.QuerySet):
 class ValuationManager(models.Manager):
     def get_queryset(self):
         return ValuationQuerySet(self.model, using=self._db)
+
+    def mostRecent(self):
+        return self.get_queryset().mostRecent()
     
     def getRateOfReturn(self, beginDate = None, endDate = None):
         return self.get_queryset().getRateOfReturn(beginDate, endDate)
