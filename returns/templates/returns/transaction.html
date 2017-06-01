@@ -21,10 +21,10 @@ Dividend payment:
 EUR {{ transaction.cashflow }}
 
 {% if transaction.expenses > 0 %}
-<p><strong>Expenses: </strong>EUR {{ transaction.expenses }}</p>
+<p><strong>Expenses: </strong> {{ transaction.expenses }}</p>
 {% endif %}
 {% if transaction.tax > 0 %}
-<p><strong>Tax: </strong> EUR{{ transaction.tax }}</p>
+<p><strong>Tax: </strong> {{ transaction.tax }}</p>
 {% endif %}
 
 {% endblock body_block %}

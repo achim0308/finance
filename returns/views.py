@@ -156,7 +156,10 @@ def security(request, security_id):
     data['histPerf'] = valuation.getHistoricalRateOfReturn()
     data['histPerf'].update(Inflation.objects.getHistoricalRateOfInflation())
 
-    data['cur_num'] = valuation.order_by('date').last().sum_num.normalize
+    try:
+        data['cur_num'] = valuation.order_by('date').last().sum_num.normalize
+    except:
+        pass
     data['returns'] = data['histPerf']['rInfY']
     data['total'] = data['histPerf']['tInfY']
 
