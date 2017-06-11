@@ -10,11 +10,6 @@
 
 {% load staticfiles %}
 
-<link rel="stylesheet" type="text/css" href="{% static 'returns/css/jquery-tablesorter/theme.bootstrap.css'%}"/>
-
-<script type="text/javascript" src="{% static 'returns/js/jquery.tablesorter.js'%} "></script>
-<script type="text/javascript" src="{% static 'returns/js/jquery.tablesorter.widgets.js'%} "></script>
-
 {% if segPerf or chart_asset_history %}
 <link rel="stylesheet" type="text/css" href="{% static 'returns/css/nv.d3.min.css'%}"/>
 <script type="text/javascript" src="{% static 'returns/js/d3.min.js'%} "></script>
@@ -33,20 +28,6 @@
 
 {% endif %}
 {% endif %}
-<script language="javascript">
-<!--$(document).ready(function()
-  {
-    $("#transaction-history").tablesorter(
-      {
-        headerTemplate: '{content} {icon}',
-        dateFormat: 'mmddyyyy',
-        widgets: ['uitheme'],
-        theme: 'bootstrap'
-      });
-  }
-);
--->
-</script>
 
 {% load djmoney %}
 
