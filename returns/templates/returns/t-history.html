@@ -13,12 +13,12 @@
     <tbody>
       {% for transaction in transaction_list %}
       <tr>
-	<th scope="row">{{ transaction.date }}</th>
+	<th scope="row"><a href="{% url 'returns:transaction' transaction.id %}">{{ transaction.date }}</a></th>
 	<td>{{ transaction.get_kind_display|title }}</td>
-	<td>{{ transaction.account.name }}</td>
-	<td>{{ transaction.security.descrip }}</td>
+	<td><a href="{% url 'returns:account' transaction.account_id %}">{{ transaction.account.name }}</a></td>
+	<td><a href="{% url 'returns:security' transaction.security_id %}">{{ transaction.security.descrip }}</a></td>
 	<td class="text-right">{{ transaction.cashflow }}</td>
-	<td><a href="{% url 'returns:transaction' transaction.id %}"><span class="glyphicon glyphicon-info-sign"></span></a>&ensp;<a href="{% url 'returns:transaction_edit' transaction_id=transaction.id %}"><span class="glyphicon glyphicon-pencil"></span></a></td>
+	<td><a href="{% url 'returns:transaction_edit' transaction_id=transaction.id %}"><span class="glyphicon glyphicon-pencil"></span></a></td>
       </tr>
       {% endfor %}
     </tbody>

@@ -10,6 +10,7 @@
     <link rel="stylesheet" type="text/css" href="{% static 'returns/css/bootstrap-theme.min.css' %}"/>
     <link rel="stylesheet" type="text/css" href="{% static 'returns/css/returns.css' %}"/>
     <script type="text/javascript" src="{% static 'returns/js/jquery-2.2.1.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'returns/js/bootstrap.min.js' %}"></script>
     {% block header_block %}{% endblock %}
 
     <script language="javascript">
@@ -26,39 +27,56 @@
  <body>
    <div class="container">
      <div class="page-header">
-       <h1><a href="/">Finance portal</a></h1>
+       <h1>Finance portal</h1>
      </div>
-     <div id="nav-bar">
-       {% if user.is_authenticated %}
-       <ul>
-	 <li class="topmenu">
-	   <a href="{% url 'returns:index' %}" style="width: 40px;"><span class="glyphicon glyphicon-home"></span></a>
-	 </li>
-	 <li class="topmenu">
-	   <a href=""><span class="glyphicon glyphicon-plus-sign"></span></a>
-	   <ul>
-	     <li class="submenu"><a href="{% url 'returns:add_hist_data' %}">Add market data</a></li>
-	     <li class="submenu"><a href="{% url 'returns:transaction_new' %}">Add transaction</a></li>
-	     <li class="submenu"><a href="{% url 'returns:security_new' %}">Add security</a></li>
-	     <li class="submenu"><a href="{% url 'returns:account_new' %}">Add account</a></li>
-	     <li class="submenu"><a href="{% url 'returns:inflation_new' %}">Add inflation data</a></li>
+     <nav class="navbar navbar-default">
+       <div class="container-fluid">
+	 <!-- Brand and toggle get grouped for better mobile display -->
+	 {% if user.is_authenticated %}
+         <div class="navbar-header">
+	   <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#main-navbar-collapse" aria-expanded="false">
+	     <span class="sr-only">Toggle navigation</span>
+	     <span class="icon-bar"></span>
+	     <span class="icon-bar"></span>
+	     <span class="icon-bar"></span>
+	   </button>
+	   <a class="navbar-brand" href="{% url 'returns:index' %}">Home</a>
+	 </div>
+
+	 <!-- Collect the nav links, forms, and other content for toggling -->
+	 <div class="collapse navbar-collapse" id="main-navbar-collapse">
+	   <ul class="nav navbar-nav">
+	     <li class="dropdown">
+	       <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Add <span class="caret"></span></a>
+	       <ul class="dropdown-menu">
+		 <li><a href="{% url 'returns:transaction_new' %}">New Transaction</a></li>
+		 <li><a href="{% url 'returns:security_new' %}">New Security</a></li>
+		 <li><a href="{% url 'returns:account_new' %}">New Account</a></li>
+		 <li role="separator" class="divider"></li>
+		 <li><a href="{% url 'returns:inflation_new' %}">Inflation data</a></li>
+		 <li role="separator" class="divider"></li>
+		 <li><a href="{% url 'returns:add_hist_data' %}">Market data</a></li>
+	       </ul>
+	     </li>
+	     <li class="dropdown">
+	       <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Analyse <span class="caret"></span></a>
+	       <ul class="dropdown-menu">
+		 <li><a href="{% url 'returns:all_accounts' %}">All</a></li>
+		 <li><a href="{% url 'returns:timeperiod' %}">Restricted</a></li>
+	       </ul>
+	     </li>
 	   </ul>
-	 </li>
-	 <li class="topmenu">
-	   <a href=""><span class="glyphicon glyphicon-stats"></span></a>
-	   <ul>
-	     <li class="submenu"><a href="{% url 'returns:all_accounts' %}">All</a></li>
-	     <li class="submenu"><a href="{% url 'returns:timeperiod' %}">Restricted</a></li>
+	   <ul class="nav navbar-nav navbar-right">
+	     <li><a href="{% url 'logout' %}?next=/">Logout</a></li>
 	   </ul>
-	 </li>
-	 <li class="topmenu">
-	   <a href="{% url 'logout' %}?next=/" style="width: 40px;"><span class="glyphicon glyphicon-log-out"></span></a>
-	 </li>
-       </ul>
-       {% else %}
-       <a href="{% url 'login' %}"><span class="glyphicon glyphicon-log-in"></span></a>       
-       {% endif %}
-     </div>
+	 </div><!-- /.navbar-collapse -->
+	 {% else %}
+	 <div class="navbar-header">
+	   <a class="navbar-brand" href="{% url 'login' %}">Login</a>
+	 </div>
+	 {% endif %}
+       </div><!-- /.container-fluid -->
+     </nav>
      <div class="content">
        {% block body_block%}{% endblock %}
      </div>
