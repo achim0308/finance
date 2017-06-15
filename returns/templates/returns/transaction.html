@@ -1,15 +1,20 @@
 {% extends 'returns/base.html' %}
 {% block title_block %} Transaction #{{ transaction.id }}{% endblock title_block %}
 {% block body_block %}
-<h1>Transaction {{ transaction.id }}  details</h1>
+<h1>Transaction {{ transaction.id }} details &ensp;<a class="btn
+btn-default btn-sm" href="{% url 'returns:transaction_edit' transaction_id=transaction.id %}" role="button"><span class="glyphicon glyphicon-pencil"></span></a></h1>
 
-<p><strong>Date: </strong>{{ transaction.date }}&ensp;<a href="{% url 'returns:transaction_edit' transaction_id=transaction.id %}"><span class="glyphicon glyphicon-pencil"></span></a></p>
+<p><strong>Date: </strong>{{ transaction.date }}
+
+<p><strong>Account: </strong><a href="{% url 'returns:security' transaction.account.id %}">{{ transaction.account.name }}</a>
+<p><strong>Security: </strong><a href="{% url 'returns:security' transaction.security.id %}">{{ transaction.security.descrip }}</a> ({{ transaction.security.name }})</p>
+
 <p>
 {% if transaction.kind == "BU" %}
-Buy {{ transaction.num_transacted }}
+Buy{% if transaction.num_transacted > 0.0 %} {{ transaction.num_transacted|floatformat }}{%endif %}:
 {% endif %}
 {% if transaction.kind == "SE" %}
-Sell {{ transaction.num_transacted }}
+Sell{% if transaction.num_transacted < 0.0 %} {{ transaction.num_transacted|floatformat }}{%endif %}:
 {% endif %}
 {% if transaction.kind == "IN" %}
 Interest payment:
@@ -17,8 +22,8 @@ Interest payment:
 {% if transaction.kind == "DI" %}
 Dividend payment:
 {% endif %}
-<a href="{% url 'returns:security' transaction.security.id %}">{{ transaction.security.name }}</a>:
-EUR {{ transaction.cashflow }}
+{{ transaction.cashflow }}
+</p>
 
 {% if transaction.expenses > 0 %}
 <p><strong>Expenses: </strong> {{ transaction.expenses }}</p>

@@ -14,7 +14,6 @@
     {% block header_block %}{% endblock %}
 
     <script language="javascript">
-
       function toggle_visibility(id) {
       var e = document.getElementById(id);
       if (e.style.display == "block")
@@ -77,9 +76,7 @@
 	 {% endif %}
        </div><!-- /.container-fluid -->
      </nav>
-     <div class="content">
-       {% block body_block%}{% endblock %}
-     </div>
+     {% block body_block%}{% endblock %}
      <div class="footer">
        <small>&#169; 2016-{% now "Y" %} - A. Wechsung</small>
      </div>
