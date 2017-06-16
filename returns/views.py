@@ -234,7 +234,8 @@ def timeperiod(request):
                                                                                  accounts = selected_account)
         else:
             cur_user = request.user.id
-            valuation = valuation.filter(owner_id=cur_user)
+            if not data['selected_account'] == True:
+                valuation = valuation.filter(owner=cur_user)
             data['transaction_list'] = Transaction.thobjects2\
                                                   .transactionHistoryWithRelated(beginDate = begin_date, endDate = end_date,
                                                                                  securities = selected_security,
