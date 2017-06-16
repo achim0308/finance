@@ -289,13 +289,13 @@ def updateAccountValuation():
 
 def makePieChartSegPerf(segPerf):
 # Prepare data for pie chart
-    listOfAssets = []
     xdata = []
+    ydata = []
     for kind in Security.SEC_KIND_CHOICES:
-        listOfAssets.append(kind[1])
-        xdata.append(kind[1])
-    ydata = [float(segPerf[s]['tYTD'].amount) for s in listOfAssets]
-    
+        if not segPerf[kind[1]] == 0:
+            ydata.append(float(segPerf[kind[1]]['tYTD'].amount))
+            xdata.append(kind[1])
+
     chartdata = {'x': xdata, 'y1': ydata}
     charttype = 'pieChart'
     chartcontainer = 'asset_allocation'
@@ -314,27 +314,26 @@ def makePieChartSegPerf(segPerf):
     }
 
 def makeBarChartSegPerf(segPerf):
-    listOfAssets = []
+    # get all categories with non-zero values
     catdata = []
     for kind in Security.SEC_KIND_CHOICES:
-        listOfAssets.append(kind[1])
-        catdata.append(kind[1])
+        if not segPerf[kind[1]] == 0:
+            catdata.append(kind[1])
+
     xdata = ["YTD", "1 Yr", "5 Yrs", "Overall"]
     listOfTimes = ["rYTD", "r1Y", "r5Y", "rInfY"]
-    
-    ydata = {}
-    for s in listOfAssets:
-        ydata[s] = [segPerf[s][t] for t in listOfTimes]
 
     chartdata = {
         'x': xdata,
-        'name1': catdata[0], 'y1': ydata[listOfAssets[0]],
-        'name2': catdata[1], 'y2': ydata[listOfAssets[1]],
-        'name3': catdata[2], 'y3': ydata[listOfAssets[2]],
-        'name4': catdata[3], 'y4': ydata[listOfAssets[3]],
-        'name5': catdata[4], 'y5': ydata[listOfAssets[4]],
-        'name6': catdata[5], 'y6': ydata[listOfAssets[5]],
     }
+    
+    ydata = {}
+    i = 1
+    for s in catdata:
+        ydata[s] = [segPerf[s][t] for t in listOfTimes]
+        chartdata["name"+str(i)]=s
+        chartdata["y"+str(i)]=ydata[s]
+        i = i+1
 
     charttype = 'multiBarHorizontalChart'
     chartcontainer = 'asset_performance'

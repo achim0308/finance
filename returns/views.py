@@ -102,10 +102,17 @@ def all_accounts(request):
             securities = Security.objects.kinds([kind[0]])
             valuation1 = valuation.filter(security__in=securities)
             data['segPerf'][kind[1]] = valuation1.getHistoricalRateOfReturn()
-            total = total + float(data['segPerf'][kind[1]]['tYTD'].amount)
+            # only store if there is a current value to store
+            try:
+                total = total + float(data['segPerf'][kind[1]]['tYTD'].amount)
+            except:
+                pass
             
         for kind in Security.SEC_KIND_CHOICES:
-            data['segPerf'][kind[1]]['frac'] = float(data['segPerf'][kind[1]]['tYTD'].amount) / total * 100.0
+            try:
+                data['segPerf'][kind[1]]['frac'] = float(data['segPerf'][kind[1]]['tYTD'].amount) / total * 100.0
+            except:
+                data['segPerf'][kind[1]] = 0
     
         # Prepare data for pie chart
         data['chart_asset_alloc'] = makePieChartSegPerf(data['segPerf'])
