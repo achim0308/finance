@@ -1,26 +1,35 @@
 {% extends "returns/base.html" %}
 
+{% block preheader_block %}
+{% load registration-filter %}
+{% endblock preheader_block%}
+
 {% block body_block %}
 
 {% if form.errors %}
-<p>Your username and password didn't match. Please try again.</p>
+<div class="alert alert-danger">
+  <p><strong>Oh snap!</strong> Please enter a correct username and password. Note that both fields are case-sensitive.</p>
+</div>
 {% endif %}
 
-<form method="post" action="{% url 'login' %}">
+<form class="form-horizontal" method="post" action="{% url 'login' %}" role="form">
 {% csrf_token %}
-<table>
-<tr>
-  <td>{{ form.username.label_tag }}</td>
-  <td>{{ form.username }}</td>
-</tr>
-<tr>
-  <td>{{ form.password.label_tag }}</td>
-  <td>{{ form.password }}</td>
-</tr>
-</table>
 
-<input type="submit" value="login" />
-<input type="hidden" name="next" value="{{ next }}" />
+  <div class="form-group">
+    {% for field in form %}
+      <div class="form-group {% if field.errors %}has-error{% endif %}">
+        <label for="{{ field.id_for_label }}" class="col-sm-2 control-label">{{ field.label }}</label>
+          <div class="col-sm-6 ">
+            {{ field|add_class:'form-control' }}
+        </div>
+      </div>
+    {% endfor %}
+  <div class="form-group">
+    <div class="col-sm-offset-2 col-sm-6">
+      <button type="submit" class="btn btn-default">Sign in</button>
+    </div>
+  </div>
+  <input type="hidden" name="next" value="{{ next }}" />
 </form>
 
 {% endblock body_block %}
