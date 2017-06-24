@@ -82,8 +82,10 @@ def updateSecurityValuation(owner):
             
             # update base value
             # treat accumulated interest or matched contributions separately
+            # also exclude write downs
             # -cashflow b/c sign convention for cashflows
-            if not (t.security.accumulate_interest and (t.kind == Transaction.INTEREST or t.kind == Transaction.MATCH)):
+            if not ((t.security.accumulate_interest and (t.kind == Transaction.INTEREST or t.kind == Transaction.MATCH))
+                        or t.kind == Transaction.WRITE_DOWN):
                 baseValueSecurity[tSecurityId] = baseValueSecurity[tSecurityId] - t.cashflow.amount
             
             # update number of securities
@@ -214,8 +216,10 @@ def updateAccountValuation():
             
             # update base value
             # treat accumulated interest or matched contributions separately
+            # also exclude write downs
             # -cashflow b/c sign convention for cashflows
-            if not (t.security.accumulate_interest and (t.kind == Transaction.INTEREST or t.kind == Transaction.MATCH)):
+            if not ((t.security.accumulate_interest and (t.kind == Transaction.INTEREST or t.kind == Transaction.MATCH))
+                        or t.kind == Transaction.WRITE_DOWN):
                 baseValueSecurity[tPosition] = baseValueSecurity[tPosition] - t.cashflow.amount
             
             # update number of securities

@@ -218,11 +218,14 @@ class TransactionQuerySet(models.QuerySet):
     def notCashflowRelevant(self):
     # remove transactions that are not relevant for cash flows, 
     # i.e., interest payments or company matches on securities that accumulate interest
+    # and write downs
         return self.filter(~(
-                             Q(security__accumulate_interest = True) &
+                             (
+                                 Q(security__accumulate_interest = True) &
                                  (Q(kind = Transaction.INTEREST) |
                                   Q(kind = Transaction.MATCH))
-                             ))
+                             ) | Q(kind = Transaction.WRITE_DOWN)
+                            ))
     
     def accumulatingSecuritiesInterestAndMatch(self):
     # show only interest and company match transactions
@@ -289,8 +292,8 @@ class TransactionManager2(models.Manager):
     # get current, i.e. at end date if available, value of securities
         curValues = self.transactionHistory(beginDate, endDate, securities, accounts, owner)
         
-        curValues1 = self.accumulatingSecuritiesInterestAndMatch()
-        curValues2 = self.nonMarkToMarketInAndOutflows()
+        curValues1 = curValues.accumulatingSecuritiesInterestAndMatch()
+        curValues2 = curValues.nonMarkToMarketInAndOutflows()
         
         # sum over cashflows only
         curValues1 = curValues1.values('security_id') \
@@ -465,6 +468,7 @@ class Transaction(models.Model):
     INTEREST = 'IN'
     DIVIDEND = 'DI'
     MATCH = 'MA'
+    WRITE_DOWN = 'WD'
     CURRENT = 'CU'
     HISTORICAL = 'HI'
     TRANSACT_KIND_CHOICES = (
@@ -473,6 +477,7 @@ class Transaction(models.Model):
         (INTEREST, 'Interest'),
         (DIVIDEND, 'Dividend'),
         (MATCH, 'Company Match'),
+        (WRITE_DOWN, 'Write Down'),
     )
 
     date = models.DateField('transaction date',

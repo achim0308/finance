@@ -22,6 +22,9 @@ Interest payment:
 {% if transaction.kind == "DI" %}
 Dividend payment:
 {% endif %}
+{% if transaction.kind == "WD" %}
+Write down:
+{% endif %}
 {{ transaction.cashflow }}
 </p>
 

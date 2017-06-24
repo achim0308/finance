@@ -84,6 +84,11 @@ class TransactionForm(forms.ModelForm):
                 self.add_error('cashflow', ValidationError("Cashflow must be positive."))
             if self.cleaned_data.get('num_transacted') != 0.0:
                 self.add_error('num_transacted', ValidationError("Number of exchanged securities must be zero."))
+        elif (self.cleaned_data.get('kind') == Transaction.WRITE_DOWN):
+            if self.cleaned_data.get('cashflow').amount <= 0.0:
+                self.add_error('cashflow', ValidationError("Cashflow must be positive."))
+            if self.cleaned_data.get('security').mark_to_market == True:
+                self.add_error('security', ValidationError("Cannot write down mark_to_market security"))
         if (self.cleaned_data.get('expense').amount > 0.0):
             self.add_error('expense',
                            ValidationError("Expenses must be non-positive."))
