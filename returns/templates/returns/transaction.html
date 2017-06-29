@@ -6,7 +6,7 @@ btn-default btn-sm" href="{% url 'returns:transaction_edit' transaction_id=trans
 
 <p><strong>Date: </strong>{{ transaction.date }}
 
-<p><strong>Account: </strong><a href="{% url 'returns:security' transaction.account.id %}">{{ transaction.account.name }}</a>
+<p><strong>Account: </strong><a href="{% url 'returns:account' transaction.account.id %}">{{ transaction.account.name }}</a>
 <p><strong>Security: </strong><a href="{% url 'returns:security' transaction.security.id %}">{{ transaction.security.descrip }}</a> ({{ transaction.security.name }})</p>
 
 <p>

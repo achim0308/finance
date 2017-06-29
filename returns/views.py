@@ -376,6 +376,9 @@ def add_interest(request, security_id):
                         'owner': owner
                     },
                 )
+
+            # update security valuations 
+            updateSecurityValuation(owner)
             return redirect('returns:transaction', transaction_id=t.id)
     else:
         today = timezone.now().date()
