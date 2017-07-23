@@ -86,3 +86,7 @@ body {
 .errorlist {
     color: #FF0000;
 }
+
+.out {
+    visibility: hidden;
+}

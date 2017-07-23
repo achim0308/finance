@@ -48,6 +48,7 @@ def index(request):
     
     # add information about security values
     security_values = {}
+    security_inactive = {}
     for s in security_list:
         try:
             amount = security_valuations.filter(security_id=s.id).aggregate(Sum('cur_value'))['cur_value__sum']
@@ -57,11 +58,16 @@ def index(request):
             )
         except:
             security_values[s.id] = Money(amount=0.0,currency=s.currency)
+        if security_values[s.id].amount == 0:
+            security_inactive[s.id] = True
+        else:
+            security_inactive[s.id] = False
     
     info = {'account_list': account_list, 
             'account_values': account_values,
             'security_list': security_list, 
             'security_values': security_values,
+            'security_inactive': security_inactive,
             'transaction_list': transaction_list}
     return render(request, 'returns/index.html', info)
 

@@ -4,6 +4,20 @@
 {% load finance_filters %}
 {% endblock preheader_block%}
 
+{% block header_block %}
+{ visibility: hidden; }
+<script type="text/javascript">
+$(".clickable").click(function() {
+    var id = $(this).attr('id');
+    var target = '#'+id+'collapsed';
+
+    if($(target).hasClass("out")) {
+        $(target).removeClass("out");
+    } else {
+        $(target).addClass("out");
+});</script>
+{% endblock %}
+
 {% block title_block %} Main {% endblock title_block %}
 {% block body_block %}
 <h1>Overview</h1>
@@ -32,7 +46,8 @@
 {% endif %}
 
 {% if security_list %}
-<h2><a href="#" onclick="toggle_visibility('seg_investments');">Investments</a></h2>
+<h2><a href="#"
+onclick="toggle_visibility('seg_investments');">Investments</a><button type="button" data-toggle="collapse" data-target=".sec_zero" class="btn btn-default btn-sm pull-right">Toggle inactive</button></h2>
 <div id="seg_investments" style="display:block">
   <table class="table table-condensed">
     <thead>
@@ -45,7 +60,11 @@
     </thead>
     <tbody>
       {% for security in security_list %}
+      {% if security_inactive|lookup:security.id == True %}
+      <tr class="collapse sec_zero out">
+      {% else %}
       <tr>
+      {% endif %}
         <th scope="row"><a href="{% url 'returns:security' security.id %}">{{ security.name }}</a></th>
         <td>{{ security.get_kind_display }}</td>
         <td>{{ security.descrip }}</td>
