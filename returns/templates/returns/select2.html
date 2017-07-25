@@ -30,7 +30,7 @@
     {% if selected_kinds or selected_securities %}
       {% for security in security_list %}
       <tr>
-        <td>{{ security.name }}</td>
+        <td>{{ security.name }} ({{ security.descrip }})</td>
 	<td><a href="{% url 'returns:security' security.id %}"><span class="glyphicon glyphicon-info-sign"></span></a>&ensp;<a href="{% url 'returns:security_edit' security_id=security.id %}"><span class="glyphicon glyphicon-pencil"></span></a></td>
       </tr>
       {% endfor %}

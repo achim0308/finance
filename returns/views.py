@@ -231,12 +231,12 @@ def timeperiod(request):
             data['security_list'] = selected_security
         elif selected_account is not None:
             valuation = AccountValuation.objects.filter(account_id__in=selected_account)
-            data['selected_account'] = True
-            data['acccount_list'] = selected_account
+            data['selected_accounts'] = True
+            data['account_list'] = Account.objects.filter(id__in=selected_account)
         elif selected_security is not None:
             valuation = SecurityValuation.objects.filter(security_id__in=selected_security)
-            data['selected_security'] = True
-            data['security_list'] = selected_security
+            data['selected_securities'] = True
+            data['security_list'] = Security.objects.filter(id__in=selected_security)
         else:
             return render(request, 'returns/select2.html', info)
 
@@ -247,7 +247,7 @@ def timeperiod(request):
                                                                                  accounts = selected_account)
         else:
             cur_user = request.user.id
-            if not data['selected_account'] == True:
+            if selected_account is None: 
                 valuation = valuation.filter(owner=cur_user)
             data['transaction_list'] = Transaction.thobjects2\
                                                   .transactionHistoryWithRelated(beginDate = begin_date, endDate = end_date,
@@ -261,7 +261,7 @@ def timeperiod(request):
         
         data['returns'] = rateOfReturn['rate']
         data['total'] = rateOfReturn['final']
-        
+        print(data)
         return render(request, 'returns/select2.html', data)
 
 @login_required
