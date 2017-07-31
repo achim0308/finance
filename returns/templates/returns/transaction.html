@@ -11,10 +11,10 @@ btn-default btn-sm" href="{% url 'returns:transaction_edit' transaction_id=trans
 
 <p>
 {% if transaction.kind == "BU" %}
-Buy{% if transaction.num_transacted > 0.0 %} {{ transaction.num_transacted|floatformat }}{%endif %}:
+Buy{% if transaction.num_transacted > 0.0 %} {{ transaction.num_transacted|floatformat:3 }}{%endif %}:
 {% endif %}
 {% if transaction.kind == "SE" %}
-Sell{% if transaction.num_transacted < 0.0 %} {{ transaction.num_transacted|floatformat }}{%endif %}:
+Sell{% if transaction.num_transacted < 0.0 %} {{ transaction.num_transacted|floatformat:3 }}{%endif %}:
 {% endif %}
 {% if transaction.kind == "IN" %}
 Interest payment:
