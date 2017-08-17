@@ -39,6 +39,11 @@ $(".clickable").click(function() {
         <td><a href="{% url 'returns:account_edit' account_id=account.id %}"><span class="glyphicon glyphicon-pencil"></span></a></td>
       </tr>
       {% endfor %}
+      <tr>
+        <th scope="row">Total</th>
+        <td class="text-right">{{ account_total }}</td>
+        <td></td>
+      </tr>
     </tbody>
   </table>
 </div>

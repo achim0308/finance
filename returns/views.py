@@ -45,6 +45,7 @@ def index(request):
             account_values[a.id] = AccountValuation.objects.filter(account_id=a.id).order_by('-date')[0].cur_value
         except:
             account_values[a.id] = Money(amount=0.0,currency=a.currency)
+    account_total = sum(account_values[a.id] for a in account_list)
     
     # add information about security values
     security_values = {}
@@ -65,6 +66,7 @@ def index(request):
     
     info = {'account_list': account_list, 
             'account_values': account_values,
+            'account_total': account_total,
             'security_list': security_list, 
             'security_values': security_values,
             'security_inactive': security_inactive,
