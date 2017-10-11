@@ -55,12 +55,13 @@ class SecurityForm(forms.ModelForm):
 
     class Meta:
         model = Security
-        fields = ('name', 'descrip', 'url', 'kind', 'mark_to_market', 'accumulate_interest', 'calc_interest', 'currency',)
+        fields = ('name', 'descrip', 'url', 'kind', 'mark_to_market', 'accumulate_interest', 'calc_interest', 'currency','active',)
 
 class TransactionForm(forms.ModelForm):
     def __init__(self,owner,*args,**kwargs):
         super (TransactionForm,self ).__init__(*args,**kwargs) # populates the form
         self.fields['account'].queryset = Account.objects.filter(owner=owner)
+        self.fields['security'].queryset = Security.objects.active()
         
     def clean(self):
         if (self.cleaned_data.get('kind') == Transaction.BUY):

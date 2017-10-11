@@ -30,6 +30,9 @@ class SecurityQuerySet(models.QuerySet):
     
     def kinds(self, kind):
         return self.filter(kind__in=kind)
+
+    def active(self):
+        return self.filter(active=True)
     
 class SecurityManager(models.Manager):
     def get_queryset(self):
@@ -43,6 +46,9 @@ class SecurityManager(models.Manager):
     
     def kinds(self, kind):
         return self.get_queryset().kinds(kind)
+
+    def active(self):
+        return self. get_queryset().active()
     
     def saveCurrentMarkToMarketValue(self):
         # for each mark to market security get and save current value
@@ -101,6 +107,9 @@ class Security(models.Model):
                                 max_length = 3,
                                 choices = CURRENCY_CHOICES,
                                 default = 'EUR')
+
+    active = models.BooleanField('Active security',
+                                 default=True)
     
     objects = SecurityManager()
     
