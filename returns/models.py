@@ -784,8 +784,8 @@ class ValuationQuerySet(models.QuerySet):
                 curDate = int(mktime(v.date.timetuple())*1000)
                 if prevDate == curDate:
                     # must convert Decimal to float
-                    y1data[-1] = y1data[-1] + float(v.cur_value.amount)
-                    y2data[-1] = y2data[-1] + float(v.base_value.amount)
+                    y1data[-1] = round(y1data[-1] + float(v.cur_value.amount),2)
+                    y2data[-1] = round(y2data[-1] + float(v.base_value.amount),2)
                 else:
                     xdata.append(curDate)
                     prevDate = curDate
