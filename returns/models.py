@@ -770,7 +770,7 @@ class ValuationQuerySet(models.QuerySet):
     
     def makeChart(self):
         # Collects information and processes it to show chart of valuation
-        # requires queryset
+        # requires queryset; assumes that all Money objects have the same currency!
         try:
             valuations = self.order_by('date')
         
@@ -778,12 +778,20 @@ class ValuationQuerySet(models.QuerySet):
             y1data=[]
             y2data=[]
             currency = self.last().cur_value.currency
+            prevDate = -1;
             for v in valuations:
                 # must convert date to integer
-                xdata.append(int(mktime(v.date.timetuple())*1000))
-                # must convert Decimal to float
-                y1data.append(float(v.cur_value.amount))
-                y2data.append(float(v.base_value.amount))
+                curDate = int(mktime(v.date.timetuple())*1000)
+                if prevDate == curDate:
+                    # must convert Decimal to float
+                    y1data[-1] = y1data[-1] + float(v.cur_value.amount)
+                    y2data[-1] = y2data[-1] + float(v.base_value.amount)
+                else:
+                    xdata.append(curDate)
+                    prevDate = curDate
+                    # must convert Decimal to float
+                    y1data.append(float(v.cur_value.amount))
+                    y2data.append(float(v.base_value.amount))
             
             tooltip_date = "%b %Y"
             extra_serie={
@@ -807,6 +815,7 @@ class ValuationQuerySet(models.QuerySet):
                     'x_axis_format': '%b %Y',
                     'tag_script_js': True,
                     'jquery_on_ready': False,
+                    'margin_left': 70,
                 }
             }
         
@@ -874,11 +883,47 @@ class AccountValuation(Valuation):
     def __str__(self):
         return "%s (%s): %s (%s)" % (self.account.name, self.date, self.cur_value, self.base_value)
 
-class ExchangeToEUR(models.Model):
+class ExchangeUSDToEURQuerySet(models.QuerySet):
+    def date(self,date):
+        return self.filter(date__lte=date)
+    
+class ExchangeUSDToEURManager(models.Manager):
+    def get_queryset(self):
+        return ExchangeUSDToEURQuerySet(self.model, using=self._db)
+
+    def date(self,date):
+        return self.get_queryset().date(date)
+    
+    def getHistExchangeRate(self, date):
+        try:
+            h = self.get_queryset().date(date).latest('date')
+            return h.value
+        except ObjectDoesNotExist:
+            return Decimal(0.0)
+
+    def getExchangeRate(self):
+    # screen scraping based on yahoo website
+        try:
+            data = requests.get(ExchangeUSDToEUR.url)
+            value = Decimal(float(data.content))
+            ExchangeUSDToEUR.objects.update_or_create(
+                date = timezone.now().date(),
+                defaults = { 'USDperEUR': value }
+            )
+
+        except:
+            raise RuntimeError('Trouble getting data for USDEUR exchange rate')
+
+@python_2_unicode_compatible
+class ExchangeUSDToEUR(models.Model):
     # models currency exchange rate data
     date = models.DateField('Exchange date')
     USDperEUR = models.DecimalField('Exchange rate (USD/EUR)',
                                     max_digits = 7,
                                     decimal_places = 5)
+
+    # exchange rate URL
+    url = "http://download.finance.yahoo.com/d/quotes.csv?s=USDEUR=X&f=l1"
+    
     def __str__(self):
         return "%s: %2.5f" % (self.date, self.USDperEUR)

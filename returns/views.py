@@ -130,7 +130,10 @@ def all_accounts(request):
 
     except:
         data['segPerf'] = None
-    
+
+    # prepare data for line chart
+    data['chart_asset_history'] = valuation.makeChart()
+
     return render(request, 'returns/all_accounts.html', data)
 
 @login_required
@@ -263,7 +266,10 @@ def timeperiod(request):
         
         data['returns'] = rateOfReturn['rate']
         data['total'] = rateOfReturn['final']
-        print(data)
+
+        # prepare data for line chart
+        data['chart_asset_history'] = valuation.makeChart()
+
         return render(request, 'returns/select2.html', data)
 
 @login_required
