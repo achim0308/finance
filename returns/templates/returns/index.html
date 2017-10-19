@@ -21,7 +21,7 @@ $(".clickable").click(function() {
 {% block body_block %}
 <h1>Overview</h1>
 {% if account_list %}
-<h2><a href="#" onclick="toggle_visibility('seg_account');">Accounts</a></h2>
+<h2><a href="#" onclick="toggle_visibility('seg_account');">Accounts</a><button type="button" data-toggle="collapse" data-target=".acc_zero" class="btn btn-default btn-sm pull-right">Toggle inactive</button></h2>
 <div id="seg_account" style="display:block">
   <table class="table table-condensed">
     <thead>
@@ -33,7 +33,11 @@ $(".clickable").click(function() {
     </thead>
     <tbody>
       {% for account in account_list %}
+      {% if account_inactive|lookup:account.id == True %}
+      <tr class="collapse acc_zero out">
+      {% else %}
       <tr>
+      {% endif %}
         <th scope="row"><a href="{% url 'returns:account' account.id %}">{{ account.name }}</a></th>
         <td class="text-right">{{ account_values|lookup:account.id }}</td>
         <td><a href="{% url 'returns:account_edit' account_id=account.id %}"><span class="glyphicon glyphicon-pencil"></span></a></td>
