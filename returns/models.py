@@ -52,7 +52,7 @@ class SecurityManager(models.Manager):
     
     def saveCurrentMarkToMarketValue(self):
         # for each mark to market security get and save current value
-        markToMarketSecurities = self.get_queryset().markToMarket()
+        markToMarketSecurities = self.get_queryset().markToMarket().active()
         today = timezone.now().date()
         
         for s in markToMarketSecurities:
@@ -591,7 +591,9 @@ class HistValuation(models.Model):
 class InflationManager(models.Manager):
     def getHistoricalRateOfInflation(self):
         # calculate inflation rate for multiple time periods
-        today = last_day_of_month(timezone.now().date())
+        #--> appears on longer necessary
+#        today = last_day_of_month(timezone.now().date())
+        today = timezone.now().date()
         thisYear = date(today.year,1,1)
         prevYear = yearsago(1)
         fiveYear = yearsago(5)
@@ -663,7 +665,9 @@ class ValuationQuerySet(models.QuerySet):
         # calculate internal rate of return for multiple time periods
 
         # go to end of the month to ensure that all transactions have been captured
-        today = last_day_of_month(timezone.now().date())
+        #--> appears on longer necessary
+#        today = last_day_of_month(timezone.now().date())
+        today = timezone.now().date()
         thisYear = date(today.year,1,1)
         prevYear = yearsago(1)
         fiveYear = yearsago(5)
@@ -710,7 +714,7 @@ class ValuationQuerySet(models.QuerySet):
         # get value at beginning of interval
         try:
             base0 = self.filter(date__lt=beginDate).order_by('date')\
-                        .values('date', 'cur_value_currency').annotate(sumBaseValue=Sum('base_value'),
+              .values('date', 'cur_value_currency').annotate(sumBaseValue=Sum('base_value'),
                                                                         sumCurValue=Sum('cur_value'))\
                         .last()
             date0 = base0['date']

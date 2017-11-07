@@ -69,7 +69,8 @@ class Solver():
         df = lambda r: self._solverDF(r)
         try:
             r = self._newtonSolve(f=f, df=df, x0=r0)
-        except StopIteration:
+        except StopIteration as e:
+            print(e)
             raise RuntimeError('Iteration limit exceeded')
         
         return float(r)*100.0        
@@ -94,10 +95,10 @@ class Solver():
             newY = f(nextX)
             lastX = nextX
 
-            if (nextX > 10.0 or nextX < -1.0):
-                raise StopIteration('Diverging')
             try:
                 nextX = lastX - damping * newY / df(nextX)
             except ZeroDivisionError:
                 nextX = lastX + absTol
+            if (nextX > 10.0 or nextX < -1.0):
+                raise StopIteration('Diverging')
         return nextX

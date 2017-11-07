@@ -16,6 +16,7 @@ from moneyed import Money, get_currency
 from .models import Transaction, Account, Security, Inflation, SecurityValuation, AccountValuation
 from .processTransaction2 import updateSecurityValuation, updateAccountValuation, makeBarChartSegPerf, makePieChartSegPerf
 from .forms import AccountForm, SecurityForm, TransactionForm, TransactionFormForSuperuser, HistValuationForm, AddInterestForm, AddInterestFormForSuperuser, InflationForm
+from .utilities import yearsago, last_day_of_month
 
 
 @login_required
