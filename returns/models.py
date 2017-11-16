@@ -703,13 +703,21 @@ class ValuationQuerySet(models.QuerySet):
     def getRateOfReturn(self, beginDate = None, endDate = None):
         # calculate internal rate of return given the cashflows
 
+        if endDate is None:
+            endDate = timezone.now().date()
+
+        # make sure we end on a 15th or last day
+        if endDate.day > 15:
+            endDate = last_day_of_month(endDate)
+        else:
+            endDate = endDate.replace(day=15)
+        
         # limit query set to date range given
         qs = self.restrictDateRange(beginDate, endDate)
         
         # aggregate values per date
         qs = qs.values('date').annotate(sumBaseValue=Sum('base_value'),
                                         sumCurValue=Sum('cur_value'))
-
         
         # get value at beginning of interval
         try:
@@ -762,7 +770,7 @@ class ValuationQuerySet(models.QuerySet):
         if finalDate is not None:
             # negative due to different sign conventions
             solver.addCashflow(-finalValue.amount, finalDate)
-
+            
         try:
             r = solver.calcRateOfReturn()
         except:
