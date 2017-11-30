@@ -109,13 +109,15 @@ def updateSecurityValuation(owner):
                 if securityMtM[securityId] == True:
                     # if all securities were sold, no longer need to update
                     if numSecurity[securityId] <= 0.0:
-                        securityActive[securityId] = False;
-                    curValueSecurity[securityId] = numSecurity[securityId] * (HistValuation.objects.getHistValuation(securityId, currentDate).amount)
+                        securityActive[securityId] = False
+                    else:
+                        curValueSecurity[securityId] = numSecurity[securityId] * (HistValuation.objects.getHistValuation(securityId, currentDate).amount)
                 else:
                     # if all securities were sold, no longer need to update
                     if curValueSecurity[securityId] <= 0.0:
-                        securityActive[securityId] = False;
-                
+                        securityActive[securityId] = False
+
+            if securityActive[securityId] == True or baseValueSecurity[securityId] != 0.0:
                 # store information, update record if possible
                 s, created = SecurityValuation.objects.update_or_create(
                     date = currentDate,
@@ -181,7 +183,8 @@ def updateAccountValuation():
     for a in Account.objects.all():
        currencyAccount[a.id] = a.currency
 
-
+    curValueAccount = [Decimal(0.0) for i in range(numAccountObjects+1)]
+    baseValueAccount = [Decimal(0.0) for i in range(numAccountObjects+1)]
 
     endOfMonth = True
     if today.day > 15:
@@ -235,20 +238,21 @@ def updateAccountValuation():
                 # -cashflow b/c sign convention for cashflows
                 elif not (t.kind == Transaction.INTEREST or t.kind == Transaction.MATCH):
                     curValueSecurity[tPosition] = curValueSecurity[tPosition] - (t.cashflow.amount - t.tax.amount - t.expense.amount)
-        
+
+                    
         # store information 
         # loop over accounts
         for accountId in range(1,numAccountObjects+1):
             # check if account is active
             if accountActive[accountId] == True:
-                curValueAccount = Money(amount=0.0, currency=currencyAccount[accountId])
-                baseValueAccount = Money(amount=0.0, currency=currencyAccount[accountId])
+                curValueAccount[accountId] = Money(amount=0.0, currency=currencyAccount[accountId])
+                baseValueAccount[accountId] = Money(amount=0.0, currency=currencyAccount[accountId])
                 
                 # loop over securities
                 for securityId in range(1,numSecurityObjects+1):
                     positionId = securityId + (accountId-1)*numSecurityObjects
-                    # only need to do sth for active objects
-                    if securityActive[positionId] == True:
+                    # only need to do sth for active objects or those with non-zero base value
+                    if securityActive[positionId] == True or baseValueSecurity[positionId] != 0.0:
                         # update security value with market data if applicable
                         if securityMtM[securityId] == True:
                             # if all securities were sold, no longer need to update
@@ -260,25 +264,26 @@ def updateAccountValuation():
                             if curValueSecurity[positionId] <= 0.0:
                                 securityActive[positionId] = False
                                                 
-                        curValueAccount = curValueAccount + Money(amount=curValueSecurity[positionId],
-                                                                  currency=currencySecurity[securityId])
-                        baseValueAccount = baseValueAccount + Money(amount=baseValueSecurity[positionId],
-                                                                    currency=currencySecurity[securityId])
+                        curValueAccount[accountId] = curValueAccount[accountId] + Money(amount=curValueSecurity[positionId],
+                                                                                        currency=currencySecurity[securityId])
+                        baseValueAccount[accountId] = baseValueAccount[accountId] + Money(amount=baseValueSecurity[positionId],
+                                                                                          currency=currencySecurity[securityId])
                     elif securityEverActive[positionId] == True:
-                        curValueAccount = curValueAccount + Money(amount=curValueSecurity[positionId],
-                                                                  currency=currencySecurity[securityId])
-                        baseValueAccount = baseValueAccount + Money(amount=baseValueSecurity[positionId],
-                                                                    currency=currencySecurity[securityId])
+                        curValueAccount[accountId] = curValueAccount[accountId] + Money(amount=curValueSecurity[positionId],
+                                                                                        currency=currencySecurity[securityId])
+                        baseValueAccount[accountId] = baseValueAccount[accountId] + Money(amount=baseValueSecurity[positionId],
+                                                                                          currency=currencySecurity[securityId])
                     #if accountId == 8:
                     #    print(currentDate, accountId, securityId, curValueAccount, baseValueAccount)
-                        
+
+            if accountActive[accountId] == True or baseValueAccount[accountId] != 0.0:
                 # store information, update record if possible
                 s, created = AccountValuation.objects.update_or_create(
                     date = currentDate,
                     account_id = accountId,
                     defaults = {
-                        'cur_value': curValueAccount,
-                        'base_value': baseValueAccount,
+                        'cur_value': curValueAccount[accountId],
+                        'base_value': baseValueAccount[accountId],
                         'modifiedDate': today
                     },
                 )
