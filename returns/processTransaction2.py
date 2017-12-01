@@ -110,6 +110,7 @@ def updateSecurityValuation(owner):
                     # if all securities were sold, no longer need to update
                     if numSecurity[securityId] <= 0.0:
                         securityActive[securityId] = False
+                        curValueSecurity[securityId] = 0.0
                     else:
                         curValueSecurity[securityId] = numSecurity[securityId] * (HistValuation.objects.getHistValuation(securityId, currentDate).amount)
                 else:
@@ -258,7 +259,9 @@ def updateAccountValuation():
                             # if all securities were sold, no longer need to update
                             if numSecurity[positionId] <= 0.0:
                                 securityActive[positionId] = False
-                            curValueSecurity[positionId] = numSecurity[positionId] * (HistValuation.objects.getHistValuation(securityId, currentDate).amount)
+                                curValueSecurity[securityId] = 0.0
+                            else:
+                                curValueSecurity[positionId] = numSecurity[positionId] * (HistValuation.objects.getHistValuation(securityId, currentDate).amount)
                         else:
                             # if all securities were sold, no longer need to update
                             if curValueSecurity[positionId] <= 0.0:
