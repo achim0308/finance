@@ -6,6 +6,8 @@ from djmoney.models.fields import MoneyField, CurrencyField
 from djmoney.forms.widgets import CURRENCY_CHOICES
 from django_countries.fields import CountryField
 
+from sys import stderr
+
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import connection, models
@@ -14,8 +16,12 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 
+from alpha_vantage.timeseries import TimeSeries
+
 from .calc import Solver
 from .utilities import yearsago, last_day_of_month
+
+from finance.settings import ALPHA_VANTAGE_KEY
 
 import requests
 
@@ -53,18 +59,21 @@ class SecurityManager(models.Manager):
     def saveCurrentMarkToMarketValue(self):
         # for each mark to market security get and save current value
         markToMarketSecurities = self.get_queryset().markToMarket().active()
-        today = timezone.now().date()
+        today = timezone.now().date() + timezone.timedelta(days=-1)
+        today_str = str(today)
+
+        ts = TimeSeries(key=ALPHA_VANTAGE_KEY)
         
         for s in markToMarketSecurities:
             try:
-                value = s.markToMarket()
+                value = s.markToMarket(ts, today_str)
                 HistValuation.objects.update_or_create(
                         date = today,
                         security = s,
                         defaults = { 'value': value }
                 )
             except:
-                pass
+                print("Error getting data for security ", s, file=stderr)
 
 @python_2_unicode_compatible
 class Security(models.Model):
@@ -91,6 +100,9 @@ class Security(models.Model):
                           max_length = 400,
                           default = '',
                           blank = True)
+    symbol = models.CharField('Security symbol for pricing lookup',
+                              default = '',
+                              max_length = 10)
     kind = models.CharField('kind of security',
                             max_length = 2,
                             choices = SEC_KIND_CHOICES,
@@ -119,16 +131,28 @@ class Security(models.Model):
     def get_absolute_url(self):
         return reverse('views.security', args=[str(self.id)])
 
-    def markToMarket(self):
-    # screen scraping based on yahoo website
+    def markToMarket(self, ts, date):
         if not self.mark_to_market:
             raise RuntimeError('Security not marked to market prices')
+
+        if self.symbol == '':
+            raise RuntimeError('No symbol for mark to market security')
         try:
-            data = requests.get(self.url)
-            value = Decimal(float(data.content))
+            # query website using alpha vantage API
+            data, meta_data = ts.get_daily(self.symbol)
+            # extract information
+            value = Decimal(float(data[date]['4. close']))
             price = Money(amount=value,currency=self.currency)
         except:
             raise RuntimeError('Trouble getting data for security', security.name)
+
+        # screen scraping based on yahoo website
+        # try:
+        #     data = requests.get(self.url)
+        #     value = Decimal(float(data.content))
+        #     price = Money(amount=value,currency=self.currency)
+        # except:
+        #     raise RuntimeError('Trouble getting data for security', security.name)
         
         return price
 

@@ -24,6 +24,7 @@ config.read(BASE_DIR + '/finance/settings.ini')
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config.get('secrets', 'SECRET_KEY')
+ALPHA_VANTAGE_KEY = config.get('secrets', 'ALPHA_VANTAGE_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config.getboolean('debug', 'DEBUG_FLAG')
