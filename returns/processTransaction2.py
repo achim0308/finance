@@ -41,17 +41,19 @@ def updateSecurityValuation(owner):
         sID = s.id
         try:
             secValuation = SecurityValuation.objects.filter(owner=owner, date__lte=lastUpdate, security=s).order_by('-date').first()
+            securityActive[sID] = True
             numSecurity[sID] = secValuation.sum_num
             curValueSecurity[sID] = secValuation.cur_value.amount
             baseValueSecurity[sID] = secValuation.base_value.amount
-            securityActive[sID] = True
-            currencySecurity[sID] = s.currency
-            if s.markToMarket == True:
-                securityMtM = True
         except:
-            currencySecurity[sID] = 'EUR'
             pass
 
+        try:
+            currencySecurity[sID] = s.currency
+        except:
+            currencySecurity[sID] = 'EUR'
+        if s.markToMarket == True:
+            securityMtM = True
 
     endOfMonth = True
     if today.day > 15:
