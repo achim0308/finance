@@ -34,7 +34,7 @@ $(".clickable").click(function() {
     <tbody>
       {% for account in account_list %}
       {% if account_inactive|lookup:account.id == True %}
-      <tr class="collapse acc_zero out">
+      <tr class="collapse acc_zero">
       {% else %}
       <tr>
       {% endif %}
@@ -69,7 +69,7 @@ onclick="toggle_visibility('seg_investments');">Investments</a><button type="but
     <tbody>
       {% for security in security_list %}
       {% if security_inactive|lookup:security.id == True %}
-      <tr class="collapse sec_zero out">
+      <tr class="collapse sec_zero">
       {% else %}
       <tr>
       {% endif %}
