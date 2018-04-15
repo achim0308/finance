@@ -54,7 +54,7 @@ class SecurityManager(models.Manager):
         return self.get_queryset().kinds(kind)
 
     def active(self):
-        return self. get_queryset().active()
+        return self.get_queryset().active()
     
     def saveCurrentMarkToMarketValue(self):
         # for each mark to market security get and save current value
@@ -176,12 +176,18 @@ class AccountQuerySet(models.QuerySet):
                                             .values_list('account', flat=True)
         return self.filter(pk__in=pk_accounts)
 
+    def active(self):
+        return self.filter(active=True)
+
 class AccountManager(models.Manager):
     def get_queryset(self):
         return AccountQuerySet(self.model, using=self._db)
 
     def accountOwnedBy(self,ownerID):
         return self.get_queryset().accountOwnedBy(ownerID)
+
+    def active(self):
+        return self.get_queryset().active()
 
 @python_2_unicode_compatible
 class Account(models.Model):
@@ -196,6 +202,9 @@ class Account(models.Model):
                                 max_length = 3,
                                 choices = CURRENCY_CHOICES,
                                 default = 'EUR')
+
+    active = models.BooleanField('Active account',
+                                 default=True)
     
     objects = AccountManager()
     

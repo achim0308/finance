@@ -8,7 +8,7 @@ class AccountForm(forms.ModelForm):
 
     class Meta:
         model = Account
-        fields = ('name', 'owner', 'currency')
+        fields = ('name', 'owner', 'currency', 'active')
 
 class SecurityForm(forms.ModelForm):
 
@@ -55,12 +55,12 @@ class SecurityForm(forms.ModelForm):
 
     class Meta:
         model = Security
-        fields = ('name', 'descrip', 'url', 'kind', 'mark_to_market', 'accumulate_interest', 'calc_interest', 'currency','active',)
+        fields = ('name', 'descrip', 'url', 'kind', 'mark_to_market', 'accumulate_interest', 'calc_interest', 'currency', 'active',)
 
 class TransactionForm(forms.ModelForm):
     def __init__(self,owner,*args,**kwargs):
         super (TransactionForm,self ).__init__(*args,**kwargs) # populates the form
-        self.fields['account'].queryset = Account.objects.filter(owner=owner)
+        self.fields['account'].queryset = Account.objects.filter(owner=owner).active()
         self.fields['security'].queryset = Security.objects.active()
         
     def clean(self):
