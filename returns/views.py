@@ -74,7 +74,7 @@ def index(request):
             security_delta[s.id] = Money(amount=0.0,currency=s.currency)
         else:
             security_inactive[s.id] = False
-            amount = security_values[s.id] - security_valuations.filter(security_id=s.id).aggregate(Sum('base_value'))['base_value__sum']
+            amount = amount - security_valuations.filter(security_id=s.id).aggregate(Sum('base_value'))['base_value__sum']
             security_delta[s.id] =  Money(
                 amount=amount,
                 currency=s.currency
