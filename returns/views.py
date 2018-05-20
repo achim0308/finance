@@ -41,6 +41,7 @@ def index(request):
     
     # add information about account values
     account_values = {}
+    account_delta = {}
     account_inactive = {}
     for a in account_list:
         try:
@@ -49,12 +50,15 @@ def index(request):
             account_values[a.id] = Money(amount=0.0,currency=a.currency)
         if account_values[a.id].amount == 0:
             account_inactive[a.id] = True
+            account_values[a.id] = Money(amount=0.0,currency=a.currency)
         else:
             account_inactive[a.id] = False
+            account_delta[a.id] = account_values[a.id] - AccountValuation.objects.filter(account_id=a.id).order_by('-date')[0].base_value
     account_total = sum(account_values[a.id] for a in account_list)
     
     # add information about security values
     security_values = {}
+    security_delta = {}
     security_inactive = {}
     for s in security_list:
         try:
@@ -67,15 +71,23 @@ def index(request):
             security_values[s.id] = Money(amount=0.0,currency=s.currency)
         if security_values[s.id].amount == 0:
             security_inactive[s.id] = True
+            security_delta[s.id] = Money(amount=0.0,currency=s.currency)
         else:
             security_inactive[s.id] = False
+            amount = security_valuations.filter(security_id=s.id).aggregate(Sum('base_value'))['base_value__sum']
+            security_delta[s.id] =  Money(
+                amount=amount,
+                currency=s.currency
+            )
     
     info = {'account_list': account_list, 
             'account_values': account_values,
+            'account_delta': account_delta,
             'account_total': account_total,
             'account_inactive': account_inactive,
             'security_list': security_list, 
             'security_values': security_values,
+            'security_delta': security_delta,
             'security_inactive': security_inactive,
             'transaction_list': transaction_list}
     return render(request, 'returns/index.html', info)
