@@ -50,11 +50,12 @@ def index(request):
             account_values[a.id] = Money(amount=0.0,currency=a.currency)
         if account_values[a.id].amount == 0:
             account_inactive[a.id] = True
-            account_values[a.id] = Money(amount=0.0,currency=a.currency)
+            account_delta[a.id] = Money(amount=0.0,currency=a.currency)
         else:
             account_inactive[a.id] = False
             account_delta[a.id] = account_values[a.id] - AccountValuation.objects.filter(account_id=a.id).order_by('-date')[0].base_value
     account_total = sum(account_values[a.id] for a in account_list)
+    account_total_delta = sum(account_delta[a.id] for a in account_list)
     
     # add information about security values
     security_values = {}
