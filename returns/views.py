@@ -85,6 +85,7 @@ def index(request):
             'account_values': account_values,
             'account_delta': account_delta,
             'account_total': account_total,
+            'account_total_delta': account_total_delta,
             'account_inactive': account_inactive,
             'security_list': security_list, 
             'security_values': security_values,
