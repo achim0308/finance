@@ -50,7 +50,10 @@ def index(request):
             account_values[a.id] = Money(amount=0.0,currency=a.currency)
         if account_values[a.id].amount == 0:
             account_inactive[a.id] = True
-            account_delta[a.id] = Money(amount=0.0,currency=a.currency)
+            try:
+                account_delta[a.id] = -AccountValuation.objects.filter(account_id=a.id).order_by('-date')[0].base_value
+            except:
+                account_delta[a.id] = Money(amount=0.0,currency=a.currency)
         else:
             account_inactive[a.id] = False
             account_delta[a.id] = account_values[a.id] - AccountValuation.objects.filter(account_id=a.id).order_by('-date')[0].base_value
