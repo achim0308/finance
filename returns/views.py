@@ -65,20 +65,26 @@ def index(request):
         try:
             amount = security_valuations.filter(security_id=s.id).aggregate(Sum('cur_value'))['cur_value__sum']
             security_values[s.id] =  Money(
-                amount=amount,
-                currency=s.currency
+                amount = amount,
+                currency = s.currency
             )
         except:
             security_values[s.id] = Money(amount=0.0,currency=s.currency)
         if security_values[s.id].amount == 0:
             security_inactive[s.id] = True
-            security_delta[s.id] = Money(amount=0.0,currency=s.currency)
+            try:
+                security_delta[s.id] = Money(
+                    amount = -security_valuations.filter(security_id=s.id).aggregate(Sum('base_value'))['base_value__sum'],
+                    currency = s.currency
+                )
+            except:
+                security_delta[s.id] = Money(amount=0.0,currency=s.currency)
         else:
             security_inactive[s.id] = False
             amount = amount - security_valuations.filter(security_id=s.id).aggregate(Sum('base_value'))['base_value__sum']
             security_delta[s.id] =  Money(
-                amount=amount,
-                currency=s.currency
+                amount = amount,
+                currency = s.currency
             )
     
     info = {'account_list': account_list, 
