@@ -91,7 +91,7 @@ def index(request):
                 amount = amount,
                 currency = s.currency
             )
-        security_delta_amount = security_delta[s.id].amount
+        security_delta_amount[a.id] = security_delta[s.id].amount
     
     info = {'account_list': account_list, 
             'account_values': account_values,
