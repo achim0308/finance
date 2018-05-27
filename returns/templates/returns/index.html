@@ -41,7 +41,11 @@ $(".clickable").click(function() {
       {% endif %}
         <th scope="row"><a href="{% url 'returns:account' account.id %}">{{ account.name }}</a></th>
         <td class="text-right">{{ account_values|lookup:account.id }}</td>
-        <td class="text-right">{{ account_delta|lookup:account.id }}</td>
+	{% if account_delta_amount|lookup:account.id >= 0 %}
+	<td class="text-right positive">{{ account_delta|lookup:account.id }}</td>
+	{% else %}
+	<td class="text-right negative">{{ account_delta|lookup:account.id }}</td>
+	{% endif %}
 	<td><a href="{% url 'returns:account_edit' account_id=account.id %}"><span class="glyphicon glyphicon-pencil"></span></a></td>
       </tr>
       {% endfor %}
@@ -81,7 +85,11 @@ onclick="toggle_visibility('seg_investments');">Investments</a><button type="but
         <td>{{ security.get_kind_display }}</td>
         <td>{{ security.descrip }}</td>
         <td class="text-right">{{ security_values|lookup:security.id }}</td>
-        <td class="text-right">{{ security_delta|lookup:security.id }}</td>
+        {% if security_delta_amount|lookup:security.id >= 0 %}
+	<td class="text-right positive">{{ security_delta|lookup:security.id }}</td>
+	{% else %}
+	<td class="text-right negative">{{ security_delta|lookup:security.id }}</td>
+	{% endif %}
 	<td><a href="{% url 'returns:security_edit' security_id=security.id %}"><span class="glyphicon glyphicon-pencil"></span></a></td>
       </tr>
       {% endfor %}

@@ -90,3 +90,11 @@ body {
 .out {
     visibility: hidden;
 }
+
+.positive {
+    color: green;
+}
+
+.negative {
+    color: red;
+}

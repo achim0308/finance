@@ -42,6 +42,7 @@ def index(request):
     # add information about account values
     account_values = {}
     account_delta = {}
+    account_delta_amount = {}
     account_inactive = {}
     for a in account_list:
         try:
@@ -57,6 +58,7 @@ def index(request):
         else:
             account_inactive[a.id] = False
             account_delta[a.id] = account_values[a.id] - AccountValuation.objects.filter(account_id=a.id).order_by('-date')[0].base_value
+        account_delta_amount[a.id] = account_delta[a.id].amount
     account_total = sum(account_values[a.id] for a in account_list)
     account_total_delta = sum(account_delta[a.id] for a in account_list)
     
@@ -89,16 +91,19 @@ def index(request):
                 amount = amount,
                 currency = s.currency
             )
+        security_delta_amount = security_delta[s.id].amount
     
     info = {'account_list': account_list, 
             'account_values': account_values,
             'account_delta': account_delta,
+            'account_delta_amount': account_delta_amount,
             'account_total': account_total,
             'account_total_delta': account_total_delta,
             'account_inactive': account_inactive,
             'security_list': security_list, 
             'security_values': security_values,
             'security_delta': security_delta,
+            'security_delta_amount': security_delta_amount,
             'security_inactive': security_inactive,
             'transaction_list': transaction_list}
     return render(request, 'returns/index.html', info)
