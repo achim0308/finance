@@ -66,6 +66,7 @@ def index(request):
     security_values = {}
     security_delta = {}
     security_inactive = {}
+    security_delta_amount = {}
     for s in security_list:
         try:
             amount = security_valuations.filter(security_id=s.id).aggregate(Sum('cur_value'))['cur_value__sum']
