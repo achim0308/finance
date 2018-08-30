@@ -1,4 +1,4 @@
-from time import mktime
+from time import mktime, sleep
 from datetime import datetime, date, timedelta
 from decimal import *
 from moneyed import Money
@@ -139,9 +139,18 @@ class Security(models.Model):
             raise RuntimeError('No symbol for mark to market security')
         try:
             # query website using alpha vantage API
-            data, meta_data = ts.get_daily(self.symbol)
-            # extract information
-            value = Decimal(float(data[date]['4. close']))
+            counter = 0
+            data_retrieved = False
+            # if data was not retrieved, try again after short wait
+            while (counter < 5 and not data_retrieved):
+                try:
+                    data, meta_data = ts.get_daily(self.symbol)
+                    # extract information
+                    value = Decimal(float(data[date]['4. close']))
+                    data_retrieved = True
+                except:
+                    counter += 1
+                    sleep(counter)
             price = Money(amount=value,currency=self.currency)
         except:
             raise RuntimeError('Trouble getting data for security', security.name)
