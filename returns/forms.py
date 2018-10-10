@@ -55,7 +55,7 @@ class SecurityForm(forms.ModelForm):
 
     class Meta:
         model = Security
-        fields = ('name', 'descrip', 'url', 'kind', 'mark_to_market', 'accumulate_interest', 'calc_interest', 'currency', 'active',)
+        fields = ('name', 'descrip', 'kind', 'symbol', 'url', 'mark_to_market', 'accumulate_interest', 'calc_interest', 'currency', 'active',)
 
 class TransactionForm(forms.ModelForm):
     def __init__(self,owner,*args,**kwargs):

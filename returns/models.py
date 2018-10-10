@@ -102,7 +102,8 @@ class Security(models.Model):
                           blank = True)
     symbol = models.CharField('Security symbol for pricing lookup',
                               default = '',
-                              max_length = 10)
+                              max_length = 10,
+                              blank = True)
     kind = models.CharField('kind of security',
                             max_length = 2,
                             choices = SEC_KIND_CHOICES,
