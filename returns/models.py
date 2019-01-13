@@ -60,13 +60,13 @@ class SecurityManager(models.Manager):
     def saveCurrentMarkToMarketValue(self):
         # for each mark to market security get and save current value, random ordering 
         markToMarketSecurities = self.get_queryset().markToMarket().active().order_by('?')
-        today = timezone.now().date() + timezone.timedelta(days=-1)
+        # today = timezone.now().date() + timezone.timedelta(days=-1)
 
         ts = TimeSeries(key=ALPHA_VANTAGE_KEY, output_format='pandas')
 
         for s in markToMarketSecurities:
             try:
-                value, date = s.markToMarket(ts, today)
+                value, date = s.markToMarket(ts)
                 HistValuation.objects.update_or_create(
                         date = date,
                         security = s,
@@ -135,7 +135,7 @@ class Security(models.Model):
     def getSymbol(self):
         return self.symbol
 
-    def markToMarket(self, ts, date):
+    def markToMarket(self, ts):
         if not self.mark_to_market:
             raise RuntimeError('Security not marked to market prices')
 
@@ -156,9 +156,9 @@ class Security(models.Model):
                 except:
                     counter += 2
                     sleep(counter)
-            price = Money(amount=value,currency=self.currency)
+            price = Money(amount=value, currency=self.currency)
         except:
-            raise RuntimeError('Trouble getting data for security', security.name)
+            raise RuntimeError('Trouble getting data for security', self.name)
 
         # screen scraping based on yahoo website
         # try:
