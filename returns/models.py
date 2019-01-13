@@ -17,6 +17,7 @@ from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 
 from alpha_vantage.timeseries import TimeSeries
+# from pandas import DataFrame
 
 from .calc import Solver
 from .utilities import yearsago, last_day_of_month
@@ -57,18 +58,17 @@ class SecurityManager(models.Manager):
         return self.get_queryset().active()
     
     def saveCurrentMarkToMarketValue(self):
-        # for each mark to market security get and save current value
-        markToMarketSecurities = self.get_queryset().markToMarket().active()
+        # for each mark to market security get and save current value, random ordering 
+        markToMarketSecurities = self.get_queryset().markToMarket().active().order_by('?')
         today = timezone.now().date() + timezone.timedelta(days=-1)
-        today_str = str(today)
 
-        ts = TimeSeries(key=ALPHA_VANTAGE_KEY)
-        
+        ts = TimeSeries(key=ALPHA_VANTAGE_KEY, output_format='pandas')
+
         for s in markToMarketSecurities:
             try:
-                value = s.markToMarket(ts, today_str)
+                value, date = s.markToMarket(ts, today)
                 HistValuation.objects.update_or_create(
-                        date = today,
+                        date = date,
                         security = s,
                         defaults = { 'value': value }
                 )
@@ -132,6 +132,9 @@ class Security(models.Model):
     def get_absolute_url(self):
         return reverse('views.security', args=[str(self.id)])
 
+    def getSymbol(self):
+        return self.symbol
+
     def markToMarket(self, ts, date):
         if not self.mark_to_market:
             raise RuntimeError('Security not marked to market prices')
@@ -147,10 +150,11 @@ class Security(models.Model):
                 try:
                     data, meta_data = ts.get_daily(self.symbol)
                     # extract information
-                    value = Decimal(float(data[date]['4. close']))
+                    value = Decimal(float(data['4. close'][-1]))
+                    date = data.index[-1]
                     data_retrieved = True
                 except:
-                    counter += 1
+                    counter += 2
                     sleep(counter)
             price = Money(amount=value,currency=self.currency)
         except:
@@ -164,7 +168,7 @@ class Security(models.Model):
         # except:
         #     raise RuntimeError('Trouble getting data for security', security.name)
         
-        return price
+        return price, date
 
     def calcInterest(self, date, owner):
     # calculate interest for security based on for year leading up to date
