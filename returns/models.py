@@ -150,8 +150,8 @@ class Security(models.Model):
                 try:
                     data, meta_data = ts.get_daily(self.symbol)
                     # extract information
-                    value = Decimal(float(data['4. close'][-1]))
-                    date = data.index[-1]
+                    value = Decimal(float(data['close'][-1]))
+                    date = datetime.strptime(data.index[-1], "%Y-%m-%d").date()
                     data_retrieved = True
                 except:
                     counter += 2
