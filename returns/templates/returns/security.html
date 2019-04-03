@@ -2,11 +2,11 @@
 {% block title_block %} {{ security.name }} (#{{ security.id }}){% endblock title_block %}
 {% block add_body_block %}
 
-<h1>Security {{ security.id }} details &ensp; <a class="btn btn-default btn-sm" href="{% url 'returns:security_edit' security_id=security.id %}" role="button"><span class="glyphicon glyphicon-pencil"></span></a>
+<h1>Security {{ security.name }} &ensp; <a class="btn btn-default btn-sm" href="{% url 'returns:security_edit' security_id=security.id %}" role="button"><span class="glyphicon glyphicon-pencil"></span></a>
 {% if security.accumulate_interest == True and security.calc_interest > 0.0 %}&ensp;<a class="btn btn-default btn-sm" href="{% url 'returns:add_interest' security_id=security.id %}" role="button"><span class="glyphicon glyphicon-signal"></span></a>
 {% endif %}</h1> 
 
-<p><strong>Name: </strong>{{ security.name }}
+<p><strong>Security ID: </strong>{{ security.id }}
 <br />
 {{ security.descrip }}
 </p>

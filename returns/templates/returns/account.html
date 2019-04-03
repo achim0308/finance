@@ -1,7 +1,7 @@
 {% extends 'returns/base-thistory.html' %}
 {% block title_block %} {{ account.name }} (#{{ account.id }}){% endblock title_block %}
 {% block add_body_block %}
-<h1>Account {{ account.id }} details &ensp; <a class="btn btn-default btn-sm" href="{% url 'returns:account_edit' account_id=account.id %}" role="button"><span class="glyphicon glyphicon-pencil"></span></a></h1>
+<h1> {{ account.name }} &ensp; <a class="btn btn-default btn-sm" href="{% url 'returns:account_edit' account_id=account.id %}" role="button"><span class="glyphicon glyphicon-pencil"></span></a></h1>
 
-<p><strong>Name: </strong>{{ account.name }}
+<p><strong>Account ID: </strong>{{ account.id }}
 {% endblock add_body_block%}
