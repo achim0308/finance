@@ -63,7 +63,7 @@ class SecurityManager(models.Manager):
         # today = timezone.now().date() + timezone.timedelta(days=-1)
 
         ts = TimeSeries(key=ALPHA_VANTAGE_KEY, output_format='pandas')
-
+        
         for s in markToMarketSecurities:
             try:
                 value, date = s.markToMarket(ts)
@@ -150,7 +150,7 @@ class Security(models.Model):
                 try:
                     data, meta_data = ts.get_daily(self.symbol)
                     # extract information
-                    value = Decimal(float(data['close'][-1]))
+                    value = Decimal(float(data['4. close'][-1]))
                     date = datetime.strptime(data.index[-1], "%Y-%m-%d").date()
                     data_retrieved = True
                 except:
