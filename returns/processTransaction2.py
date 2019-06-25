@@ -6,14 +6,20 @@ from moneyed import Money, get_currency
 from .models import Security, Transaction, Account, HistValuation, Inflation, SecurityValuation, AccountValuation
 from .utilities import yearsago, last_day_of_month, mid_day_of_next_month
 
-def updateSecurityValuation(owner):
+def updateSecurityValuation(owner, selectSecurityId = None):
     # get date of last update of security valuations
     try:
-        lastUpdate = SecurityValuation.object.filter(owner=owner).order_by('-modifiedDate').last().modifiedDate
+        if selectSecurityId is not None:
+            lastUpdate = SecurityValuation.object.filter(security__id=selectSecurityId,owner=owner).order_by('-modifiedDate').last().modifiedDate
+        else:
+            lastUpdate = SecurityValuation.object.filter(owner=owner).order_by('-modifiedDate').last().modifiedDate
     except:
          lastUpdate = date(1900,1,1)
     # find transactions that have been added since
-    transactionList = Transaction.objects.filter(owner=owner,modifiedDate__gte=lastUpdate).order_by('date').select_related('security')
+    if selectSecurityId is not None:
+        transactionList = Transaction.objects.filter(security__id=selectSecurityId,owner=owner,modifiedDate__gte=lastUpdate).order_by('date').select_related('security')
+    else:
+        transactionList = Transaction.objects.filter(owner=owner,modifiedDate__gte=lastUpdate).order_by('date').select_related('security')
 
     today = date.today()
 
@@ -37,7 +43,11 @@ def updateSecurityValuation(owner):
     currencySecurity = ['' for i in range(numSecurityObjects+1)]
     
     # populate using existing data
-    for s in Security.objects.all():
+    if selectSecurityId is not None:
+        listOfSecurities = Security.objects.filter(id=selectSecurityId)
+    else:
+        listOfSecurities = Security.objects.all()
+    for s in listOfSecurities:
         sID = s.id
         try:
             secValuation = SecurityValuation.objects.filter(owner=owner, date__lte=lastUpdate, security=s).order_by('-date').first()
@@ -142,14 +152,20 @@ def updateSecurityValuation(owner):
             currentDate = last_day_of_month(currentDate)
             endOfMonth = True
 
-def updateAccountValuation():
+def updateAccountValuation(selectAccountId = None):
     # get date of last update of account valuations
     try:
-        lastUpdate = AccountValuation.object.order_by('-modifiedDate').last().modifiedDate
+        if selectAccountId is not None:
+            lastUpdate = AccountValuation.object.filter(account__id=selectAccountId).order_by('-modifiedDate').last().modifiedDate
+        else:
+            lastUpdate = AccountValuation.object.order_by('-modifiedDate').last().modifiedDate
     except:
          lastUpdate = date(1900,1,1)
     # find transactions that have been added since
-    transactionList = Transaction.objects.filter(modifiedDate__gte=lastUpdate).order_by('date').select_related('security')
+    if selectAccountId is not None:
+        transactionList = Transaction.objects.filter(modifiedDate__gte=lastUpdate,account__id = selectAccountId).order_by('date').select_related('security')
+    else:
+        transactionList = Transaction.objects.filter(modifiedDate__gte=lastUpdate).order_by('date').select_related('security')
 
     today = date.today()
 

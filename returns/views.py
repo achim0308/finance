@@ -382,6 +382,12 @@ def account_edit(request, account_id):
     return render(request, 'returns/account_edit.html', {'form': form})
 
 @login_required
+def account_refresh(request, account_id):
+    account = get_object_or_404(Account, pk=account_id)
+    updateAccountValuation(selectAccountId = account.id)
+    return redirect('returns:account', account_id=account.id)
+
+@login_required
 def security_new(request):
     if request.method == "POST":
         form = SecurityForm(request.POST)
@@ -403,6 +409,12 @@ def security_edit(request, security_id):
     else:
         form = SecurityForm(instance=security)
     return render(request, 'returns/security_edit.html', {'form': form})
+
+@login_required
+def security_refresh(request, security_id):
+    security = get_object_or_404(Security, pk=security_id)
+    updateSecurityValuation(owner = request.user, selectSecurityId = security.id)
+    return redirect('returns:security', security_id=security.id)
 
 @login_required
 def add_interest(request, security_id):
