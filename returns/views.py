@@ -384,6 +384,7 @@ def account_edit(request, account_id):
 @login_required
 def account_refresh(request, account_id):
     account = get_object_or_404(Account, pk=account_id)
+    AccountValuation.objects.filter(account__id=account_id).delete()
     updateAccountValuation(selectAccountId = account.id)
     return redirect('returns:account', account_id=account.id)
 
@@ -413,7 +414,8 @@ def security_edit(request, security_id):
 @login_required
 def security_refresh(request, security_id):
     security = get_object_or_404(Security, pk=security_id)
-    updateSecurityValuation(owner = request.user, selectSecurityId = security.id)
+    SecurityValuation.objects.filter(owner=request.user, security__id=security_id).delete()
+    updateSecurityValuation(owner=request.user, selectSecurityId=security.id)
     return redirect('returns:security', security_id=security.id)
 
 @login_required
