@@ -6,6 +6,7 @@ from moneyed import Money, get_currency
 from .models import Security, Transaction, Account, HistValuation, Inflation, SecurityValuation, AccountValuation
 from .utilities import yearsago, last_day_of_month, mid_day_of_next_month
 
+@transaction.atomic
 def updateSecurityValuation(owner, selectSecurityId = None):
     # get date of last update of security valuations
     try:
@@ -65,11 +66,12 @@ def updateSecurityValuation(owner, selectSecurityId = None):
         if s.markToMarket == True:
             securityMtM = True
 
-    endOfMonth = True
     if today.day > 15:
         lastDay = last_day_of_month(today)
+        endOfMonth = True
     else:
         lastDay = today.replace(day=15)
+        endOfMonth = False
     
     while currentDate <= lastDay:
         
@@ -114,7 +116,7 @@ def updateSecurityValuation(owner, selectSecurityId = None):
                 elif not (t.kind == Transaction.INTEREST or t.kind == Transaction.MATCH):
                     curValueSecurity[tSecurityId] = curValueSecurity[tSecurityId] - (t.cashflow.amount - t.tax.amount - t.expense.amount)
         
-        # store information 
+        # store information
         for securityId in range(1,numSecurityObjects+1):
             if securityActive[securityId] == True:
                 # update security value with market data if applicable
@@ -152,6 +154,8 @@ def updateSecurityValuation(owner, selectSecurityId = None):
             currentDate = last_day_of_month(currentDate)
             endOfMonth = True
 
+
+@transaction.atomic
 def updateAccountValuation(selectAccountId = None):
     # get date of last update of account valuations
     try:
@@ -205,11 +209,12 @@ def updateAccountValuation(selectAccountId = None):
     curValueAccount = [Decimal(0.0) for i in range(numAccountObjects+1)]
     baseValueAccount = [Decimal(0.0) for i in range(numAccountObjects+1)]
 
-    endOfMonth = True
     if today.day > 15:
         lastDay = last_day_of_month(today)
+        endOfMonth = True
     else:
         lastDay = today.replace(day=15)
+        endOfMonth = False
     
     while currentDate <= lastDay:
         
@@ -277,7 +282,7 @@ def updateAccountValuation(selectAccountId = None):
                             # if all securities were sold, no longer need to update
                             if numSecurity[positionId] <= 0.0:
                                 securityActive[positionId] = False
-                                curValueSecurity[securityId] = 0.0
+                                curValueSecurity[positionId] = 0.0
                             else:
                                 curValueSecurity[positionId] = numSecurity[positionId] * (HistValuation.objects.getHistValuation(securityId, currentDate).amount)
                         else:
