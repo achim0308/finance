@@ -1,4 +1,4 @@
-from django import forms
+>0;256;0cfrom django import forms
 from django.core.exceptions import ValidationError
 from django_countries.widgets import CountrySelectWidget
 
@@ -79,12 +79,18 @@ class TransactionForm(forms.ModelForm):
                 self.add_error('num_transacted',
                                ValidationError("Number of exchanged securities must be negative."))
         elif (self.cleaned_data.get('kind') == Transaction.INTEREST or 
-              self.cleaned_data.get('kind') == Transaction.DIVIDEND or
-              self.cleaned_data.get('kind') == Transaction.MATCH):
+              self.cleaned_data.get('kind') == Transaction.DIVIDEND):
             if self.cleaned_data.get('cashflow').amount < 0.0:
                 self.add_error('cashflow', ValidationError("Cashflow must be positive."))
             if self.cleaned_data.get('num_transacted') != 0.0:
                 self.add_error('num_transacted', ValidationError("Number of exchanged securities must be zero."))
+        elif (self.cleaned_data.get('kind') == Transaction.INTEREST or 
+              self.cleaned_data.get('kind') == Transaction.DIVIDEND or
+              self.cleaned_data.get('kind') == Transaction.MATCH):
+            if self.cleaned_data.get('cashflow').amount != 0.0:
+                self.add_error('cashflow', ValidationError("Cashflow must be zero."))
+            if self.cleaned_data.get('num_transacted') < 0.0:
+                self.add_error('num_transacted', ValidationError("Number of exchanged securities must be non-negative."))
         elif (self.cleaned_data.get('kind') == Transaction.WRITE_DOWN):
             if self.cleaned_data.get('cashflow').amount <= 0.0:
                 self.add_error('cashflow', ValidationError("Cashflow must be positive."))
