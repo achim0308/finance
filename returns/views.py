@@ -5,6 +5,7 @@ from django.shortcuts import render, get_object_or_404, redirect, render_to_resp
 from django.template import RequestContext
 #from django.http import HttpResponse, Http404
 from django.utils import timezone
+from django.core.exceptions import PermissionDenied
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -179,6 +180,10 @@ def all_accounts(request):
 @login_required
 def account(request, account_id):
     account = get_object_or_404(Account, pk=account_id)
+    
+    if not (request.user.is_superuser or account.owner_id == request.user.id):
+        raise PermissionDenied
+    
     valuation = AccountValuation.objects.filter(account_id=account_id)
 
     data = {}
