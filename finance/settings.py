@@ -29,7 +29,7 @@ ALPHA_VANTAGE_KEY = config.get('secrets', 'ALPHA_VANTAGE_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config.getboolean('debug', 'DEBUG_FLAG')
 
-ALLOWED_HOSTS = [config.get('hosts', 'ALLOWED_HOSTS')]
+ALLOWED_HOSTS = config.get('hosts', 'ALLOWED_HOSTS').split(',')
 
 SECURE_SSL_REDIRECT = config.getboolean('hosts', 'SECURE_SSL_REDIRECT')
 
