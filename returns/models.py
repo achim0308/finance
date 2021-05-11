@@ -63,7 +63,7 @@ class SecurityManager(models.Manager):
         # today = timezone.now().date() + timezone.timedelta(days=-1)
 
         ts = TimeSeries(key=ALPHA_VANTAGE_KEY, output_format='pandas')
-
+        
         for s in markToMarketSecurities:
             try:
                 value, date = s.markToMarket(ts)
@@ -150,7 +150,7 @@ class Security(models.Model):
                 try:
                     data, meta_data = ts.get_daily(self.symbol)
                     # extract information
-                    value = Decimal(float(data['close'][-1]))
+                    value = Decimal(float(data['4. close'][-1]))
                     date = datetime.strptime(data.index[-1], "%Y-%m-%d").date()
                     data_retrieved = True
                 except:
@@ -210,8 +210,7 @@ class Account(models.Model):
                             max_length = 40)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,
                               default=2,
-#                              on_delete=models.CASCADE)
-    )
+                              on_delete=models.CASCADE)
     currency = models.CharField('Currency',
                                 max_length = 3,
                                 choices = CURRENCY_CHOICES,
@@ -566,8 +565,8 @@ class Transaction(models.Model):
                                          default = 0)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,
                               default=2,
-#                              on_delete=models.CASCADE)
-)
+                              on_delete=models.CASCADE)
+
     modifiedDate = models.DateField('last modified date',
                                     db_index=True)
 
@@ -923,7 +922,8 @@ class SecurityValuation(Valuation):
                                  on_delete = models.PROTECT,
                                  db_index=True)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,
-                              default=2)
+                              default=2,
+                              on_delete=models.PROTECT)
     sum_num = models.DecimalField('sum of number of securities exchanged',
                                    max_digits = 13,
                                    decimal_places = 5,

@@ -1,9 +1,10 @@
 {% extends 'returns/base.html' %}
 {% block title_block %} Transaction #{{ transaction.id }}{% endblock title_block %}
 {% block body_block %}
-<h1>Transaction {{ transaction.id }} details &ensp;<a class="btn
+<h1>Transaction &ensp;<a class="btn
 btn-default btn-sm" href="{% url 'returns:transaction_edit' transaction_id=transaction.id %}" role="button"><span class="glyphicon glyphicon-pencil"></span></a></h1>
 
+<p><strong>Transaction ID: </strong>{{ transaction.id }}
 <p><strong>Date: </strong>{{ transaction.date }}
 
 <p><strong>Account: </strong><a href="{% url 'returns:account' transaction.account.id %}">{{ transaction.account.name }}</a>

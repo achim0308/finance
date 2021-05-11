@@ -1,1 +1,1 @@
-../jquery.tablesorter-2.25.4/js/jquery.tablesorter.js
+../jquery.tablesorter-2.31.3/js/jquery.tablesorter.js

@@ -13,7 +13,8 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import include, url
+from django.urls import include, path, re_path
+# from django.conf.urls import include, url
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 
@@ -22,16 +23,15 @@ from django.conf import settings
 admin.autodiscover()
 
 urlpatterns = [
-    url(r'^admin/', include(admin.site.urls)),
-    url(r'^accounts/', include('django.contrib.auth.urls')),
-    url(r'^accounts/login/$', auth_views.login, name='login'),
-    url(r'^accounts/logout/$', auth_views.logout, {'next_page': '/'}, name='logout'),
-#    url(r'^returns/', include('returns.urls')),
-    url(r'', include('returns.urls')),
+    path('admin/', admin.site.urls),
+    path('accounts/', include('django.contrib.auth.urls')),
+    path('accounts/login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
+    path('accounts/logout/', auth_views.LogoutView.as_view(next_page='/'), name='logout'),
+    path('', include('returns.urls')),
 ]
 
 if settings.DEBUG:
     import debug_toolbar
     urlpatterns = [
-        url(r'^__debug__/', include(debug_toolbar.urls)),
+        re_path(r'^__debug__/', include(debug_toolbar.urls)),
     ] + urlpatterns

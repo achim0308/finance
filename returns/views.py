@@ -60,9 +60,13 @@ def index(request):
             account_inactive[a.id] = False
             account_delta[a.id] = account_values[a.id] - AccountValuation.objects.filter(account_id=a.id).order_by('-date')[0].base_value
         account_delta_amount[a.id] = account_delta[a.id].amount
-    account_total = sum(account_values[a.id] for a in account_list)
-    account_total_delta = sum(account_delta[a.id] for a in account_list)
-    
+    try:
+        account_total = sum(account_values[a.id] for a in account_list)
+        account_total_delta = sum(account_delta[a.id] for a in account_list)
+    except:
+        account_total = "Error"
+        account_total_delta = "Error"
+        
     # add information about security values
     security_values = {}
     security_delta = {}
@@ -383,6 +387,13 @@ def account_edit(request, account_id):
     return render(request, 'returns/account_edit.html', {'form': form})
 
 @login_required
+def account_refresh(request, account_id):
+    account = get_object_or_404(Account, pk=account_id)
+    AccountValuation.objects.filter(account__id=account_id).delete()
+    updateAccountValuation(selectAccountId = account.id)
+    return redirect('returns:account', account_id=account.id)
+
+@login_required
 def security_new(request):
     if request.method == "POST":
         form = SecurityForm(request.POST)
@@ -404,6 +415,13 @@ def security_edit(request, security_id):
     else:
         form = SecurityForm(instance=security)
     return render(request, 'returns/security_edit.html', {'form': form})
+
+@login_required
+def security_refresh(request, security_id):
+    security = get_object_or_404(Security, pk=security_id)
+    SecurityValuation.objects.filter(owner=request.user, security__id=security_id).delete()
+    updateSecurityValuation(owner=request.user, selectSecurityId=security.id)
+    return redirect('returns:security', security_id=security.id)
 
 @login_required
 def add_interest(request, security_id):
