@@ -14,8 +14,8 @@ from django.db import connection, models
 from django.db.models import Sum
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.encoding import python_2_unicode_compatible
 
+from six import python_2_unicode_compatible
 from alpha_vantage.timeseries import TimeSeries
 # from pandas import DataFrame
 
