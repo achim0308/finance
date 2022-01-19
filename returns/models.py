@@ -31,39 +31,40 @@ class SecurityQuerySet(models.QuerySet):
         pk_securities = Transaction.thobjects2.owner(ownerID) \
                                               .values_list('security', flat=True)
         return self.filter(pk__in=pk_securities)
-    
+
     def markToMarket(self):
         return self.filter(mark_to_market=True)
-    
+
     def kinds(self, kind):
         return self.filter(kind__in=kind)
 
     def active(self):
         return self.filter(active=True)
-    
+
 class SecurityManager(models.Manager):
     def get_queryset(self):
         return SecurityQuerySet(self.model, using=self._db)
-    
+
     def securityOwnedBy(self,ownerID):
         return self.get_queryset().securityOwnedBy(ownerID)
-    
+
     def markToMarket(self):
         return self.get_queryset().markToMarket()
-    
+
     def kinds(self, kind):
         return self.get_queryset().kinds(kind)
 
     def active(self):
         return self.get_queryset().active()
-    
+
     def saveCurrentMarkToMarketValue(self):
-        # for each mark to market security get and save current value, random ordering 
+        # for each mark to market security get and save current value, random ordering
         markToMarketSecurities = self.get_queryset().markToMarket().active().order_by('?')
         # today = timezone.now().date() + timezone.timedelta(days=-1)
 
-        ts = TimeSeries(key=ALPHA_VANTAGE_KEY, output_format='pandas')
-        
+        #ts = TimeSeries(key=ALPHA_VANTAGE_KEY, output_format='pandas')
+        ts = TimeSeries(key=ALPHA_VANTAGE_KEY, output_format='csv')
+
         for s in markToMarketSecurities:
             try:
                 value, date = s.markToMarket(ts)
@@ -123,12 +124,12 @@ class Security(models.Model):
 
     active = models.BooleanField('Active security',
                                  default=True)
-    
+
     objects = SecurityManager()
-    
+
     def __str__(self):
         return "%s (%s)" % (self.name, self.descrip)
-    
+
     def get_absolute_url(self):
         return reverse('views.security', args=[str(self.id)])
 
@@ -149,10 +150,20 @@ class Security(models.Model):
             while (counter < 5 and not data_retrieved):
                 try:
                     data, meta_data = ts.get_daily(self.symbol)
+                    # skip first row
+                    next(data)
                     # extract information
-                    value = Decimal(float(data['4. close'][-1]))
-                    date = datetime.strptime(data.index[-1], "%Y-%m-%d").date()
+                    row = next(data)
+                    print(self.symbol)
+                    print(row)
+                    #value = Decimal(float(data['4. close'][-1]))
+                    value = Decimal(float(row[4]))
+                    print(value)
+                    #date = datetime.strptime(str(data.index[-1]), "%Y-%m-%d %H:%M:%S").date()
+                    date = datetime.strptime(str(row[0]), "%Y-%m-%d").date()
+                    print(date)
                     data_retrieved = True
+                    sleep(15) # wait to not exceep API max
                 except:
                     counter += 2
                     sleep(counter)
@@ -167,7 +178,7 @@ class Security(models.Model):
         #     price = Money(amount=value,currency=self.currency)
         # except:
         #     raise RuntimeError('Trouble getting data for security', security.name)
-        
+
         return price, date
 
     def calcInterest(self, date, owner):
@@ -175,11 +186,11 @@ class Security(models.Model):
         if not self.calc_interest > 0:
             raise RuntimeError('Security does not have fixed interest payment')
         total = SecurityValuation.objects.filter(security=self, date__lte=date, owner_id=owner).order_by('date').last().cur_value
-        
+
         # calculate interest payment (calc_interest is in %!)
         interest = Money(total.amount * self.calc_interest / Decimal(100.0), self.currency)
         return interest
-    
+
     class Meta:
         ordering = ['name']
         verbose_name_plural = 'Securities'
@@ -218,15 +229,15 @@ class Account(models.Model):
 
     active = models.BooleanField('Active account',
                                  default=True)
-    
+
     objects = AccountManager()
-    
+
     def __str__(self):
         return self.name
-    
+
     def get_absolute_url(self):
         return reverse('views.account', args=[str(self.id)])
-    
+
     class Meta:
         ordering = ['name']
 
@@ -234,19 +245,19 @@ class TransactionQuerySet(models.QuerySet):
     # custom query set function for Transaction
     def owner(self, ownerID):
         return self.filter(owner_id=ownerID)
-    
+
     def beginDate(self, beginDate):
         return self.filter(date__gte = beginDate)
-    
+
     def endDate(self, endDate):
         return self.filter(date__lte = endDate)
-    
+
     def securities(self, securities):
         return self.filter(security_id__in = securities)
-    
+
     def accounts(self, accounts):
         return self.filter(account_id__in = accounts)
-    
+
     def recent(self):
         return self.filter(date__gte = timezone.now()+timedelta(days=-30)).select_related('security','account').order_by('date')
 
@@ -263,15 +274,15 @@ class TransactionQuerySet(models.QuerySet):
             transactions = transactions.securities(securities)
         if not accounts is None:
             transactions = transactions.accounts(accounts)
-        
+
         return transactions
 
     def transactionHistoryWithRelated(self, beginDate = None, endDate = None,
                                       securities = None, accounts = None, owner = None):
         return self.transactionHistory(beginDate, endDate, securities, accounts, owner).select_related('security','account')
-        
+
     def notCashflowRelevant(self):
-    # remove transactions that are not relevant for cash flows, 
+    # remove transactions that are not relevant for cash flows,
     # i.e., interest payments or company matches on securities that accumulate interest
     # and write downs
         return self.filter(~(
@@ -281,21 +292,21 @@ class TransactionQuerySet(models.QuerySet):
                                   Q(kind = Transaction.MATCH))
                              ) | Q(kind = Transaction.WRITE_DOWN)
                             ))
-    
+
     def accumulatingSecuritiesInterestAndMatch(self):
     # show only interest and company match transactions
     # for securities that accumulate interest
         return self.filter(Q(security__accumulate_interest = True) &
                            (Q(kind = Transaction.INTEREST) | Q(kind = Transaction.MATCH))
                           )
-    
+
     def nonMarkToMarketInAndOutflows(self):
-    # exclude only interest and company match transactions as well as 
+    # exclude only interest and company match transactions as well as
     # transactions for for securities that are marked to market
         return self.exclude(security__mark_to_market = False) \
                    .exclude(kind=Transaction.INTEREST) \
                    .exclude(kind=Transaction.MATCH) \
-    
+
     def markToMarket(self):
     # only select transactions of mark_to_market securities
         return self.filter(security__mark_to_market = True)
@@ -303,31 +314,31 @@ class TransactionQuerySet(models.QuerySet):
 class TransactionManager2(models.Manager):
     def get_queryset(self):
         return TransactionQuerySet(self.model, using=self._db)
-    
+
     def recent(self):
         return self.get_queryset().recent()
-    
+
     def owner(self, ownerID):
         return self.get_queryset().owner(ownerID)
 
     def transactionHistoryWithRelated(self, beginDate = None, endDate = None,
                                       securities = None, accounts = None, owner = None):
         return self.get_queryset().transactionHistoryWithRelated(beginDate, endDate, securities, accounts, owner)
-    
+
     def transactionHistory(self, beginDate = None, endDate = None,
                            securities = None, accounts = None, owner = None):
         return self.get_queryset().transactionHistory(beginDate, endDate, securities, accounts, owner)
-        
+
     def cashflow(self, beginDate = None, endDate = None,
                        securities = None, accounts = None, owner = None):
-    # sum daily cashflows of all transactions relevant for cashflows 
+    # sum daily cashflows of all transactions relevant for cashflows
         cashflows = self.transactionHistory(beginDate, endDate, securities, accounts, owner)
         cashflows = cashflows.notCashflowRelevant()
-        
+
         # construct sum
         cashflows = cashflows.values('date') \
                              .annotate(sumCashflow=Sum('cashflow'))
-        
+
         return cashflows
 
     def num(self, beginDate = None, endDate = None,
@@ -335,39 +346,39 @@ class TransactionManager2(models.Manager):
     # sum transacted securities
         numSecurities = self.transactionHistory(beginDate, endDate, securities, accounts, owner)
         numSecurities = numSecurities.markToMarket()
-        
+
         # construct sum
         numSecurities = numSecurities.values('security_id') \
                                      .annotate(sumNumTransacted=Sum('num_transacted'))
-        
+
         return numSecurities
-    
+
     def curValue(self, beginDate = None, endDate = None,
                        securities = None, accounts = None, owner = None):
     # get current, i.e. at end date if available, value of securities
         curValues = self.transactionHistory(beginDate, endDate, securities, accounts, owner)
-        
+
         curValues1 = curValues.accumulatingSecuritiesInterestAndMatch()
         curValues2 = curValues.nonMarkToMarketInAndOutflows()
-        
+
         # sum over cashflows only
         curValues1 = curValues1.values('security_id') \
                                .annotate(curValue=Sum(-F('cashflow')))
-        
-        # sum over cashflows minus taxes and expenses 
+
+        # sum over cashflows minus taxes and expenses
         # (since these also reduce the value of security)
         curValues2 = curValues2.values('security_id') \
                                .annotate(curValue=Sum(-(F('cashflow')
                                                         -F('tax')
                                                         -F('expense'))))
-        
+
         # combine query
         curValues = curValues1 | curValues2
-        
+
         # return sum of all current values
         return curValues
-        
-    
+
+
 class TransactionManager(models.Manager):
     def getTransactionHistory(self, beginDate = None, endDate = None, securities = None, accounts = None, owner = None):
 
@@ -383,7 +394,7 @@ class TransactionManager(models.Manager):
                 format_string = ','.join(['%s'] * len(accounts))
                 sql = sql + """ WHERE account_id IN (%s)""" % (format_string)
                 arg = tuple(accounts)
-            else: 
+            else:
                 format_string = ','.join(['%s'] * len(securities))
                 sql = sql + """ WHERE security_id IN (%s)""" % (format_string)
                 arg = tuple(securities)
@@ -402,7 +413,7 @@ class TransactionManager(models.Manager):
         print(sql, arg)
 
         cursor.execute(sql, arg)
-        
+
         return dict_cursor(cursor)
 
     def getCashflow(self, beginDate = None, endDate = None, securities = None, accounts = None, owner= None):
@@ -416,11 +427,11 @@ class TransactionManager(models.Manager):
                 format_string = ','.join(['%s'] * len(accounts))
                 sql = sql + """ AND account_id IN (%s)""" % (format_string)
                 arg = tuple(accounts)
-            else: 
+            else:
                 format_string = ','.join(['%s'] * len(securities))
                 sql = sql + """ AND security_id IN (%s)""" % (format_string)
                 arg = tuple(securities)
-                
+
         if owner != None:
             sql = sql + """ AND owner_id = """ + str(owner)
         if beginDate != None and endDate != None:
@@ -429,7 +440,7 @@ class TransactionManager(models.Manager):
         elif endDate != None:
             sql = sql + """ AND date BETWEEN CAST(%s AS DATE) AND CAST(%s AS DATE)"""
             arg = arg + ('1900-01-01', endDate.strftime('%Y-%m-%d'))
-        
+
         sql = sql + """ GROUP BY date ORDER BY date"""
         arg = None if arg == "" else arg
         cursor.execute(sql, arg)
@@ -449,11 +460,11 @@ class TransactionManager(models.Manager):
                 format_string = ','.join(['%s'] * len(accounts))
                 sql = sql + """ AND account_id IN (%s)""" % (format_string)
                 arg = tuple(accounts)
-            else: 
+            else:
                 format_string = ','.join(['%s'] * len(securities))
                 sql = sql + """ AND security_id IN (%s)""" % (format_string)
                 arg = tuple(securities)
-        
+
         if owner != None:
             sql = sql + """ AND owner_id = """ + str(owner)
         if beginDate != None and endDate != None:
@@ -463,7 +474,7 @@ class TransactionManager(models.Manager):
             sql = sql + """ AND date BETWEEN CAST(%s AS DATE) AND CAST(%s AS DATE)"""
             arg = arg + ('1900-01-01', endDate.strftime('%Y-%m-%d'))
 
-        
+
         sql = sql + """ GROUP BY security_id ORDER BY security_id"""
         arg = None if arg == () else arg
         cursor.execute(sql, arg)
@@ -479,7 +490,7 @@ class TransactionManager(models.Manager):
         sql2 = """SELECT security_id, cashflow-tax-expense AS cashflow FROM returns_transaction T3 INNER JOIN returns_security T4 ON T3.security_id = T4.id WHERE (NOT T4.mark_to_market AND (NOT T3.kind = '%s' AND NOT T3.kind = '%s'))""" % (Transaction.INTEREST, Transaction.MATCH)
         sql = ""
         arg = ()
-        
+
         if owner != None:
             sql = sql + """ AND owner_id = """ + str(owner)
         if beginDate != None and endDate != None:
@@ -493,11 +504,11 @@ class TransactionManager(models.Manager):
                 format_string = ','.join(['%s'] * len(accounts))
                 sql = sql + """ AND account_id IN (%s)""" % (format_string)
                 arg = arg + tuple(accounts)
-            else: 
+            else:
                 format_string = ','.join(['%s'] * len(securities))
                 sql = sql + """ AND security_id IN (%s)""" % (format_string)
                 arg = arg + tuple(securities)
-                
+
         arg = arg + arg
         sql1 = sql1 + sql
         sql2 = sql2 + sql
@@ -588,7 +599,7 @@ class Transaction(models.Model):
 class HistValuationQuerySet(models.QuerySet):
     def security(self,securityID):
         return self.filter(security=securityID)
-    
+
     def date(self,date):
         return self.filter(date__lte=date)
 
@@ -598,10 +609,10 @@ class HistValuationManager(models.Manager):
 
     def security(self,securityID):
         return self.get_queryset().security(securityID)
-    
+
     def date(self,date):
         return self.get_queryset().date(date)
-    
+
     def getHistValuation(self,securityID, date):
         try:
             h = self.get_queryset().security(securityID).date(date).latest('date')
@@ -625,12 +636,12 @@ class HistValuation(models.Model):
                        max_digits = 10,
                        decimal_places = 2,
                        default_currency='EUR')
-    
+
     objects = HistValuationManager()
-    
+
     def __str__(self):
         return "%s (%s): %s" % (self.security.name, self.date, self.value)
-    
+
     def get_absolute_url(self):
         return reverse('views.transaction', args=[str(self.id)])
 
@@ -649,15 +660,15 @@ class InflationManager(models.Manager):
         inflationFiveYear = self.rateOfInflation(beginDate = fiveYear, endDate = today)
         inflationOverall = self.rateOfInflation()
 
-        return {'inYTD': inflationYTD, 
-                'in1Y': inflationPrevYear, 
-                'in5Y': inflationFiveYear, 
-                'inInfY': inflationOverall, 
+        return {'inYTD': inflationYTD,
+                'in1Y': inflationPrevYear,
+                'in5Y': inflationFiveYear,
+                'inInfY': inflationOverall,
                 }
-    
+
     def rateOfInflation(self, beginDate = None, endDate = None):
         inflation = Inflation.objects.order_by('date')
-        if beginDate is None: 
+        if beginDate is None:
             inflation1 = inflation.first()
         else:
             inflation1 = inflation.filter(date__lte=beginDate).last()
@@ -665,7 +676,7 @@ class InflationManager(models.Manager):
             inflation2 = inflation.last()
         else:
             inflation2 = inflation.filter(date__lte=endDate).last()
-        
+
         if not inflation1 or not inflation2:
             print("Error: No data")
             inflationRate = ''
@@ -673,13 +684,13 @@ class InflationManager(models.Manager):
             solver = Solver()
             solver.addCashflow(inflation1.inflationIndex, inflation1.date)
             solver.addCashflow(-inflation2.inflationIndex, inflation2.date)
-            
+
             try:
                 inflationRate = solver.calcRateOfReturn()
             except RuntimeError as e:
                 inflationRate = ''
                 print("Error calculating inflation: {0}".format(e))
-        
+
         return inflationRate
 
 class Inflation(models.Model):
@@ -689,12 +700,12 @@ class Inflation(models.Model):
                                          max_digits = 5,
                                          decimal_places = 2)
     country = CountryField()
-    
+
     objects = InflationManager()
-    
+
     def __str__(self):
         return "%s: %4.1f" % (self.date, self.inflationIndex)
-    
+
     def get_absolute_url(self):
         return reverse('views.inflation', args=[str(self.id)])
 
@@ -706,7 +717,7 @@ def dict_cursor(cursor):
 class ValuationQuerySet(models.QuerySet):
     def mostRecent(self):
         return self.filter(date__gte=timezone.now())#.order_by('-date')
-    
+
     def getHistoricalRateOfReturn(self):
         # calculate internal rate of return for multiple time periods
 
@@ -722,7 +733,7 @@ class ValuationQuerySet(models.QuerySet):
         performancePrevYear = self.getRateOfReturn(beginDate = prevYear, endDate = today)
         performanceFiveYear = self.getRateOfReturn(beginDate = fiveYear, endDate = today)
         performanceOverall = self.getRateOfReturn()
-        
+
         return {'rYTD': performanceYTD['rate'],
                 'iYTD': performanceYTD['initial'],
                 'tYTD': performanceYTD['final'],
@@ -740,12 +751,12 @@ class ValuationQuerySet(models.QuerySet):
         qs = self.order_by('date')
         if endDate != None:
             qs = qs.filter(date__lte=endDate)
-            
+
         if beginDate != None:
             qs = qs.filter(date__gte=beginDate)
 
         return qs
-    
+
     def getRateOfReturn(self, beginDate = None, endDate = None):
         # calculate internal rate of return given the cashflows
 
@@ -757,14 +768,14 @@ class ValuationQuerySet(models.QuerySet):
             endDate = last_day_of_month(endDate)
         else:
             endDate = endDate.replace(day=15)
-        
+
         # limit query set to date range given
         qs = self.restrictDateRange(beginDate, endDate)
-        
+
         # aggregate values per date
         qs = qs.values('date').annotate(sumBaseValue=Sum('base_value'),
                                         sumCurValue=Sum('cur_value'))
-        
+
         # get value at beginning of interval
         try:
             base0 = self.filter(date__lt=beginDate).order_by('date')\
@@ -800,38 +811,38 @@ class ValuationQuerySet(models.QuerySet):
                 finalDate = final['date']
             except:
                 pass
-        
+
         solver = Solver()
 
         if date0 is not None:
             solver.addCashflow(initialValue0.amount, date0)
-        
+
         # add date/cashflows to solver
         for v in qs:
             cashflow = float(v['sumBaseValue'])-float(baseValue0)
             if cashflow != 0.0:
                 solver.addCashflow(cashflow, v['date'])
             baseValue0 = v['sumBaseValue']
-        
+
         if finalDate is not None:
             # negative due to different sign conventions
             solver.addCashflow(-finalValue.amount, finalDate)
-            
+
         try:
             r = solver.calcRateOfReturn()
         except:
             r = 'Error'
-        
+
         return {'rate': r,
                 'initial': initialValue0,
                 'final': finalValue }
-    
+
     def makeChart(self):
         # Collects information and processes it to show chart of valuation
         # requires queryset; assumes that all Money objects have the same currency!
         try:
             valuations = self.order_by('date')
-        
+
             xdata=[]
             y1data=[]
             y2data=[]
@@ -850,13 +861,13 @@ class ValuationQuerySet(models.QuerySet):
                     # must convert Decimal to float
                     y1data.append(float(v.cur_value.amount))
                     y2data.append(float(v.base_value.amount))
-            
+
             tooltip_date = "%b %Y"
             extra_serie={
                 "tooltip": {"y_start": "", "y_end": currency},
                 "date_format": tooltip_date
             }
-            
+
             chartdata = {
                 'x': xdata,
                 'name1': 'Actual value', 'y1': y1data, 'extra1': extra_serie,
@@ -876,7 +887,7 @@ class ValuationQuerySet(models.QuerySet):
                     'margin_left': 70,
                 }
             }
-        
+
             return data
         except:
             return None
@@ -887,10 +898,10 @@ class ValuationManager(models.Manager):
 
     def mostRecent(self):
         return self.get_queryset().mostRecent()
-    
+
     def getRateOfReturn(self, beginDate = None, endDate = None):
         return self.get_queryset().getRateOfReturn(beginDate, endDate)
-    
+
     def makeChart(self):
         return self.get_queryset().makeChart()
 
@@ -909,15 +920,15 @@ class Valuation(models.Model):
                             default_currency='EUR')
     modifiedDate = models.DateField('Last modification',
                                     db_index=True)
-    
+
     objects = ValuationManager()
-    
+
     class Meta:
         abstract = True
 
 @python_2_unicode_compatible
 class SecurityValuation(Valuation):
-    # models the current valuation and the base value (in-outflow excluding interest or dividends) of a security of a given owner for a given date 
+    # models the current valuation and the base value (in-outflow excluding interest or dividends) of a security of a given owner for a given date
     security = models.ForeignKey(Security,
                                  on_delete = models.PROTECT,
                                  db_index=True)
@@ -928,31 +939,31 @@ class SecurityValuation(Valuation):
                                    max_digits = 13,
                                    decimal_places = 5,
                                    default = 0)
-    
+
     def __str__(self):
         return "%s (%s): %s (%s)" % (self.security.name, self.date, self.cur_value, self.base_value)
 
 @python_2_unicode_compatible
 class AccountValuation(Valuation):
-    # models the current valuation and the base value (in-outflow excluding interest or dividends) of an account for a given date 
+    # models the current valuation and the base value (in-outflow excluding interest or dividends) of an account for a given date
     account = models.ForeignKey(Account,
                                 on_delete = models.PROTECT,
                                 db_index=True)
-    
+
     def __str__(self):
         return "%s (%s): %s (%s)" % (self.account.name, self.date, self.cur_value, self.base_value)
 
 class ExchangeUSDToEURQuerySet(models.QuerySet):
     def date(self,date):
         return self.filter(date__lte=date)
-    
+
 class ExchangeUSDToEURManager(models.Manager):
     def get_queryset(self):
         return ExchangeUSDToEURQuerySet(self.model, using=self._db)
 
     def date(self,date):
         return self.get_queryset().date(date)
-    
+
     def getHistExchangeRate(self, date):
         try:
             h = self.get_queryset().date(date).latest('date')
@@ -983,6 +994,6 @@ class ExchangeUSDToEUR(models.Model):
 
     # exchange rate URL
     url = "http://download.finance.yahoo.com/d/quotes.csv?s=USDEUR=X&f=l1"
-    
+
     def __str__(self):
         return "%s: %2.5f" % (self.date, self.USDperEUR)
