@@ -23,23 +23,23 @@ from .utilities import yearsago, last_day_of_month
 @login_required
 def index(request):
     account_list = Account.objects.order_by('name')
-    
+
     security_list = Security.objects.order_by('kind','name')
     security_valuations = SecurityValuation.objects.mostRecent()
-    
+
     transaction_list = Transaction.thobjects2.recent()
-    
+
     # restrict to data for current user
     if not request.user.is_superuser:
         curUser = request.user.id
         # Get list of accounts of that have transactions for the current user
         account_list = account_list.accountOwnedBy(curUser)
-        
+
         # Get list of securities that have transactions for the current user
         security_list = security_list.securityOwnedBy(curUser)
         security_valuations = security_valuations.filter(owner=curUser)
         transaction_list = transaction_list.owner(curUser)
-    
+
     # add information about account values
     account_values = {}
     account_delta = {}
@@ -66,7 +66,7 @@ def index(request):
     except:
         account_total = "Error"
         account_total_delta = "Error"
-        
+
     # add information about security values
     security_values = {}
     security_delta = {}
@@ -98,15 +98,15 @@ def index(request):
                 currency = s.currency
             )
         security_delta_amount[s.id] = security_delta[s.id].amount
-    
-    info = {'account_list': account_list, 
+
+    info = {'account_list': account_list,
             'account_values': account_values,
             'account_delta': account_delta,
             'account_delta_amount': account_delta_amount,
             'account_total': account_total,
             'account_total_delta': account_total_delta,
             'account_inactive': account_inactive,
-            'security_list': security_list, 
+            'security_list': security_list,
             'security_values': security_values,
             'security_delta': security_delta,
             'security_delta_amount': security_delta_amount,
@@ -127,15 +127,15 @@ def transaction(request, transaction_id):
 def all_accounts(request):
     valuation = SecurityValuation.objects.all()
     data = {}
-    
+
     if request.user.is_superuser:
         data['transaction_list'] = Transaction.thobjects2.transactionHistoryWithRelated()
     else:
         cur_user = request.user.id
         valuation = valuation.filter(owner_id=cur_user)
         data['transaction_list'] = Transaction.thobjects2.transactionHistoryWithRelated(owner=cur_user)
-    
-    data['inflation'] = Inflation.objects.rateOfInflation()    
+
+    data['inflation'] = Inflation.objects.rateOfInflation()
 
     data['histPerf'] = valuation.getHistoricalRateOfReturn()
     data['histPerf'].update(Inflation.objects.getHistoricalRateOfInflation())
@@ -156,16 +156,16 @@ def all_accounts(request):
                 total = total + float(data['segPerf'][kind[1]]['tYTD'].amount)
             except:
                 pass
-            
+
         for kind in Security.SEC_KIND_CHOICES:
             try:
                 data['segPerf'][kind[1]]['frac'] = float(data['segPerf'][kind[1]]['tYTD'].amount) / total * 100.0
             except:
                 data['segPerf'][kind[1]] = 0
-    
+
         # Prepare data for pie chart
         data['chart_asset_alloc'] = makePieChartSegPerf(data['segPerf'])
-        
+
         # prepare data for bar chart
         data['chart_asset_perf'] = makeBarChartSegPerf(data['segPerf'])
 
@@ -180,10 +180,10 @@ def all_accounts(request):
 @login_required
 def account(request, account_id):
     account = get_object_or_404(Account, pk=account_id)
-    
+
     if not (request.user.is_superuser or account.owner_id == request.user.id):
         raise PermissionDenied
-    
+
     valuation = AccountValuation.objects.filter(account_id=account_id)
 
     data = {}
@@ -193,10 +193,10 @@ def account(request, account_id):
 
     data['histPerf'] = valuation.getHistoricalRateOfReturn()
     data['histPerf'].update(Inflation.objects.getHistoricalRateOfInflation())
-    
+
     data['returns'] = data['histPerf']['rInfY']
     data['total'] = data['histPerf']['tInfY']
-        
+
     data['chart_asset_history'] = valuation.makeChart()
 
     return render(request, 'returns/account.html', data)
@@ -208,7 +208,7 @@ def security(request, security_id):
     data = {}
     data['security'] = security
     data['inflation'] = Inflation.objects.rateOfInflation()
-    
+
     if request.user.is_superuser:
         data['transaction_list'] = Transaction.thobjects2.transactionHistoryWithRelated(securities=[security.id])
     else:
@@ -227,7 +227,7 @@ def security(request, security_id):
     data['total'] = data['histPerf']['tInfY']
 
     data['chart_asset_history'] = valuation.makeChart()
-        
+
     return render(request, 'returns/security.html', data)
 
 @login_required
@@ -258,22 +258,22 @@ def timeperiod(request):
             account_list = Account.objects.accountOwnedBy(curUser).order_by('name')
             # Get list of securities that have transactions for the current user
             security_list = Security.objects.securityOwnedBy(curUser).order_by('name')
-            
-            return render(request, 'returns/timeperiod.html', 
+
+            return render(request, 'returns/timeperiod.html',
                           {'accounts': account_list, 'securities': security_list,
                            'kinds': sorted(Security.SEC_KIND_CHOICES,
                                            key=lambda tup:tup[1])
                           })
     else:
         data = {}
-    
+
         # do calculations
         begin_date = datetime.strptime(begin_date, "%m/%d/%Y").date()
         end_date = datetime.strptime(end_date, "%m/%d/%Y").date()
 
         data['beginDate'] = begin_date
         data['endDate'] = end_date
-        
+
         if selected_kind is not None:
             selected_security = Security.objects.kinds(selected_kind).order_by('kind')
             valuation = SecurityValuation.objects.filter(security_id__in=selected_security)
@@ -297,18 +297,18 @@ def timeperiod(request):
                                                                                  accounts = selected_account)
         else:
             cur_user = request.user.id
-            if selected_account is None: 
+            if selected_account is None:
                 valuation = valuation.filter(owner=cur_user)
             data['transaction_list'] = Transaction.thobjects2\
                                                   .transactionHistoryWithRelated(beginDate = begin_date, endDate = end_date,
                                                                                  securities = selected_security,
                                                                                  accounts = selected_account,
                                                                                  owner=cur_user)
-    
+
         data['inflation'] = Inflation.objects.rateOfInflation(beginDate = begin_date, endDate = end_date)
 
         rateOfReturn = valuation.getRateOfReturn(beginDate = begin_date, endDate = end_date)
-        
+
         data['returns'] = rateOfReturn['rate']
         data['total'] = rateOfReturn['final']
 
@@ -450,13 +450,13 @@ def add_interest(request, security_id):
                     },
                 )
 
-            # update security valuations 
+            # update security valuations
             updateSecurityValuation(owner)
             return redirect('returns:transaction', transaction_id=t.id)
     else:
         today = timezone.now().date()
         Jan1 = date(today.year,1,1)
-    
+
         if request.user.is_superuser:
             form = AddInterestFormForSuperuser(initial={'security':security_id,
                                                         'date': Jan1})
@@ -466,14 +466,15 @@ def add_interest(request, security_id):
 
 def add_hist_data(request):
     # all tasks for cron job
-    # get current quote
-    Security.objects.saveCurrentMarkToMarketValue()
     # update security and account valuations
     for u in User.objects.all():
         updateSecurityValuation(u)
     updateAccountValuation()
+    # get current quote
+    #Security.objects.saveCurrentMarkToMarketValue()
+    updatedSecurities = Security.objects.saveMultiCurrentMarkToMarketValue()
 
-    return render(request, 'returns/add_hist_data.html')   
+    return render(request, 'returns/add_hist_data.html', {'updatedSecurities': updatedSecurities} )
 #    return redirect('returns:index')
 
 @login_required
@@ -498,7 +499,7 @@ def inflation_new(request):
 
 @login_required
 def inflation_edit(request, inflation_id):
-    security = get_object_or_404(Inflation, pk=inflation_id)
+    inflation = get_object_or_404(Inflation, pk=inflation_id)
     if request.method == "POST":
         form = InflationForm(request.POST, instance=inflation)
         if form.is_valid():

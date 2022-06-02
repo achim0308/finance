@@ -59,7 +59,7 @@ class SecurityManager(models.Manager):
 
     def saveCurrentMarkToMarketValue(self):
         # for each mark to market security get and save current value, random ordering
-        markToMarketSecurities = self.get_queryset().markToMarket().active().order_by('?')
+        markToMarketSecurities = self.get_queryset().markToMarket().active().order_by('?')[0:8]
         # today = timezone.now().date() + timezone.timedelta(days=-1)
 
         #ts = TimeSeries(key=ALPHA_VANTAGE_KEY, output_format='pandas')
@@ -75,6 +75,32 @@ class SecurityManager(models.Manager):
                 )
             except:
                 print("Error getting data for security ", s, file=stderr)
+
+        return markToMarketSecurities
+
+    def saveMultiCurrentMarkToMarketValue(self):
+        # for each mark to market security get and save current value, random ordering
+        markToMarketSecurities = self.get_queryset().markToMarket().active().order_by('?')[0:5]
+
+        ts = TimeSeries(key=ALPHA_VANTAGE_KEY, output_format='csv')
+
+        for s in markToMarketSecurities:
+            # find which is the most recent entry
+            latest_date = HistValuation.objects.security(s).latest('date').date
+
+            try:
+                valuation = s.markToMarketMultiple(ts, latest_date)
+                for date, value in valuation:
+                    HistValuation.objects.update_or_create(
+                            date = date,
+                            security = s,
+                            defaults = { 'value': value }
+                )
+            except:
+                print("Error getting data for security ", s, file=stderr)
+
+        return markToMarketSecurities
+
 
 @python_2_unicode_compatible
 class Security(models.Model):
@@ -154,16 +180,12 @@ class Security(models.Model):
                     next(data)
                     # extract information
                     row = next(data)
-                    print(self.symbol)
-                    print(row)
                     #value = Decimal(float(data['4. close'][-1]))
                     value = Decimal(float(row[4]))
-                    print(value)
                     #date = datetime.strptime(str(data.index[-1]), "%Y-%m-%d %H:%M:%S").date()
                     date = datetime.strptime(str(row[0]), "%Y-%m-%d").date()
-                    print(date)
                     data_retrieved = True
-                    sleep(15) # wait to not exceep API max
+                    sleep(12) # wait to not exceep API max
                 except:
                     counter += 2
                     sleep(counter)
@@ -180,6 +202,41 @@ class Security(models.Model):
         #     raise RuntimeError('Trouble getting data for security', security.name)
 
         return price, date
+
+    def markToMarketMultiple(self, ts, up_to_date):
+        if not self.mark_to_market:
+            raise RuntimeError('Security not marked to market prices')
+
+        if self.symbol == '':
+            raise RuntimeError('No symbol for mark to market security')
+        try:
+            # query website using alpha vantage API
+            counter = 0
+            data_retrieved = False
+            # if data was not retrieved, try again after short wait
+            valuation = []
+            while (counter < 1 and not data_retrieved):
+                up_to_date_reached = False
+                try:
+                    data, meta_data = ts.get_daily(self.symbol)
+                    # skip first row
+                    next(data)
+                    # extract information
+                    for row in data:
+                        value = Decimal(float(row[4]))
+                        date = datetime.strptime(str(row[0]), "%Y-%m-%d").date()
+                        valuation.append([date, Money(amount=value, currency=self.currency)])
+                        if date <= up_to_date:
+                            break
+                    data_retrieved = True
+                    #sleep(12) # wait to not exceep API max
+                except:
+                    counter += 2
+                    sleep(counter)
+        except:
+            raise RuntimeError('Trouble getting data for security', self.name)
+        return valuation
+
 
     def calcInterest(self, date, owner):
     # calculate interest for security based on for year leading up to date
