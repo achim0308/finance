@@ -464,14 +464,15 @@ def add_interest(request, security_id):
             form = AddInterestForm(initial={'security':security_id, 'date': Jan1})
     return render(request, 'returns/add_interest.html', {'form': form})
 
-def add_hist_data(request):
-    # all tasks for cron job
+def update_hist_data(request):
     # update security and account valuations
     for u in User.objects.all():
         updateSecurityValuation(u)
     updateAccountValuation()
-    # get current quote
-    #Security.objects.saveCurrentMarkToMarketValue()
+
+    return redirect('returns:index')
+
+def add_mtm_data(request):
     updatedSecurities = Security.objects.saveMultiCurrentMarkToMarketValue()
 
     return render(request, 'returns/add_hist_data.html', {'updatedSecurities': updatedSecurities} )

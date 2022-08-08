@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-  {% block preheader_block%}{% endblock %} 
+  {% block preheader_block%}{% endblock %}
   <head>
     <title>Investments -{% block title_block%} {% endblock %}</title>
 
@@ -36,7 +36,7 @@
       var e = document.getElementById(id);
       if (e.style.display == "block")
       e.style.display = "none";
-      else 
+      else
       e.style.display = "block";
       }
     </script>
@@ -72,7 +72,8 @@
 		 <li role="separator" class="divider"></li>
 		 <li><a href="{% url 'returns:inflation_new' %}">Inflation data</a></li>
 		 <li role="separator" class="divider"></li>
-		 <li><a href="{% url 'returns:add_hist_data' %}">Market data</a></li>
+		 <li><a href="{% url 'returns:update_hist_data' %}">Update valuations</a></li>
+ 		 <li><a href="{% url 'returns:add_mtm_data' %}">Market data</a></li>
 	       </ul>
 	     </li>
 	     <li class="dropdown">

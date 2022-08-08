@@ -80,7 +80,7 @@ class SecurityManager(models.Manager):
 
     def saveMultiCurrentMarkToMarketValue(self):
         # for each mark to market security get and save current value, random ordering
-        markToMarketSecurities = self.get_queryset().markToMarket().active().order_by('?')[0:5]
+        markToMarketSecurities = self.get_queryset().markToMarket().active().order_by('?')[0:10]
 
         ts = TimeSeries(key=ALPHA_VANTAGE_KEY, output_format='csv')
 
@@ -88,7 +88,16 @@ class SecurityManager(models.Manager):
             # find which is the most recent entry
             latest_date = HistValuation.objects.security(s).latest('date').date
 
+            if latest_date >= datetime.today().date():
+                # skip if already got data
+                continue
+
+            if s.symbol == '':
+                # skip if no symbol
+                continue
+
             try:
+                print("Get mark-to-market data for security ", s, file=stderr)
                 valuation = s.markToMarketMultiple(ts, latest_date)
                 for date, value in valuation:
                     HistValuation.objects.update_or_create(
@@ -216,7 +225,6 @@ class Security(models.Model):
             # if data was not retrieved, try again after short wait
             valuation = []
             while (counter < 1 and not data_retrieved):
-                up_to_date_reached = False
                 try:
                     data, meta_data = ts.get_daily(self.symbol)
                     # skip first row
@@ -232,7 +240,7 @@ class Security(models.Model):
                     #sleep(12) # wait to not exceep API max
                 except:
                     counter += 2
-                    sleep(counter)
+                    #sleep(counter)
         except:
             raise RuntimeError('Trouble getting data for security', self.name)
         return valuation
