@@ -1,6 +1,8 @@
 from datetime import datetime, date, timedelta
 from time import mktime
 
+from sys import stderr
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.template import RequestContext
 #from django.http import HttpResponse, Http404
@@ -466,9 +468,38 @@ def add_interest(request, security_id):
 
 def update_hist_data(request):
     # update security and account valuations
+
+    # restrict to data for current user
+    if (not request.user.is_authenticated) or request.user.is_superuser:
+        for u in User.objects.all():
+            for s in Security.objects.securityOwnedBy(u).order_by('?')[0:5]:
+                updateSecurityValuation(u, s.id)
+                print("Updating security valuations of ", s, " for user", u, file=stderr)
+            for a in Account.objects.accountOwnedBy(u).order_by('?')[0:5]:
+                updateAccountValuation(a.id)
+                print("Updating account valuations of ", a, " for user", u, file=stderr)
+    else:
+        curUser = request.user
+        updatedSecurities = []
+        updatedAccounts = []
+        for s in Security.objects.securityOwnedBy(curUser).order_by('?')[0:10]:
+            updateSecurityValuation(curUser, s.id)
+            updatedSecurities.append(s)
+            print("Updating security valuations of", s, "for user", curUser, file=stderr)
+        for a in Account.objects.accountOwnedBy(curUser).order_by('?')[0:5]:
+            updateAccountValuation(a.id)
+            updatedAccounts.append(a)
+            print("Updating account valuations of", a, "for user", curUser, file=stderr)
+        return render(request, 'returns/update_hist_data.html', {'updatedSecurities': updatedSecurities, 'updatedAccounts': updatedAccounts} )
+    return redirect('returns:index')
+
+def update_hist_data_all(request):
+    # update security and account valuations
     for u in User.objects.all():
         updateSecurityValuation(u)
+        print("Updating security valuations for user", u, file=stderr)
     updateAccountValuation()
+    print("Updating account valuations", file=stderr)
 
     return redirect('returns:index')
 

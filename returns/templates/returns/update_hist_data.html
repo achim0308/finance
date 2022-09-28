@@ -1,0 +1,20 @@
+{% extends 'returns/base.html' %}
+
+{% block title_block %} Status {% endblock title_block %}
+{% block body_block %}
+<h1>Updated database</h1>
+<h2>Updated securities</h2>
+<ul>
+{% for s in updatedSecurities %}
+  <li><b>{{ s.name }}:</b> {{ s.descrip }}</li>
+{% endfor %}
+</ul>
+
+<h2>Updated accounts</h2>
+<ul>
+{% for a in updatedAccounts %}
+  <li><b>{{ a.name }}</b></li>
+{% endfor %}
+</ul>
+
+{% endblock body_block %}
