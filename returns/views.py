@@ -1,5 +1,5 @@
-from datetime import datetime, date, timedelta
-from time import mktime
+from datetime import datetime, date#, timedelta
+#rom time import mktime
 
 from sys import stderr
 
@@ -14,12 +14,12 @@ from django.contrib.auth.models import User
 
 from django.db.models import Sum
 
-from moneyed import Money, get_currency
+from moneyed import Money#, get_currency
 
 from .models import Transaction, Account, Security, Inflation, SecurityValuation, AccountValuation
 from .processTransaction2 import updateSecurityValuation, updateAccountValuation, makeBarChartSegPerf, makePieChartSegPerf
-from .forms import AccountForm, SecurityForm, TransactionForm, TransactionFormForSuperuser, HistValuationForm, AddInterestForm, AddInterestFormForSuperuser, InflationForm
-from .utilities import yearsago, last_day_of_month
+from .forms import AccountForm, SecurityForm, TransactionForm, TransactionFormForSuperuser, AddInterestForm, AddInterestFormForSuperuser, InflationForm
+#from .utilities import yearsago, last_day_of_month
 
 
 @login_required
@@ -27,7 +27,7 @@ def index(request):
     account_list = Account.objects.order_by('name')
 
     security_list = Security.objects.order_by('kind','name')
-    security_valuations = SecurityValuation.objects.mostRecent()
+    security_valuations = SecurityValuation.objects#.mostRecent()
 
     transaction_list = Transaction.thobjects2.recent()
 
@@ -76,29 +76,33 @@ def index(request):
     security_delta_amount = {}
     for s in security_list:
         try:
-            amount = security_valuations.filter(security_id=s.id).aggregate(Sum('cur_value'))['cur_value__sum']
-            security_values[s.id] =  Money(
-                amount = amount,
-                currency = s.currency
-            )
+            #amount = security_valuations.filter(security_id=s.id).aggregate(Sum('cur_value'))['cur_value__sum']
+            security_values[s.id] = security_valuations.filter(security_id=s.id).order_by('-date')[0].cur_value
+            #security_values[s.id] =  Money(
+            #    amount = amount,
+            #    currency = s.currency
+            #)
         except:
             security_values[s.id] = Money(amount=0.0,currency=s.currency)
         if security_values[s.id].amount == 0:
             security_inactive[s.id] = True
             try:
-                security_delta[s.id] = Money(
-                    amount = -security_valuations.filter(security_id=s.id).aggregate(Sum('base_value'))['base_value__sum'],
-                    currency = s.currency
-                )
+                security_delta[s.id] = -security_valuations.filter(security_id=s.id).order_by('-date')[0].base_value
+                #security_delta[s.id] = Money(
+                #    #amount = -security_valuations.filter(security_id=s.id).aggregate(Sum('base_value'))['base_value__sum'],
+                #    amount = -security_valuations.filter(security_id=s.id).order_by('-date')[0].base_value,
+                #    currency = s.currency
+                #)
             except:
                 security_delta[s.id] = Money(amount=0.0,currency=s.currency)
         else:
             security_inactive[s.id] = False
-            amount = amount - security_valuations.filter(security_id=s.id).aggregate(Sum('base_value'))['base_value__sum']
-            security_delta[s.id] =  Money(
-                amount = amount,
-                currency = s.currency
-            )
+            #amount = amount - security_valuations.filter(security_id=s.id).aggregate(Sum('base_value'))['base_value__sum']
+            security_delta[s.id] = security_values[s.id] - security_valuations.filter(security_id=s.id).order_by('-date')[0].base_value
+            #security_delta[s.id] =  Money(
+            #    amount = amount,
+            #    currency = s.currency
+            #)
         security_delta_amount[s.id] = security_delta[s.id].amount
 
     info = {'account_list': account_list,
@@ -290,7 +294,7 @@ def timeperiod(request):
             data['selected_securities'] = True
             data['security_list'] = Security.objects.filter(id__in=selected_security)
         else:
-            return render(request, 'returns/select2.html', info)
+            return render(request, 'returns/select2.html', data)
 
         if request.user.is_superuser:
             data['transaction_list'] = Transaction.thobjects2\
@@ -351,7 +355,7 @@ def transaction_edit(request, transaction_id):
     transaction = get_object_or_404(Transaction, pk=transaction_id)
     if request.method == "POST":
         if request.user.is_superuser:
-            form = TransactionFormTransactionFormForSuperuser(request.POST, instance=transaction)
+            form = TransactionFormForSuperuser(request.POST, instance=transaction)
         else:
             form = TransactionForm(request.user, request.POST, instance=transaction)
         if form.is_valid():
@@ -472,21 +476,21 @@ def update_hist_data(request):
     # restrict to data for current user
     if (not request.user.is_authenticated) or request.user.is_superuser:
         for u in User.objects.all():
-            for s in Security.objects.securityOwnedBy(u).order_by('?')[0:5]:
+            for s in Security.objects.securityOwnedBy(u).active().order_by('?')[0:5]:
                 updateSecurityValuation(u, s.id)
                 print("Updating security valuations of ", s, " for user", u, file=stderr)
-            for a in Account.objects.accountOwnedBy(u).order_by('?')[0:5]:
+            for a in Account.objects.accountOwnedBy(u).active().order_by('?')[0:5]:
                 updateAccountValuation(a.id)
                 print("Updating account valuations of ", a, " for user", u, file=stderr)
     else:
         curUser = request.user
         updatedSecurities = []
         updatedAccounts = []
-        for s in Security.objects.securityOwnedBy(curUser).order_by('?')[0:10]:
+        for s in Security.objects.securityOwnedBy(curUser).active().order_by('?')[0:10]:
             updateSecurityValuation(curUser, s.id)
             updatedSecurities.append(s)
             print("Updating security valuations of", s, "for user", curUser, file=stderr)
-        for a in Account.objects.accountOwnedBy(curUser).order_by('?')[0:5]:
+        for a in Account.objects.accountOwnedBy(curUser).active().order_by('?')[0:5]:
             updateAccountValuation(a.id)
             updatedAccounts.append(a)
             print("Updating account valuations of", a, "for user", curUser, file=stderr)

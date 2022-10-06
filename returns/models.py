@@ -11,7 +11,7 @@ from sys import stderr
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import connection, models
-from django.db.models import Sum
+from django.db.models import Sum, Subquery, OuterRef
 from django.urls import reverse
 from django.utils import timezone
 
@@ -782,6 +782,7 @@ def dict_cursor(cursor):
 class ValuationQuerySet(models.QuerySet):
     def mostRecent(self):
         return self.filter(date__gte=timezone.now())#.order_by('-date')
+
 
     def getHistoricalRateOfReturn(self):
         # calculate internal rate of return for multiple time periods
