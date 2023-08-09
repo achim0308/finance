@@ -28,12 +28,17 @@ def updateSecurityValuation(owner, selectSecurityId = None):
         transactionIterator = transactionList.iterator()
         endOfTransactionList = False
         previousTransactionNotProcessed = False
-        currentDate = last_day_of_month(transactionList.first().date)
-    
+        if transactionList.first().date.day > 15:
+            currentDate = last_day_of_month(transactionList.first().date)
+        else:
+            currentDate = transactionList.first().date.replace(day=15)
     else:
         endOfTransactionList = True
-        currentDate = last_day_of_month(today)
-    
+        if today.day > 15:
+            currentDate = last_day_of_month(today)
+        else:
+            currentDate = today.replace(day=15)
+
     # set up data structure
     numSecurityObjects = Security.objects.order_by('id').last().id
     securityActive = [False for i in range(numSecurityObjects+1)]
@@ -42,7 +47,7 @@ def updateSecurityValuation(owner, selectSecurityId = None):
     curValueSecurity = [Decimal(0.0) for i in range(numSecurityObjects+1)]
     baseValueSecurity = [Decimal(0.0) for i in range(numSecurityObjects+1)]
     currencySecurity = ['' for i in range(numSecurityObjects+1)]
-    
+
     # populate using existing data
     if selectSecurityId is not None:
         listOfSecurities = Security.objects.filter(id=selectSecurityId)
@@ -72,10 +77,10 @@ def updateSecurityValuation(owner, selectSecurityId = None):
     else:
         lastDay = today.replace(day=15)
         endOfMonth = False
-    
+
     while currentDate <= lastDay:
-        
-        while not endOfTransactionList: 
+
+        while not endOfTransactionList:
             # advance iterator unless previous transaction was not processed
             if not previousTransactionNotProcessed:
                 try:
@@ -85,7 +90,7 @@ def updateSecurityValuation(owner, selectSecurityId = None):
                     break
             else:
                 previousTransactionNotProcessed = False
-            
+
             # check if transaction occurred in currently considered month
             if t.date > currentDate:
                 previousTransactionNotProcessed = True
@@ -93,7 +98,7 @@ def updateSecurityValuation(owner, selectSecurityId = None):
             # process current transaction record
             tSecurityId = t.security_id
             securityActive[tSecurityId] = True
-            
+
             # update base value
             # treat accumulated interest or matched contributions separately
             # also exclude write downs
@@ -101,7 +106,7 @@ def updateSecurityValuation(owner, selectSecurityId = None):
             if not ((t.security.accumulate_interest and (t.kind == Transaction.INTEREST or t.kind == Transaction.MATCH))
                         or t.kind == Transaction.WRITE_DOWN):
                 baseValueSecurity[tSecurityId] = baseValueSecurity[tSecurityId] - t.cashflow.amount
-            
+
             # update number of securities
             if t.security.mark_to_market:
                 numSecurity[tSecurityId] = numSecurity[tSecurityId] + t.num_transacted
@@ -115,7 +120,7 @@ def updateSecurityValuation(owner, selectSecurityId = None):
                 # -cashflow b/c sign convention for cashflows
                 elif not (t.kind == Transaction.INTEREST or t.kind == Transaction.MATCH):
                     curValueSecurity[tSecurityId] = curValueSecurity[tSecurityId] - (t.cashflow.amount - t.tax.amount - t.expense.amount)
-        
+
         # store information
         for securityId in range(1,numSecurityObjects+1):
             if securityActive[securityId] == True:
@@ -145,7 +150,7 @@ def updateSecurityValuation(owner, selectSecurityId = None):
                         'modifiedDate': today
                     },
                 )
-        
+
         # go to next date (15th of next month or last day of month)
         if endOfMonth == True:
             currentDate = mid_day_of_next_month(currentDate)
@@ -177,18 +182,24 @@ def updateAccountValuation(selectAccountId = None):
         transactionIterator = transactionList.iterator()
         endOfTransactionList = False
         previousTransactionNotProcessed = False
-        currentDate = last_day_of_month(transactionList.first().date)
+        if transactionList.first().date.day > 15:
+            currentDate = last_day_of_month(transactionList.first().date)
+        else:
+            currentDate = transactionList.first().date.replace(day=15)
 
     else:
         endOfTransactionList = False
-        currentDate = last_day_of_month(today)
-    
+        if today.day > 15:
+            currentDate = last_day_of_month(today.date)
+        else:
+            currentDate = today.replace(day=15)
+
     # construct list of all accounts that require updating
     relevantAccounts = list(set(transactionList.values_list('account_id', flat=True).order_by('account_id')))
-    
+
     # construct list of all required transactions
     transactionList = Transaction.objects.filter(account_id__in=relevantAccounts).order_by('date')
-    
+
     # set up data structure
     numSecurityObjects = Security.objects.order_by('id').last().id
     numAccountObjects = Account.objects.order_by('id').last().id
@@ -215,10 +226,10 @@ def updateAccountValuation(selectAccountId = None):
     else:
         lastDay = today.replace(day=15)
         endOfMonth = False
-    
+
     while currentDate <= lastDay:
-        
-        while not endOfTransactionList: 
+
+        while not endOfTransactionList:
             # advance iterator unless previous transaction was not processed
             if not previousTransactionNotProcessed:
                 try:
@@ -228,7 +239,7 @@ def updateAccountValuation(selectAccountId = None):
                     break
             else:
                 previousTransactionNotProcessed = False
-            
+
             # check if transaction occurred in currently considered month
             if t.date > currentDate:
                 previousTransactionNotProcessed = True
@@ -240,7 +251,7 @@ def updateAccountValuation(selectAccountId = None):
             securityActive[tPosition] = True
             securityEverActive[tPosition] = True
             accountActive[tAccountId] = True
-            
+
             # update base value
             # treat accumulated interest or matched contributions separately
             # also exclude write downs
@@ -248,7 +259,7 @@ def updateAccountValuation(selectAccountId = None):
             if not ((t.security.accumulate_interest and (t.kind == Transaction.INTEREST or t.kind == Transaction.MATCH))
                         or t.kind == Transaction.WRITE_DOWN):
                 baseValueSecurity[tPosition] = baseValueSecurity[tPosition] - t.cashflow.amount
-            
+
             # update number of securities
             if t.security.mark_to_market:
                 numSecurity[tPosition] = numSecurity[tPosition] + t.num_transacted
@@ -263,15 +274,15 @@ def updateAccountValuation(selectAccountId = None):
                 elif not (t.kind == Transaction.INTEREST or t.kind == Transaction.MATCH):
                     curValueSecurity[tPosition] = curValueSecurity[tPosition] - (t.cashflow.amount - t.tax.amount - t.expense.amount)
 
-                    
-        # store information 
+
+        # store information
         # loop over accounts
         for accountId in range(1,numAccountObjects+1):
             # check if account is active
             if accountActive[accountId] == True:
                 curValueAccount[accountId] = Money(amount=0.0, currency=currencyAccount[accountId])
                 baseValueAccount[accountId] = Money(amount=0.0, currency=currencyAccount[accountId])
-                
+
                 # loop over securities
                 for securityId in range(1,numSecurityObjects+1):
                     positionId = securityId + (accountId-1)*numSecurityObjects
@@ -289,7 +300,7 @@ def updateAccountValuation(selectAccountId = None):
                             # if all securities were sold, no longer need to update
                             if curValueSecurity[positionId] <= 0.0:
                                 securityActive[positionId] = False
-                                                
+
                         curValueAccount[accountId] = curValueAccount[accountId] + Money(amount=curValueSecurity[positionId],
                                                                                         currency=currencySecurity[securityId])
                         baseValueAccount[accountId] = baseValueAccount[accountId] + Money(amount=baseValueSecurity[positionId],
@@ -313,7 +324,7 @@ def updateAccountValuation(selectAccountId = None):
                         'modifiedDate': today
                     },
                 )
-        
+
         # go to next date (15th of next month or last day of month)
         if endOfMonth == True:
             currentDate = mid_day_of_next_month(currentDate)
@@ -361,7 +372,7 @@ def makeBarChartSegPerf(segPerf):
     chartdata = {
         'x': xdata,
     }
-    
+
     ydata = {}
     i = 1
     for s in catdata:

@@ -86,14 +86,18 @@ class SecurityManager(models.Manager):
 
         for s in markToMarketSecurities:
             # find which is the most recent entry
-            latest_date = HistValuation.objects.security(s).latest('date').date
-
-            if latest_date >= datetime.today().date():
-                # skip if already got data
-                continue
+            try:
+                latest_date = HistValuation.objects.security(s).latest('date').date
+                if latest_date >= datetime.today().date():
+                    # skip if already got data
+                    print("Skip getting data for security ", s, file=stderr)
+                    continue
+            except:
+                latest_date = (datetime.today() + timedelta(days=-30)).date()
 
             if s.symbol == '':
                 # skip if no symbol
+                print("Error (no symbol) getting data for security ", s, file=stderr)
                 continue
 
             try:
@@ -224,9 +228,9 @@ class Security(models.Model):
             data_retrieved = False
             # if data was not retrieved, try again after short wait
             valuation = []
-            while (counter < 1 and not data_retrieved):
+            while (counter < 2 and not data_retrieved):
                 try:
-                    data, meta_data = ts.get_daily(self.symbol)
+                    data, meta_data = ts.get_daily_adjusted(self.symbol)
                     # skip first row
                     next(data)
                     # extract information
@@ -239,7 +243,7 @@ class Security(models.Model):
                     data_retrieved = True
                     #sleep(12) # wait to not exceep API max
                 except:
-                    counter += 2
+                    counter += 1
                     #sleep(counter)
         except:
             raise RuntimeError('Trouble getting data for security', self.name)
