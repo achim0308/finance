@@ -230,7 +230,7 @@ class Security(models.Model):
             valuation = []
             while (counter < 2 and not data_retrieved):
                 try:
-                    data, meta_data = ts.get_daily_adjusted(self.symbol)
+                    data, meta_data = ts.get_daily(self.symbol)
                     # skip first row
                     next(data)
                     # extract information
