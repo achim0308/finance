@@ -626,17 +626,17 @@ class Transaction(models.Model):
     expense = MoneyField('expenses allocated to transaction',
                          max_digits = 10,
                          decimal_places = 2,
-                         default = '0 EUR',
-                         default_currency='EUR')
+                         default = '0 USD',
+                         default_currency='USD')
     tax = MoneyField('taxes allocated to transaction',
                      max_digits = 10,
                      decimal_places = 2,
-                     default = '0 EUR',
-                     default_currency='EUR')
+                     default = '0 USD',
+                     default_currency='USD')
     cashflow = MoneyField('cashflow during transaction (Neg.=Outgoing)',
                           max_digits = 10,
                           decimal_places = 2,
-                          default_currency='EUR')
+                          default_currency='USD')
     account = models.ForeignKey(Account,
                                 on_delete = models.PROTECT)
     num_transacted = models.DecimalField('number of securities exchanged (Neg.=Sold)',
