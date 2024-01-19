@@ -27,9 +27,9 @@ $(".clickable").click(function() {
     <thead>
       <tr>
         <th></th>
-	<th>Value</th>
-	<th>Delta</th>
-	<th></th>
+	    <th>Value</th>
+	    <th>Delta</th>
+	    <th></th>
       </tr>
     </thead>
     <tbody>
@@ -50,10 +50,23 @@ $(".clickable").click(function() {
       </tr>
       {% endfor %}
       <tr>
-        <th scope="row">Total</th>
-        <td class="text-right">{{ account_total }}</td>
-	<td class="text-right">{{ account_total_delta }}</td>
-	<td></td>
+        <th scope="row" rowspan="2">Total </th>
+        <td class="text-right"><b>{{ account_total_eur }}</b></td>
+	    {% if account_total_delta_eur.amount >= 0 %}
+	    <td class="text-right positive"><b>{{ account_total_delta_eur }}</b></td>
+	    {% else %}
+	    <td class="text-right negative"><b>{{ account_total_delta_eur }}</b></td>
+	    {% endif %}
+	    <td></td>
+      </tr>
+      <tr>
+        <td class="text-right"><b>{{ account_total_usd }}</b></td>
+	    {% if account_total_delta_usd.amount >= 0 %}
+	    <td class="text-right positive"><b>{{ account_total_delta_usd }}</b></td>
+	    {% else %}
+	    <td class="text-right negative"><b>{{ account_total_delta_usd }}</b></td>
+	    {% endif %}
+	    <td></td>
       </tr>
     </tbody>
   </table>
@@ -86,11 +99,11 @@ onclick="toggle_visibility('seg_investments');">Investments</a><button type="but
         <td>{{ security.descrip }}</td>
         <td class="text-right">{{ security_values|lookup:security.id }}</td>
         {% if security_delta_amount|lookup:security.id >= 0 %}
-	<td class="text-right positive">{{ security_delta|lookup:security.id }}</td>
-	{% else %}
-	<td class="text-right negative">{{ security_delta|lookup:security.id }}</td>
-	{% endif %}
-	<td><a href="{% url 'returns:security_edit' security_id=security.id %}"><span class="glyphicon glyphicon-pencil"></span></a></td>
+	    <td class="text-right positive">{{ security_delta|lookup:security.id }}</td>
+	    {% else %}
+	    <td class="text-right negative">{{ security_delta|lookup:security.id }}</td>
+	    {% endif %}
+	    <td><a href="{% url 'returns:security_edit' security_id=security.id %}"><span class="glyphicon glyphicon-pencil"></span></a></td>
       </tr>
       {% endfor %}
     </tbody>

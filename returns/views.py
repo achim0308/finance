@@ -63,11 +63,15 @@ def index(request):
             account_delta[a.id] = account_values[a.id] - AccountValuation.objects.filter(account_id=a.id).order_by('-date')[0].base_value
         account_delta_amount[a.id] = account_delta[a.id].amount
     try:
-        account_total = sum(account_values[a.id] for a in account_list)
-        account_total_delta = sum(account_delta[a.id] for a in account_list)
+        account_total_eur = sum(account_values[a.id] for a in account_list if a.currency == 'EUR')
+        account_total_usd = sum(account_values[a.id] for a in account_list if a.currency == 'USD')
+        account_total_delta_eur = sum(account_delta[a.id] for a in account_list if a.currency == 'EUR')
+        account_total_delta_usd = sum(account_delta[a.id] for a in account_list if a.currency == 'USD')
     except:
-        account_total = "Error"
-        account_total_delta = "Error"
+        account_total_eur = "Error"
+        account_total_usd = "Error"
+        account_total_delta_eur = "Error"
+        account_total_delta_usd = "Error"
 
     # add information about security values
     security_values = {}
@@ -109,8 +113,10 @@ def index(request):
             'account_values': account_values,
             'account_delta': account_delta,
             'account_delta_amount': account_delta_amount,
-            'account_total': account_total,
-            'account_total_delta': account_total_delta,
+            'account_total_eur': account_total_eur,
+            'account_total_usd': account_total_usd,
+            'account_total_delta_eur': account_total_delta_eur,
+            'account_total_delta_usd': account_total_delta_usd,
             'account_inactive': account_inactive,
             'security_list': security_list,
             'security_values': security_values,
