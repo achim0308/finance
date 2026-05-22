@@ -46,6 +46,7 @@ def updateSecurityValuation(owner, selectSecurityId = None):
     numSecurity = [Decimal(0.0) for i in range(numSecurityObjects+1)]
     curValueSecurity = [Decimal(0.0) for i in range(numSecurityObjects+1)]
     baseValueSecurity = [Decimal(0.0) for i in range(numSecurityObjects+1)]
+    lastUpdate = [False for i in range(numSecurityObjects+1)]
     currencySecurity = ['' for i in range(numSecurityObjects+1)]
 
     # populate using existing data
@@ -95,6 +96,7 @@ def updateSecurityValuation(owner, selectSecurityId = None):
             if t.date > currentDate:
                 previousTransactionNotProcessed = True
                 break
+
             # process current transaction record
             tSecurityId = t.security_id
             securityActive[tSecurityId] = True
@@ -120,6 +122,7 @@ def updateSecurityValuation(owner, selectSecurityId = None):
                 # -cashflow b/c sign convention for cashflows
                 elif not (t.kind == Transaction.INTEREST or t.kind == Transaction.MATCH):
                     curValueSecurity[tSecurityId] = curValueSecurity[tSecurityId] - (t.cashflow.amount - t.tax.amount - t.expense.amount)
+            #print(t.date, currentDate, lastDay, baseValueSecurity[tSecurityId])
 
         # store information
         for securityId in range(1,numSecurityObjects+1):
@@ -130,14 +133,16 @@ def updateSecurityValuation(owner, selectSecurityId = None):
                     if numSecurity[securityId] <= 0.0:
                         securityActive[securityId] = False
                         curValueSecurity[securityId] = 0.0
+                        lastUpdate[securityId] = True
                     else:
                         curValueSecurity[securityId] = numSecurity[securityId] * (HistValuation.objects.getHistValuation(securityId, currentDate).amount)
                 else:
                     # if all securities were sold, no longer need to update
                     if curValueSecurity[securityId] <= 0.0:
                         securityActive[securityId] = False
+                        lastUpdate[securityId] = True
 
-            if securityActive[securityId] == True or baseValueSecurity[securityId] != 0.0:
+            if securityActive[securityId] == True or baseValueSecurity[securityId] != 0.0 or lastUpdate[securityId]:
                 # store information, update record if possible
                 s, created = SecurityValuation.objects.update_or_create(
                     date = currentDate,
@@ -150,6 +155,7 @@ def updateSecurityValuation(owner, selectSecurityId = None):
                         'modifiedDate': today
                     },
                 )
+                lastUpdate[securityId] = False
 
         # go to next date (15th of next month or last day of month)
         if endOfMonth == True:
